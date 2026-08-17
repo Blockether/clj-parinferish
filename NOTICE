@@ -3,8 +3,16 @@ Copyright (c) 2026 Blockether
 
 Licensed under the MIT License; see LICENSE.
 
-The behaviour reproduced here originates in parinferish
-(https://github.com/oakes/parinferish) by Zach Oakes, dedicated to the public
-domain under the Unlicense (http://unlicense.org/UNLICENSE). No code was
-copied: the implementation is an independent Java rewrite of the same rules,
-and carries no obligation beyond this acknowledgement.
+The rules implemented here are Parinfer, designed by Shaun Williams
+(https://shaunlebron.github.io/parinfer/). Its reference implementation,
+https://github.com/parinfer/parinfer.js, is MIT: "Copyright (c) 2015 Shaun
+Williams and contributors".
+
+The behaviour reproduced — the three modes exactly as they answer, corner for
+corner — is that of parinferish (https://github.com/oakes/parinferish) by oakes,
+dedicated to the public domain under the Unlicense
+(http://unlicense.org/UNLICENSE).
+
+No code was copied from either project: this is an independent Java
+implementation of the same rules, and the acknowledgement above is offered, not
+required.

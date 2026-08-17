@@ -1,9 +1,11 @@
 # clj-parinferish
 
 Parinfer for Clojure source, in pure Java — a from-scratch rewrite of
-[parinferish](https://github.com/oakes/parinferish) 0.8.0 that answers exactly
-what upstream answers, **hundreds of times faster** — plus `balance`, the layer that
-decides when a repair may be written to a file at all.
+[parinferish](https://github.com/oakes/parinferish) 0.8.0 by
+[oakes](https://github.com/oakes), answering exactly what it answers, **hundreds of
+times faster** — plus `balance`, the layer that decides when a repair may be written
+to a file at all. Parinfer itself is [Shaun Williams](https://github.com/shaunlebron)'
+design; see [Credits](#credits).
 
 ```clojure
 com.blockether/parinferish {:mvn/version "0.1.0"}
@@ -170,12 +172,32 @@ clojure -T:build jar            # target/parinferish.jar
 it. Pushing a `vX.Y.Z` tag deploys that version to Clojars and cuts a GitHub
 release, and refuses to republish a version that is already there.
 
+## Credits
+
+The rules this library implements are not its own, and both authors gave them away
+before anyone asked.
+
+**Parinfer** is [Shaun Williams](https://github.com/shaunlebron)' idea and design:
+indentation and delimiters carry the same information, so an editor can infer either
+one from the other. His [interactive introduction](https://shaunlebron.github.io/parinfer/)
+is still the best explanation of why that works, and the reference implementation,
+[parinfer.js](https://github.com/parinfer/parinfer.js), is MIT — *Copyright (c) 2015
+Shaun Williams and contributors*.
+
+**[parinferish](https://github.com/oakes/parinferish)** is
+[oakes](https://github.com/oakes)' Clojure library, and it — not parinfer proper — is
+what this rewrite reproduces. It implements the three modes in its own way, and that
+way, corner for corner, is the specification here: `dev/fuzz.clj` runs his 0.8.0
+beside this implementation and compares the output byte for byte, so the behaviour
+this README documents is his. He dedicated the project to the public domain under the
+[Unlicense](http://unlicense.org/UNLICENSE), which asks for no acknowledgement at
+all. It is owed regardless.
+
+What is Blockether's here is the engine — an independent Java implementation of those
+rules, linear where the original is quadratic — and `balance`, extracted from vis. No
+upstream code was copied into either.
+
 ## License
 
-MIT — see [LICENSE](LICENSE), which every jar carries as `META-INF/LICENSE`.
-
-The behaviour reproduced here originates in
-[parinferish](https://github.com/oakes/parinferish) by Zach Oakes, dedicated to
-the public domain under the Unlicense. No code was copied: this is an
-independent Java implementation of the same rules, acknowledged in
-[NOTICE](NOTICE).
+MIT — see [LICENSE](LICENSE), which every jar carries as `META-INF/LICENSE` beside
+[NOTICE](NOTICE), where the attribution above travels with the artifact.
