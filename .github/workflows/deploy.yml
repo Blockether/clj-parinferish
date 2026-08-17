@@ -1,0 +1,57 @@
+name: Deploy
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: DeLaGuardo/setup-clojure@13.6.1
+        with:
+          cli: latest
+
+      - name: Resolve the version from the tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Refuse to republish a released version
+        id: released
+        run: |
+          url="https://repo.clojars.org/com/blockether/parinferish/${{ steps.version.outputs.version }}/parinferish-${{ steps.version.outputs.version }}.jar"
+          if curl -fsSLI "$url" > /dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "$url is already on Clojars — nothing to deploy."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test
+        if: steps.released.outputs.exists == 'false'
+        run: |
+          clojure -T:build compile-java
+          clojure -X:test
+
+      - name: Deploy to Clojars
+        if: steps.released.outputs.exists == 'false'
+        env:
+          VERSION: ${{ github.ref_name }}
+          CLOJARS_USERNAME: blockether-deployer
+          CLOJARS_PASSWORD: ${{ secrets.CLOJARS_DEPLOY_TOKEN }}
+        run: clojure -T:build deploy
+
+      - name: GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: target/parinferish.jar
+          generate_release_notes: true

@@ -1,0 +1,42 @@
+;; clj-parinferish — parinfer for Clojure source, in pure Java.
+;;
+;; A from-scratch rewrite of parinferish 0.8.0 (oakes, public domain) that keeps
+;; its behaviour token for token and drops its cost from quadratic to linear:
+;; upstream re-matched eleven anchored regexes against a freshly copied remainder
+;; string for every token, so a ten-thousand-line namespace took seconds.
+;;
+;; NO runtime dependencies at all — not even clojure.core beyond the thin facade
+;; in src/. The engine is three java/ classes with no reflection and no resources,
+;; so it needs no configuration under GraalVM native-image.
+;;
+;; The Java sources are compiled by `clojure -T:build compile-java` into
+;; target/classes, which is on :paths for local development; the published jar
+;; carries the compiled classes. Depend on the Maven coordinate, not a git one.
+{:paths ["src" "resources" "target/classes"]
+
+ :deps {}
+
+ :aliases
+ {:build
+  {:deps {io.github.clojure/tools.build {:mvn/version "0.10.9"}
+          slipset/deps-deploy           {:mvn/version "0.2.5"}}
+   :ns-default build}
+
+  ;; The differential test reads the REAL upstream parinferish and asserts the two
+  ;; agree on every file in this repo and on thousands of seeded mutations of them.
+  ;; Test scope only: it never reaches a consumer.
+  :test
+  {:extra-paths ["test" "dev"]
+   :extra-deps  {org.clojure/clojure {:mvn/version "1.12.4"}
+                 parinferish/parinferish {:mvn/version "0.8.0"}
+                 io.github.cognitect-labs/test-runner
+                 {:git/tag "v0.5.1" :git/sha "dfb30dd"}}
+   :main-opts   ["-m" "cognitect.test-runner"]
+   :exec-fn     cognitect.test-runner.api/test}
+
+  ;; `clojure -M:bench` — the numbers in the README, against upstream.
+  :bench
+  {:extra-paths ["dev"]
+   :extra-deps  {org.clojure/clojure {:mvn/version "1.12.4"}
+                 parinferish/parinferish {:mvn/version "0.8.0"}}
+   :main-opts   ["-m" "bench"]}}}
