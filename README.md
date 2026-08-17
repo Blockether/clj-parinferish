@@ -172,9 +172,10 @@ release, and refuses to republish a version that is already there.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE), which every jar carries as `META-INF/LICENSE`.
 
 The behaviour reproduced here originates in
 [parinferish](https://github.com/oakes/parinferish) by Zach Oakes, dedicated to
 the public domain under the Unlicense. No code was copied: this is an
-independent Java implementation of the same rules.
+independent Java implementation of the same rules, acknowledged in
+[NOTICE](NOTICE).

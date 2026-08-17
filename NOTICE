@@ -1,0 +1,10 @@
+clj-parinferish
+Copyright (c) 2026 Blockether
+
+Licensed under the MIT License; see LICENSE.
+
+The behaviour reproduced here originates in parinferish
+(https://github.com/oakes/parinferish) by Zach Oakes, dedicated to the public
+domain under the Unlicense (http://unlicense.org/UNLICENSE). No code was
+copied: the implementation is an independent Java rewrite of the same rules,
+and carries no obligation beyond this acknowledgement.

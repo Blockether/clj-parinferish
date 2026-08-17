@@ -69,6 +69,10 @@
                 :src-dirs ["src" "java"]
                 :pom-data (pom-data)})
   (b/copy-dir {:src-dirs ["src"] :target-dir class-dir})
+  ;; MIT asks that the notice travel with every copy, so the jar carries the
+  ;; license text itself — an audit of the artifact alone still sees the terms.
+  (b/copy-file {:src "LICENSE" :target (str class-dir "/META-INF/LICENSE")})
+  (b/copy-file {:src "NOTICE" :target (str class-dir "/META-INF/NOTICE")})
   ;; NAMESPACED version resource so it can never collide with another library's
   ;; root VERSION on a shared classpath.
   (let [vfile (io/file class-dir "com" "blockether" "parinferish" "VERSION")]
