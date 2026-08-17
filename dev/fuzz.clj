@@ -97,6 +97,7 @@
        (map #(.getPath ^java.io.File %))
        (filter #(re-find #"\.(clj|cljc|cljs|edn)$" %))
        (remove #(re-find #"/(target|\.cpcache|\.git)/" %))
+       distinct
        sort
        (mapv slurp)))
 
@@ -118,3 +119,21 @@
                            (range mutations))))]
     {:cases (+ (* 4 (count texts)) (* 4 mutations))
      :bad (vec (concat whole mutated))}))
+
+(defn -main
+  "`clojure -M:fuzz <dir>... [mutations]` — the differential over any tree of Clojure
+   source. Prints what it compared, then the first disagreements; exits non-zero when
+   there is one."
+  [& args]
+  (let [[dirs [n]] (split-with #(nil? (re-matches #"\d+" %)) args)
+        texts (sources (if (seq dirs) dirs ["src" "test" "dev"]))
+        bytes (long (reduce + (map count texts)))
+        {:keys [cases bad]} (run texts {:seed 20260610 :mutations (if n (parse-long n) 0)})]
+    (printf "%d files, %.1f MB, %d comparisons, %d disagreements%n"
+            (count texts) (/ bytes 1048576.0) cases (count bad))
+    (doseq [b (take 5 bad)]
+      (printf "%n%s %s at %s%n  upstream %s%n  ours     %s%n"
+              (:mode b) (or (:mutation b) "whole file") (:at b)
+              (pr-str (:upstream b)) (pr-str (:ours b))))
+    (flush)
+    (System/exit (if (seq bad) 1 0))))

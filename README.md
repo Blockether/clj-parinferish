@@ -102,35 +102,40 @@ repair that reaches outside the edit is guessing about code this call never saw.
 Indentation alone cannot say *where* a delimiter goes back, so the text the edit replaced
 is the better witness and is tried first: a closer dropped from the middle of a line whose
 code survived goes back in the middle, and a lost opener stops being indistinguishable from
-one closer too many. The balancer's own answer is the fallback; after it, the closers
-nothing else could place are appended at the end of the last line the call wrote, and a
-`"` the replaced text proves ended that region — which no balancer can supply — goes back
-under its own rule.
+one closer too many. The balancer's own answer is the fallback; after it come the closers
+nothing else could place, appended at the end of the last line the call wrote, and a `"` the
+replaced text proves ended that region — which no balancer can supply. The namespace
+docstring argues every rule and the order they are tried in.
 
 `changed-span` is public too: the 1-based inclusive line range in which two texts differ,
 which is the `spans` most callers want.
 
 ### Checked, not asserted
 
-`rebalance` is a decision, so it is pinned by its verdicts: 49 named cases, 88 assertions,
-each one a candidate that must be accepted, or refused for a reason the caller can act on.
-Against a corpus of 268 real Clojure files, mutated the way an edit breaks one, it ruled on
-802 requests — 255 repaired, 547 refused — verdict for verdict identical to the
-implementation this was extracted from.
+`rebalance` is a decision, so it is pinned by its verdicts: 49 named cases over 88
+assertions, each a candidate that must be accepted, or refused for a reason the caller can
+act on. The extraction from vis was gated on more than that — 802 requests over 268 real
+files and mutations of them, 255 repaired and 547 refused, verdict for verdict identical to
+the code it came from — but that comparison ended with its other half. The suite is what a
+reader can rerun.
 
 ## Compatibility
 
-The claim is exactness, so the claim is checked rather than asserted.
-`dev/fuzz.clj` runs the **real** parinferish 0.8.0 beside this implementation and
-compares the output byte for byte, in all four modes, on whole files and on
-seeded mutations of them — a dropped closer, a dropped opener, a dropped quote,
-an added closer, a deleted line, two swapped lines, a re-indented line, a
-truncation, an inserted block.
+The claim is exactness, so it is checked rather than asserted. `dev/fuzz.clj` runs the
+**real** parinferish 0.8.0 beside this implementation and compares the output byte for byte,
+in all four modes, over whole files and over seeded mutations of them — a dropped closer, a
+dropped opener, a dropped quote, an added closer, a deleted line, two swapped lines, a
+re-indented line, a truncation, an inserted block. Point it at any tree:
 
-At the last full run: **617 real Clojure files** (16.9 MB of `.clj`/`.cljs`/
-`.cljc`/`.edn`) and **3 961 mutations** of them, four modes each — **18 312
-comparisons, zero disagreements**. A smaller version of the same suite is part
-of the tests and runs in CI on every push.
+```bash
+clojure -M:fuzz ~/some/clojure/repo 2000   # directories to walk, then how many mutations
+```
+
+The run behind the claim: 446 files and 12.5 MB of Clojure — vis, spel, svar, clj-ruff and
+this repo — plus 2,000 seeded mutations of them, in every mode. **9,784 comparisons, zero
+disagreements.**
+
+CI runs the same comparison on every push, over this repo and 400 mutations of it.
 
 ### Divergences, on purpose
 
@@ -165,6 +170,7 @@ of the tests and runs in CI on every push.
 clojure -T:build compile-java   # java/ -> target/classes (needed once, and after any Java edit)
 clojure -X:test                 # unit tests + the differential suite against upstream
 clojure -M:bench                # the table above
+clojure -M:fuzz <dir>... [n]    # the same differential, over any tree
 clojure -T:build jar            # target/parinferish.jar
 ```
 

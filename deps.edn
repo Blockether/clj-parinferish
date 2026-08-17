@@ -1,18 +1,10 @@
-;; clj-parinferish — parinfer for Clojure source, in pure Java.
+;; clj-parinferish — parinfer for Clojure source, in pure Java. See README.md.
 ;;
-;; A from-scratch rewrite of parinferish 0.8.0 (oakes, public domain) that keeps
-;; its behaviour token for token and drops its cost from quadratic to linear:
-;; upstream re-matched eleven anchored regexes against a freshly copied remainder
-;; string for every token, so a ten-thousand-line namespace took seconds.
-;;
-;; NO runtime dependencies at all. The engine is three java/ classes with no reflection,
-;; no resources and no shared state, so it needs no configuration under GraalVM
-;; native-image; src/ adds only the Clojure facade and `balance`, the decision layer that
-;; says when a repair may be written, and neither reaches past clojure.core.
-;;
-;; The Java sources are compiled by `clojure -T:build compile-java` into
-;; target/classes, which is on :paths for local development; the published jar
-;; carries the compiled classes. Depend on the Maven coordinate, not a git one.
+;; No runtime dependencies: the engine is three java/ classes, src/ adds the
+;; Clojure facade and `balance`, and neither reaches past clojure.core. Compile
+;; the Java with `clojure -T:build compile-java` — it lands in target/classes,
+;; which is on :paths for development and inside the published jar. Depend on
+;; the Maven coordinate, never a git one.
 {:paths ["src" "resources" "target/classes"]
 
  :deps {}
@@ -40,4 +32,12 @@
   {:extra-paths ["dev"]
    :extra-deps  {org.clojure/clojure {:mvn/version "1.12.4"}
                  parinferish/parinferish {:mvn/version "0.8.0"}}
-   :main-opts   ["-m" "bench"]}}}
+   :main-opts   ["-m" "bench"]}
+
+  ;; `clojure -M:fuzz <dir>... [mutations]` — the same differential the tests run,
+  ;; pointed at any tree of Clojure source.
+  :fuzz
+  {:extra-paths ["dev"]
+   :extra-deps  {org.clojure/clojure {:mvn/version "1.12.4"}
+                 parinferish/parinferish {:mvn/version "0.8.0"}}
+   :main-opts   ["-m" "fuzz"]}}}

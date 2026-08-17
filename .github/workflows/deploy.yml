@@ -51,6 +51,7 @@ jobs:
         run: clojure -T:build deploy
 
       - name: GitHub release
+        if: steps.released.outputs.exists == 'false'
         uses: softprops/action-gh-release@v3
         with:
           files: target/parinferish.jar

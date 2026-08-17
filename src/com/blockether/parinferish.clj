@@ -20,8 +20,6 @@
    comes back verbatim in every mode: a file this library cannot read is a file
    it must not rewrite."
   (:refer-clojure :exclude [flatten])
-  (:require [clojure.java.io :as io]
-            [clojure.string :as str])
   (:import (com.blockether.parinferish Parinfer Parinfer$Edit Parinfer$Edit$Action Parinfer$Mode Parinfer$Result)))
 
 (def ^:private modes
@@ -79,7 +77,3 @@
            :column (.column e)
            :text   (.text e)})
         (.edits result)))
-
-(def version
-  "This library's own release number."
-  (delay (some-> (io/resource "com/blockether/parinferish/VERSION") slurp str/trim)))

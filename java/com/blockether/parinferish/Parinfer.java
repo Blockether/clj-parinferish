@@ -7,14 +7,10 @@ import java.util.Objects;
  * Parinfer for Clojure source: reads the delimiters and the indentation of a
  * file and returns the file with the delimiters (or the indentation) repaired.
  *
- * <p>This is a from-scratch Java rewrite of
- * <a href="https://github.com/oakes/parinferish">parinferish</a> 0.8.0, whose
- * behaviour it reproduces token for token. The rewrite exists for one reason:
- * upstream re-matched eleven anchored regexes against a freshly copied remainder
- * string for every token, so repairing a whole file cost time quadratic in its
- * size — seconds for a ten-thousand-line namespace. Here a single scan fills
- * primitive arrays and the repair appends copy/insert ops to one int buffer, so
- * cost is linear in the source.
+ * <p>A from-scratch Java rewrite of
+ * <a href="https://github.com/oakes/parinferish">parinferish</a> 0.8.0: the same
+ * answers token for token, in time linear in the size of the source instead of
+ * quadratic in it.
  *
  * <p>Every entry point is a pure function of its arguments: no shared state, no
  * caches, safe to call from any number of threads.
@@ -117,14 +113,9 @@ public final class Parinfer {
             this.disabled = disabled;
         }
 
-        /** The repaired source — equal to {@link #source()} when nothing changed. */
+        /** The repaired source — the input itself when nothing changed. */
         public String text() {
             return text;
-        }
-
-        /** The source as given. */
-        public String source() {
-            return source;
         }
 
         /** True when the repair changed anything. */
@@ -141,10 +132,6 @@ public final class Parinfer {
             return error;
         }
 
-        public boolean hasError() {
-            return error != null;
-        }
-
         /**
          * The insertions and removals {@link #text()} applied, in output order —
          * computed on demand, so a caller that only wants the text pays nothing.
@@ -159,24 +146,18 @@ public final class Parinfer {
         }
     }
 
-    /** One insertion or removal, positioned in the ORIGINAL source. */
-    public static final class Edit {
+    /**
+     * One insertion or removal, positioned in the ORIGINAL source.
+     *
+     * @param action whether this text was inserted or removed
+     * @param offset character offset into the original source
+     * @param line   zero-based line of {@code offset}
+     * @param column zero-based column of {@code offset}
+     * @param text   the text inserted, or the text removed
+     */
+    public record Edit(Action action, int offset, int line, int column, String text) {
 
         public enum Action { INSERT, REMOVE }
-
-        private final Action action;
-        private final int offset;
-        private final int line;
-        private final int column;
-        private final String text;
-
-        Edit(Action action, int offset, int line, int column, String text) {
-            this.action = action;
-            this.offset = offset;
-            this.line = line;
-            this.column = column;
-            this.text = text;
-        }
 
         static Edit of(Lexer lx, Action action, int offset, String text) {
             int line = 0;
@@ -188,35 +169,6 @@ public final class Parinfer {
                 }
             }
             return new Edit(action, offset, line, offset - lineStart, text);
-        }
-
-        public Action action() {
-            return action;
-        }
-
-        /** Character offset into the original source. */
-        public int offset() {
-            return offset;
-        }
-
-        /** Zero-based line of {@link #offset()} in the original source. */
-        public int line() {
-            return line;
-        }
-
-        /** Zero-based column of {@link #offset()} in the original source. */
-        public int column() {
-            return column;
-        }
-
-        /** The text inserted, or the text removed. */
-        public String text() {
-            return text;
-        }
-
-        @Override
-        public String toString() {
-            return action + " " + line + ":" + column + " " + text;
         }
     }
 }

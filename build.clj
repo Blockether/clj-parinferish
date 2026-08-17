@@ -1,8 +1,7 @@
 (ns build
-  "Build/deploy for clj-parinferish. One small jar: three compiled Java classes,
-   one Clojure namespace, and a namespaced VERSION resource."
-  (:require [clojure.java.io :as io]
-            [clojure.string :as str]
+  "Build/deploy for clj-parinferish. One small jar: three compiled Java classes
+   and one Clojure namespace."
+  (:require [clojure.string :as str]
             [clojure.tools.build.api :as b]
             [deps-deploy.deps-deploy :as dd]))
 
@@ -24,9 +23,8 @@
 
 (defn- check-version!
   "Refuse to build artifacts whose version sources disagree: the tag names the
-   Clojars coordinate, `resources/VERSION` is stamped into the namespaced
-   `com/blockether/parinferish/VERSION` resource, and drift there ships a lying
-   version string."
+   Clojars coordinate and `resources/VERSION` is what the pom declares, so drift
+   between them publishes a version nobody asked for."
   []
   (let [release (str/replace version #"-SNAPSHOT$" "")]
     (when-not (= release declared-version)
@@ -73,11 +71,6 @@
   ;; license text itself — an audit of the artifact alone still sees the terms.
   (b/copy-file {:src "LICENSE" :target (str class-dir "/META-INF/LICENSE")})
   (b/copy-file {:src "NOTICE" :target (str class-dir "/META-INF/NOTICE")})
-  ;; NAMESPACED version resource so it can never collide with another library's
-  ;; root VERSION on a shared classpath.
-  (let [vfile (io/file class-dir "com" "blockether" "parinferish" "VERSION")]
-    (io/make-parents vfile)
-    (spit vfile version))
   (b/jar {:class-dir class-dir :jar-file jar-file})
   (println "Built:" jar-file "version:" version))
 

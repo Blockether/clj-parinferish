@@ -314,8 +314,8 @@
    The comparison is per LINE, not per character: a character-level diff ends inside
    the first surviving line and would hand a repair one line of licence the edit
    never wrote. A caller that already knows which lines it wrote passes those
-   instead; this is for the structural editors, which splice a byte range and count
-   lines afterwards."
+   instead; this is for a caller that splices a byte range and counts lines
+   afterwards."
   [^String before ^String after]
   (when (not= before after)
     (let
@@ -1163,7 +1163,7 @@
    already placed — so asking it about a 12k-line file costs seconds, while the edit's own
    region costs milliseconds whatever the file's size: the difference between a repair the
    caller waits for and one it never notices. nil when the balancer has no answer or throws —
-   it is a language pack's code, and a rebalance that cannot repair still has to refuse."
+   it is the caller's own code, and a rebalance that cannot repair still has to refuse."
   ^String [balancer ^String source spans]
   (let
    [lines
@@ -1185,26 +1185,16 @@
           (str (subs source 0 a) fixed (subs source b))))
       (answer source))))
 (defn rebalance
-  "Try to make `source` — the content an edit WOULD have written, which does not
-   parse — parse, by repairing its delimiters WITHOUT letting the repair reach past
-   the caller's own lines. `spans` are `[from-line to-line]` pairs, 1-based and
-   inclusive, in `source`'s own coordinates; `parses-clean?` re-parses a candidate;
-   `balancer` is the language pack's `:balance-fn`; `subject` names whose delimiters a
-   refusal is about and defaults to the edit that produced `source` — a formatter
-   handed a WHOLE file passes its own.
+  "Try to make `source` — the content an edit WOULD have written, which does not parse —
+   parse, without letting the repair reach past the caller's own lines. Which candidates
+   are tried, in what order, and why each rule exists is this namespace's docstring.
 
-   `original` is the content this edit REPLACED, when there is one. It is the better
-   evidence and is tried FIRST: a delimiter dropped from a line whose code survived
-   goes back where that line had it, which is the only way to put a closer back in the
-   MIDDLE of a line, or to tell a lost opener from one closer too many. The balancer's
-   own answer — indentation, and nothing else — is the fallback.
-
-   Two candidates follow it, and both put what the text is MISSING at the end of the last
-   line this call wrote: `closed-at-tail` appends the closers nothing else could place, for
-   a call that wrote one region, and `requoted` puts back a `\"` the replaced text proves
-   ended that region, which no balancer can supply. Neither ever speaks in a refusal — that
-   still describes the BALANCER's answer, because it is the repair the caller can reason
-   about from what they wrote.
+   `spans` are `[from-line to-line]` pairs, 1-based and inclusive, in `source`'s own
+   coordinates; `parses-clean?` re-parses a candidate; `balancer` is the delimiter repair
+   itself, `String -> String | nil`; `original` is the content this edit REPLACED, when
+   there is one, and it is the better evidence; `subject` names whose delimiters a refusal
+   is about and defaults to the edit that produced `source` — a formatter handed a WHOLE
+   file passes its own.
 
    Answers nil when there is no balancer to ask, `{:ok? true :content S :notes [..]}`
    for a repair that may be written, and `{:ok? false :why msg}` for one that was

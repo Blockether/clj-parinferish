@@ -7,18 +7,23 @@
             [fuzz]))
 
 (def ^:private corpus
-  (delay (fuzz/sources ["src" "test" "dev" "test/resources/corpus"])))
+  ;; test/ carries the corpus files as well, so naming it twice would only
+  ;; compare them twice.
+  (delay (fuzz/sources ["src" "test" "dev"])))
 
-(deftest agrees-with-upstream-on-every-file-in-this-repo
-  (let [{:keys [cases bad]} (fuzz/run @corpus {})]
+(defn- agrees!
+  "Runs the differential over the corpus and asserts it found nothing."
+  [opts]
+  (let [{:keys [cases bad]} (fuzz/run @corpus opts)]
     (is (pos? cases))
     (is (= [] bad) (str "diverged on " (count bad) " of " cases " cases"))))
 
+(deftest agrees-with-upstream-on-every-file-in-this-repo
+  (agrees! {}))
+
 (deftest agrees-with-upstream-on-broken-files
   (testing "every way an edit breaks a file: dropped, added, moved, truncated"
-    (let [{:keys [cases bad]} (fuzz/run @corpus {:seed 20260610 :mutations 400})]
-      (is (pos? cases))
-      (is (= [] bad) (str "diverged on " (count bad) " of " cases " cases")))))
+    (agrees! {:seed 20260610 :mutations 400})))
 
 (deftest agrees-with-upstream-on-the-shapes-that-broke-it-once
   (testing "a closer inserted at the end of a collection whose last child is

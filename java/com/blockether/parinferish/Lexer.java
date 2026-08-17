@@ -29,8 +29,6 @@ final class Lexer {
      * the character through untouched instead. See README, "Divergences".
      */
     static final byte RAW = 10;
-    /** Not produced by the scanner: the parser's marker for a whole collection. */
-    static final byte COLLECTION = 11;
 
     /**
      * A lone backslash is not whitespace, but parinferish treats it as such so a

@@ -344,7 +344,7 @@
 
 (defn- rewrote
   "`rebalance` with the text the edit REPLACED and a real parse check — the evidence a
-   language pack has nothing to say about, because a repair only puts back `()[]{}`."
+   balancer has nothing to say about, because a repair only puts back `()[]{}`."
   ([original source spans] (rewrote original source nil spans))
   ([original source candidate spans]
    (balance/rebalance {:balancer (constantly candidate)

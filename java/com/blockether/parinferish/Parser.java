@@ -159,7 +159,7 @@ final class Parser {
                     case MODE_PAREN: readCollParen(i, indentChange); break;
                     default: readCollPlain(i); break;
                 }
-                rsKind = Lexer.COLLECTION;
+                rsKind = k;
                 rsColl = true;
                 rsIndent = lx.indent[i];
                 rsTok = i;
@@ -358,8 +358,9 @@ final class Parser {
     }
 
     /**
-     * Renders the ops. When paren mode hit an error it renders the source
-     * verbatim instead — a file it cannot read is a file it must not rewrite.
+     * Renders the ops. `disabled` drops every insertion and keeps the text of
+     * every removal, which is the source verbatim: a file paren mode could not
+     * read is a file it must not rewrite.
      */
     String render(boolean disabled) {
         StringBuilder sb = new StringBuilder(lx.length + 16);
