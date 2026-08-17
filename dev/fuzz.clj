@@ -35,7 +35,7 @@
             (not= (.charAt a i) (.charAt b i)) i
             :else (recur (inc i))))))
 
-(defn- window [^String s i]
+(defn- window [^String s ^long i]
   (subs s (max 0 (- i 50)) (min (count s) (+ i 50))))
 
 (defn check
@@ -63,7 +63,7 @@
         ls (vec (str/split-lines s))
         pick (fn [pred] (let [is (vec (for [i (range n) :when (pred (.charAt s i))] i))]
                           (when (seq is) (nth is (.nextInt r (count is))))))
-        without (fn [i] (str (subs s 0 i) (subs s (inc i))))]
+        without (fn [^long i] (str (subs s 0 i) (subs s (inc i))))]
     (when (and (pos? n) (seq ls))
       (case (.nextInt r 9)
         0 (when-let [i (pick #{\) \] \}})] [:drop-closer (without i)])
@@ -106,6 +106,7 @@
    whole point."
   [texts {:keys [seed mutations] :or {seed 1 mutations 0}}]
   (let [r (java.util.Random. seed)
+        mutations (long mutations)
         whole (mapcat #(check-every-mode % 0 0) texts)
         mutated (when (pos? mutations)
                   (doall

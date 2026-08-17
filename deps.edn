@@ -5,9 +5,10 @@
 ;; upstream re-matched eleven anchored regexes against a freshly copied remainder
 ;; string for every token, so a ten-thousand-line namespace took seconds.
 ;;
-;; NO runtime dependencies at all — not even clojure.core beyond the thin facade
-;; in src/. The engine is three java/ classes with no reflection and no resources,
-;; so it needs no configuration under GraalVM native-image.
+;; NO runtime dependencies at all. The engine is three java/ classes with no reflection,
+;; no resources and no shared state, so it needs no configuration under GraalVM
+;; native-image; src/ adds only the Clojure facade and `balance`, the decision layer that
+;; says when a repair may be written, and neither reaches past clojure.core.
 ;;
 ;; The Java sources are compiled by `clojure -T:build compile-java` into
 ;; target/classes, which is on :paths for local development; the published jar

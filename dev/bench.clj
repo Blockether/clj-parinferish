@@ -10,7 +10,7 @@
             [parinferish.core :as upstream])
   (:import (com.blockether.parinferish Parinfer)))
 
-(defn- ms [runs f]
+(defn- ms [^long runs f]
   (dotimes [_ (max 1 (quot runs 2))] (f))                  ; warm
   (let [start (System/nanoTime)]
     (dotimes [_ runs] (f))

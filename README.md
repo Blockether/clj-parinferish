@@ -2,7 +2,8 @@
 
 Parinfer for Clojure source, in pure Java — a from-scratch rewrite of
 [parinferish](https://github.com/oakes/parinferish) 0.8.0 that answers exactly
-what upstream answers, **hundreds of times faster**.
+what upstream answers, **hundreds of times faster** — plus `balance`, the layer that
+decides when a repair may be written to a file at all.
 
 ```clojure
 com.blockether/parinferish {:mvn/version "0.1.0"}
@@ -65,6 +66,55 @@ Parinfer.Result r = Parinfer.parse(source, Parinfer.Mode.PAREN);
 A source whose **strings** do not terminate, or that ends a line on a backslash,
 comes back verbatim in every mode. A file this library cannot read is a file it
 must not rewrite.
+
+## Balancing an edit
+
+Parinfer can always produce *a* repair. A tool that writes the result to a file needs
+the other half: whether that repair is the caller's own omission put back, or a silent
+semantic rewrite of code nobody in this call wrote. That decision is
+`com.blockether.parinferish.balance`, and it is independent of who computes the repair —
+it is HANDED a balancer, `String -> String | nil`.
+
+```clojure
+(require '[com.blockether.parinferish :as pf]
+         '[com.blockether.parinferish.balance :as balance])
+
+(balance/rebalance
+ {:balancer      #(pf/repair % {:mode :indent})  ;; String -> String | nil
+  :parses-clean? reads?                          ;; String -> boolean
+  :source        spliced                         ;; the content the edit WOULD write
+  :original      replaced                        ;; the text it replaced, when there is one
+  :spans         [[12 15]]})                     ;; 1-based inclusive lines THIS call wrote
+;; => {:ok? true :content "…" :notes ["line 14: added a closing )"]}
+;; or {:ok? false :why "a repair exists, but it also closes line 31, which this edit did not write"}
+;; or nil, when there is no balancer to ask
+```
+
+A candidate is written only when all four hold: it parses clean; it keeps the line count
+and the final newline; every line it changes lies inside an edited span; and it only
+**added** delimiters — one the caller typed is never deleted, moved or retyped, and every
+other character, whitespace and line endings included, is theirs, in order. Fail one and
+the edit is refused with its parse error intact, because a refusal is information and a
+repair that reaches outside the edit is guessing about code this call never saw.
+
+Indentation alone cannot say *where* a delimiter goes back, so the text the edit replaced
+is the better witness and is tried first: a closer dropped from the middle of a line whose
+code survived goes back in the middle, and a lost opener stops being indistinguishable from
+one closer too many. The balancer's own answer is the fallback; after it, the closers
+nothing else could place are appended at the end of the last line the call wrote, and a
+`"` the replaced text proves ended that region — which no balancer can supply — goes back
+under its own rule.
+
+`changed-span` is public too: the 1-based inclusive line range in which two texts differ,
+which is the `spans` most callers want.
+
+### Checked, not asserted
+
+`rebalance` is a decision, so it is pinned by its verdicts: 49 named cases, 88 assertions,
+each one a candidate that must be accepted, or refused for a reason the caller can act on.
+Against a corpus of 268 real Clojure files, mutated the way an edit breaks one, it ruled on
+802 requests — 255 repaired, 547 refused — verdict for verdict identical to the
+implementation this was extracted from.
 
 ## Compatibility
 
