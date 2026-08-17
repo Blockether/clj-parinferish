@@ -8,27 +8,26 @@
 (def lib 'com.blockether/parinferish)
 
 (def declared-version
-  "This library's own release number. `resources/VERSION` is the single source of
-   truth; the release tag mirrors it."
-  (str/trim (slurp "resources/VERSION")))
+  "This library's own release number. The repo-root `PARINFERISH_VERSION` file is
+   its single source of truth; the release tag mirrors it."
+  (str/trim (slurp "PARINFERISH_VERSION")))
 
 (def version
-  "VERSION env (set by CI from the release tag) wins; otherwise
-   `declared-version` tagged `-SNAPSHOT` for local builds."
-  (let [v (System/getenv "VERSION")]
-    (cond
-      (and v (str/starts-with? v "v")) (subs v 1)
-      v v
-      :else (str declared-version "-SNAPSHOT"))))
+  "What an artifact is stamped with. CI exports PARINFERISH_VERSION from the
+   release tag and publishes that exact number; every other build is a
+   `-SNAPSHOT`, so a local install cannot shadow a release in ~/.m2."
+  (if-let [tag (System/getenv "PARINFERISH_VERSION")]
+    (str/replace tag #"^v" "")
+    (str declared-version "-SNAPSHOT")))
 
 (defn- check-version!
   "Refuse to build artifacts whose version sources disagree: the tag names the
-   Clojars coordinate and `resources/VERSION` is what the pom declares, so drift
+   Clojars coordinate and `PARINFERISH_VERSION` is what the pom declares, so drift
    between them publishes a version nobody asked for."
   []
   (let [release (str/replace version #"-SNAPSHOT$" "")]
     (when-not (= release declared-version)
-      (throw (ex-info (format "version mismatch: release %s, resources/VERSION %s"
+      (throw (ex-info (format "version mismatch: tag %s, PARINFERISH_VERSION %s"
                               release declared-version)
                       {:release release :declared declared-version})))))
 

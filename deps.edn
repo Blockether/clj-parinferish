@@ -5,7 +5,7 @@
 ;; the Java with `clojure -T:build compile-java` — it lands in target/classes,
 ;; which is on :paths for development and inside the published jar. Depend on
 ;; the Maven coordinate, never a git one.
-{:paths ["src" "resources" "target/classes"]
+{:paths ["src" "target/classes"]
 
  :deps {}
 

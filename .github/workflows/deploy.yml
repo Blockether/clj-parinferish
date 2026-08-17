@@ -45,7 +45,7 @@ jobs:
       - name: Deploy to Clojars
         if: steps.released.outputs.exists == 'false'
         env:
-          VERSION: ${{ github.ref_name }}
+          PARINFERISH_VERSION: ${{ github.ref_name }}
           CLOJARS_USERNAME: blockether-deployer
           CLOJARS_PASSWORD: ${{ secrets.CLOJARS_DEPLOY_TOKEN }}
         run: clojure -T:build deploy

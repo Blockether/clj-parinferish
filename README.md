@@ -174,9 +174,9 @@ clojure -M:fuzz <dir>... [n]    # the same differential, over any tree
 clojure -T:build jar            # target/parinferish.jar
 ```
 
-`resources/VERSION` is the single source of the version; the release tag mirrors
-it. Pushing a `vX.Y.Z` tag deploys that version to Clojars and cuts a GitHub
-release, and refuses to republish a version that is already there.
+The repo-root `PARINFERISH_VERSION` file is the single source of the version; the
+release tag mirrors it. Pushing a `vX.Y.Z` tag deploys that version to Clojars and
+cuts a GitHub release, and refuses to republish a version that is already there.
 
 ## Credits
 
