@@ -182,7 +182,29 @@
                               :spans [[3 3]]})]
     (is (true? (:ok? r)))
     (is (= expected (:content r)))
-    (is (= ["line 7 removed `)` → `(is true)))`"] (:notes r)))))
+    (is (= ["line 7 removed `)` → `(is true)))`"] (:notes r))))
+  (testing "relocates every closer when the surplus mismatches an enclosing delimiter"
+    (doseq [{:keys [name original source expected]}
+            [{:name "a parenthesis inside a vector"
+              :original "(def x\n  [(foo\n    1\n    (bar\n      2))])\n"
+              :source "(def x\n  [(foo\n    1)\n    (bar\n      2))])\n"
+              :expected "(def x\n  [(foo\n    1)\n    (bar\n      2)])\n"}
+             {:name "a bracket inside a list"
+              :original "(def x\n  [[:a\n    :b\n    [:c\n      :d]]])\n"
+              :source "(def x\n  [[:a\n    :b]\n    [:c\n      :d]]])\n"
+              :expected "(def x\n  [[:a\n    :b]\n    [:c\n      :d]])\n"}
+             {:name "a brace inside a list"
+              :original "(def x\n  {:a {:b 1\n       :c 2\n       :d {:e 3\n           :f 4}}})\n"
+              :source "(def x\n  {:a {:b 1\n       :c 2}\n       :d {:e 3\n           :f 4}}})\n"
+              :expected "(def x\n  {:a {:b 1\n       :c 2}\n       :d {:e 3\n           :f 4}})\n"}]]
+      (testing name
+        (let [r (balance/rebalance {:balancer (constantly original)
+                                    :parses-clean? reads?
+                                    :source source
+                                    :original original
+                                    :spans [[3 3]]})]
+          (is (true? (:ok? r)))
+          (is (= expected (:content r))))))))
 (defn- seated
   "`rebalance` given the text the edit REPLACED, so a delimiter it dropped can go back
    where that text had it. `candidate` is the stub balancer's answer — the indentation

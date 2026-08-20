@@ -984,9 +984,9 @@
               (.charAt ^String added 0))))))))
 
 (defn- surplus-closer
-  "The only structurally unmatched closer in `source`, as its character, absolute index
-   and 1-based line. The scan may step past that one closer to prove the rest balances;
-   a second surplus, a mismatched closer, an open form or string makes the answer nil."
+  "The only structurally invalid closer in `source`, as its character, absolute index and
+   1-based line. The scan may step past that one unmatched or mismatched closer to prove the
+   rest balances; a second invalid closer, an open form or string makes the answer nil."
   [^String source]
   (let [n (long (count source))]
     (loop [i (long 0)
@@ -1014,7 +1014,10 @@
                     (= c \{) [(conj stack \}) surplus false false false]
                     (delimiter-char? c)
                     (if-let [^Character top (peek stack)]
-                      (when (= c (.charValue top)) [(pop stack) surplus false false false])
+                      (if (= c (.charValue top))
+                        [(pop stack) surplus false false false]
+                        (when-not surplus
+                          [stack {:delimiter c :index i :line line} false false false]))
                       (when-not surplus
                         [stack {:delimiter c :index i :line line} false false false]))
                     :else [stack surplus false false false])]
