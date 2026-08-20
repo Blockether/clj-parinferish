@@ -151,6 +151,38 @@
       (is (true? (:ok? r)))
       (is (= ["line 2 removed `)` → `a 1`" "line 3 added `)` → `:else 2)`"] (:notes r))))))
 
+;; Regression, issue #158: adding a closer to separate two forms was refused because the
+;; balancer removed the new closer instead of relocating the now-surplus old one.
+(deftest relocation-repair-test
+  (let [original (str "(deftest first-test\n"
+                      "  (testing \"first\"\n"
+                      "    (is true))\n"
+                      "\n"
+                      "  (deftest second-test\n"
+                      "    (testing \"second\"\n"
+                      "      (is true))))\n")
+        source (str "(deftest first-test\n"
+                    "  (testing \"first\"\n"
+                    "    (is true)))\n"
+                    "\n"
+                    "  (deftest second-test\n"
+                    "    (testing \"second\"\n"
+                    "      (is true))))\n")
+        expected (str "(deftest first-test\n"
+                      "  (testing \"first\"\n"
+                      "    (is true)))\n"
+                      "\n"
+                      "  (deftest second-test\n"
+                      "    (testing \"second\"\n"
+                      "      (is true)))\n")
+        r (balance/rebalance {:balancer (constantly original)
+                              :parses-clean? reads?
+                              :source source
+                              :original original
+                              :spans [[3 3]]})]
+    (is (true? (:ok? r)))
+    (is (= expected (:content r)))
+    (is (= ["line 7 removed `)` → `(is true)))`"] (:notes r)))))
 (defn- seated
   "`rebalance` given the text the edit REPLACED, so a delimiter it dropped can go back
    where that text had it. `candidate` is the stub balancer's answer — the indentation

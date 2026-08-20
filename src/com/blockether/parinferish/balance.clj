@@ -16,17 +16,22 @@
      1. the repaired file parses clean;
      2. it keeps the same number of lines and the same final newline;
      3. every line it changes lies inside an edited span;
-      4. it only ADDED delimiters the caller omitted — one they WROTE is never
-         deleted, moved or retyped — and every other character, whitespace and line
-         endings included, is theirs, in order.
+     4. it only ADDED delimiters the caller omitted — one they WROTE is never
+        deleted, moved or retyped — and every other character, whitespace and line
+        ending included, is theirs, in order.
 
-    Fail any one and the edit is REFUSED with its parse error intact. A repair that
-    has to reach outside the edit is guessing about code nobody in this call wrote,
-    and guessing is what produced the corruption above. DELETING a delimiter is the
-    same guess from the other side: `(-> s str/trim)` whose opening paren was lost
-    reads as `-> s str/trim)`, and dropping that surplus `)` — character for character
-    the same mistake as an honest `)` too many — writes a body of three loose symbols
-    that parses. The caller is told which of the two to look for instead.
+    Fail any add-only rule and the edit is REFUSED with its parse error intact. A repair that
+    has to reach outside the edit is normally guessing about code nobody in this call wrote,
+    and guessing is what produced the corruption above. DELETING a delimiter is the same
+    guess from the other side: `(-> s str/trim)` whose opening paren was lost reads as
+    `-> s str/trim)`, and dropping that surplus `)` — character for character the same mistake
+    as an honest `)` too many — writes a body of three loose symbols that parses.
+
+    One narrow relocation is not a guess: a clean original proves the edit added exactly one
+    closer on its own line, that closer makes exactly one matching, pre-existing closer
+    structurally surplus on an unchanged line, and removing the old closer parses cleanly.
+    The new closer is retained and the old one removed. Generic deletion remains refused:
+    without all of those witnesses, a surplus closer and a lost opener are indistinguishable.
 
    Add-only still leaves WHERE to guess: a balancer has only the caller's indentation
    to go on, so a closer omitted in the MIDDLE of a line comes back at that line's END
@@ -953,6 +958,101 @@
                           (when (not= l (nth after i)) (inc (long i)))))
           before)))
 
+(defn- single-added-closer
+  "The one closer `source` added to `original`, when it is on one edited line and no
+   other line changed its delimiters. nil for line-count changes, moves, retypes and
+   multiple additions — none gives a relocation one unambiguous cause."
+  [^String original ^String source spans]
+  (let [before (str/split-lines original)
+        after (str/split-lines source)]
+    (when (= (count before) (count after))
+      (let [changed (into []
+                          (keep-indexed
+                           (fn [i line]
+                             (let [was (delimiters line)
+                                   now (delimiters (nth after i))]
+                               (when (not= was now) [(inc (long i)) was now]))))
+                          before)]
+        (when (= 1 (count changed))
+          (let [[line was now] (first changed)
+                added (surplus now was)]
+            (when (and (inside-spans? line spans)
+                       (subsequence? was now)
+                       (= (inc (count was)) (count now))
+                       (= 1 (count added))
+                       (case (.charAt ^String added 0) (\) \] \}) true false))
+              (.charAt ^String added 0))))))))
+
+(defn- surplus-closer
+  "The only structurally unmatched closer in `source`, as its character, absolute index
+   and 1-based line. The scan may step past that one closer to prove the rest balances;
+   a second surplus, a mismatched closer, an open form or string makes the answer nil."
+  [^String source]
+  (let [n (long (count source))]
+    (loop [i (long 0)
+           line (long 1)
+           stack []
+           surplus nil
+           in-string? false
+           in-comment? false
+           escaped? false]
+      (if (>= i n)
+        (when (and surplus (empty? stack) (not in-string?)) surplus)
+        (let [c (.charAt source (int i))
+              next-line (if (= c \newline) (inc line) line)
+              state
+              (cond escaped? [stack surplus in-string? in-comment? false]
+                    in-string? (cond (= c \\) [stack surplus true false true]
+                                     (= c \") [stack surplus false false false]
+                                     :else [stack surplus true false false])
+                    in-comment? [stack surplus false (not= c \newline) false]
+                    (= c \\) [stack surplus false false true]
+                    (= c \") [stack surplus true false false]
+                    (= c \;) [stack surplus false true false]
+                    (= c \() [(conj stack \)) surplus false false false]
+                    (= c \[) [(conj stack \]) surplus false false false]
+                    (= c \{) [(conj stack \}) surplus false false false]
+                    (delimiter-char? c)
+                    (if-let [^Character top (peek stack)]
+                      (when (= c (.charValue top)) [(pop stack) surplus false false false])
+                      (when-not surplus
+                        [stack {:delimiter c :index i :line line} false false false]))
+                    :else [stack surplus false false false])]
+          (when state
+            (recur (inc i)
+                   next-line
+                   (nth state 0)
+                   (nth state 1)
+                   (nth state 2)
+                   (nth state 3)
+                   (nth state 4))))))))
+
+(defn- relocated-closer
+  "A conservative exception to add-only repair: retain the one closer this edit added and
+   remove the matching closer it made structurally surplus on an unchanged line outside
+   the edit. The original and result must both parse; every condition is required so a
+   generic surplus closer remains a refusal, never a guessed deletion."
+  [{:keys [parses-clean? ^String source ^String original spans]}]
+  (when (and (string? original)
+             (parses-clean? original)
+             (not (parses-clean? source)))
+    (when-let [added (single-added-closer original source spans)]
+      (when-let [{:keys [delimiter index line]} (surplus-closer source)]
+        (let [before (str/split-lines original)
+              now (str/split-lines source)]
+          (when (and (= added delimiter)
+                     (not (inside-spans? line spans))
+                     (< (dec (long line)) (count before))
+                     (= (nth before (dec (long line))) (nth now (dec (long line)))))
+            (let [candidate (str (subs source 0 (long index))
+                                 (subs source (inc (long index))))]
+              (when (parses-clean? candidate)
+                (let [after (str/split-lines candidate)]
+                  {:ok? true
+                   :content candidate
+                   :notes [(delimiter-note line
+                                           (nth now (dec (long line)))
+                                           (nth after (dec (long line))))]})))))))))
 (defn- verdict
   "Whether `candidate` may be written in place of `source`. Every rule is a licence the
    caller gave: their code untouched (`skeleton`), their delimiters untouched
@@ -1213,14 +1313,19 @@
       seated
       (when (seq pairs) (verdict request (reseat pairs source)))
 
+      relocated
+      (when-not (:ok? seated) (relocated-closer request))
+
       asked
-      (when-not (:ok? seated) (verdict request (balancer-answer balancer source spans)))
+      (when-not (or (:ok? seated) (:ok? relocated))
+        (verdict request (balancer-answer balancer source spans)))
 
       tailed
-      (when-not (or (:ok? seated) (:ok? asked))
+      (when-not (or (:ok? seated) (:ok? relocated) (:ok? asked))
         (verdict request (closed-at-tail spans original source)))]
 
       (cond (:ok? seated) seated
+            (:ok? relocated) relocated
             (:ok? asked) asked
             (:ok? tailed) tailed
             :else (or (requote-verdict request (requoted spans original source)) asked)))))
