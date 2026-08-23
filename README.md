@@ -8,7 +8,7 @@ to a file at all. Parinfer itself is [Shaun Williams](https://github.com/shaunle
 design; see [Credits](#credits).
 
 ```clojure
-com.blockether/parinferish {:mvn/version "0.1.1"}
+com.blockether/parinferish {:mvn/version "0.1.2"}
 ```
 
 ## Why
