@@ -411,7 +411,24 @@
 ;; is inside out, and the reader stops somewhere else entirely. The text the edit REPLACED is
 ;; the only witness that a quote ended that region, and it licenses exactly one — at the end of
 ;; the last line the edit wrote.
-(deftest requote-test
+(deftest quote-repair-test
+  ;; Regression, Vis session 6342aada: a replacement closed a multi-line docstring
+  ;; halfway through, so the parser blamed an unchanged line below the edit.
+  (testing "removes a premature quote from a rewritten docstring line"
+    (let [original
+          "(def retry-budget\n  \"Old policy line.\n   Measured evidence.\"\n  180000)\n"
+
+          source
+          "(def retry-budget\n  \"Rewritten policy line.\"\n   Measured evidence.\"\n  180000)\n"
+
+          repaired
+          "(def retry-budget\n  \"Rewritten policy line.\n   Measured evidence.\"\n  180000)\n"
+
+          r
+          (rewrote original source [[2 2]])]
+      (is (true? (:ok? r)))
+      (is (= repaired (:content r)))
+      (is (= ["line 2 removed `\"` → `\"Rewritten policy line.`"] (:notes r)))))
   ;; Regression: a replacement dropped a docstring's closing `"`, the refusal
   ;; named a line 56 lines below the edit as the one opening an unclosed string, and the same
   ;; replacement was re-sent twice before the quote was noticed.

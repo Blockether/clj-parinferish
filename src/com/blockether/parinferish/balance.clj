@@ -61,11 +61,13 @@
     added — save for a call with no replaced text to bound its own lines, where nothing short of
     closing everything they left open is a claim this namespace will make.
 
-    A dropped \" is the same mistake one character over, and no balancer can see it: a repair
-    only puts back `()[]{}`, while every string after the missing quote is inside out. Where
-    the text a region REPLACED ended with a quote and the line standing there now does not,
-    that one quote goes back at the same seat, under its own rule — never a general balancing
-    of strings, whose misplacement parses just as happily as the omission.
+    A dropped or premature \" is the same mistake one character over, and no delimiter
+    balancer can see either: every string after it is inside out. The text a region
+    REPLACED is the only witness allowed to repair one quote. A missing final quote is
+    put back at the same seat; a newly added line-end quote is removed only when the
+    clean original has exactly one fewer quote and exactly one such removal makes the
+    whole file parse. These are their own narrow rules — never general string balancing,
+    whose misplacement parses just as happily as the omission.
 
    The repair itself is not here. `rebalance` is HANDED a balancer, `String -> String |
    nil` (nil = unrepairable), and owns only the decision to TRUST its answer, so the two
@@ -1141,55 +1143,84 @@
 
 (defn- quote-added?
   "True when `after` is `before` with exactly ONE `\"` inserted and nothing else — every other
-   character theirs, in order, which is the whole change a requote may make to a line."
+   character theirs, in order, which is the whole change a quote repair may make to a line."
   [^String before ^String after]
-  (let
-   [strip
-    (fn [^String s]
-      (str/replace s "\"" ""))
+  (let [strip (fn [^String s] (str/replace s "\"" ""))
+        quotes (fn [^String s] (- (count s) (count (strip s))))]
+    (and (= (strip before) (strip after))
+         (= (inc (long (quotes before))) (long (quotes after))))))
 
-    quotes
-    (fn [^String s]
-      (- (count s) (count (strip s))))]
+(defn- quote-count
+  "The raw number of `\"` characters in `s`. A surplus-quote repair only runs when the
+   whole clean original proves the edit introduced exactly one."
+  ^long [^String s]
+  (long (count (filter #(= \" %) s))))
 
-    (and (= (strip before) (strip after)) (= (inc (long (quotes before))) (long (quotes after))))))
+(defn- unquoted
+  "`source` with its unique parse-restoring premature line-end quote removed.
+
+   The clean `original` must contain exactly one fewer quote in total, the quote must
+   end a line this call edited, and exactly one such one-character candidate may parse.
+   Those witnesses keep this syntax repair from becoming general string balancing."
+  ^String [parses-clean? spans ^String original ^String source]
+  (when (and (string? original)
+             (= (inc (quote-count original)) (quote-count source)))
+    (let [lines (terminated-lines source)
+          candidates
+          (distinct
+           (keep-indexed
+            (fn [idx ^String current]
+              (let [line (inc (long idx))
+                    ending (line-ending current)
+                    body (subs current 0 (- (count current) (count ending)))
+                    trimmed (str/trimr body)]
+                (when (and (inside-spans? line spans) (str/ends-with? trimmed "\""))
+                  (apply str
+                         (assoc lines
+                                idx
+                                (str (subs trimmed 0 (dec (count trimmed)))
+                                     (subs body (count trimmed))
+                                     ending))))))
+            lines))
+          repaired (filterv #(and (parses-clean? %) (nil? (unterminated-string %))) candidates)]
+      (when (= 1 (count repaired)) (first repaired)))))
 
 (defn- quote-note
-  "What a requote did to ONE line, in `delimiter-note`'s words: the character it put back, and
-   the line the caller now reads to check it."
-  [line-no ^String after]
-  (str "line " line-no " added `\"` → `" (excerpt after) "`"))
+  "What a one-quote repair did, and the resulting line the caller should inspect."
+  [action line-no ^String after]
+  (str "line " line-no " " action " `\"` → `" (excerpt after) "`"))
 
-(defn- requote-verdict
-  "Whether `candidate` — `source` with one `\"` put back where the text this edit replaced
-   ended with one — may be written. The parse gate every other candidate passes, and then the
-   two rules that make a quote different from a bracket: the string that was left OPEN now
-   closes, and exactly one quote was added, on ONE line, inside the lines this call wrote.
-   Answers nil when any of it fails, so the refusal the caller reads still describes the
-   balancer's own answer."
-  [{:keys [parses-clean? ^String source spans]} candidate]
+(defn- quote-verdict
+  "Whether `candidate` may be written as a one-quote repair. It must parse, preserve
+   line endings, touch one edited line, leave no string open, and make exactly the
+   quote change witnessed by `change?`."
+  [{:keys [parses-clean? ^String source spans]} candidate change? action]
   (when (and (string? candidate)
-             (unterminated-string source)
              (parses-clean? candidate)
              (nil? (unterminated-string candidate)))
-    (let
-     [before
-      (str/split-lines source)
+    (let [before (str/split-lines source)
+          after (str/split-lines ^String candidate)
+          changed (changed-lines before after)]
+      (when (= 1 (count changed))
+        (let [line (long (first changed))
+              idx (dec line)]
+          (when (and (= (str/ends-with? source "\n")
+                        (str/ends-with? ^String candidate "\n"))
+                     (inside-spans? line spans)
+                     (change? (nth before idx) (nth after idx)))
+            {:ok? true
+             :content candidate
+             :notes [(quote-note action line (nth after idx))]}))))))
 
-      after
-      (str/split-lines ^String candidate)
+(defn- requote-verdict
+  "Whether `candidate` safely adds the one quote the replaced text proves was omitted."
+  [request candidate]
+  (quote-verdict request candidate quote-added? "added"))
 
-      changed
-      (changed-lines before after)
-
-      line
-      (when (= 1 (count changed)) (long (first changed)))]
-
-      (when (and line
-                 (= (str/ends-with? source "\n") (str/ends-with? ^String candidate "\n"))
-                 (inside-spans? line spans)
-                 (quote-added? (nth before (dec (long line))) (nth after (dec (long line)))))
-        {:ok? true :content candidate :notes [(quote-note line (nth after (dec (long line))))]}))))
+(defn- unquote-verdict
+  "Whether the clean original and unique parse candidate prove one premature quote."
+  [request candidate]
+  (quote-verdict request candidate (fn [before after] (quote-added? after before)) "removed"))
 
 (def ^:private window-tries
   "How many form starts `balancer-window` reads back through before it gives up and hands the
@@ -1331,4 +1362,8 @@
             (:ok? relocated) relocated
             (:ok? asked) asked
             (:ok? tailed) tailed
-            :else (or (requote-verdict request (requoted spans original source)) asked)))))
+            :else (or (unquote-verdict
+                       request
+                       (unquoted (:parses-clean? request) spans original source))
+                      (requote-verdict request (requoted spans original source))
+                      asked)))))
