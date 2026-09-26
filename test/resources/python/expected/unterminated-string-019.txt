@@ -4,6 +4,10 @@ fix: line 1: made the string at column 106 triple-quoted (''') because its text 
 problem: line 1, column 106: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
 problem: line 3, column 7: ';' ends the statement while '(' from line 2, column 3 is still open
 problem: line 10, column 82: ')' has no opening bracket
+problem: line 10, column 151: the string from column 83 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 10, column 239: the string from column 199 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 10, column 337: the string from column 243 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 10, column 439: the string from column 385 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 10, column 460: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
 --- text after repair
 r=patch(project_root_path/'test/com/blockether/vis/container_image_test.clj',[{'from':'90:ebc','replace':'''                 text)))

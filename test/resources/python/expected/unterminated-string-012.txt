@@ -3,9 +3,14 @@ result: not repaired
 fix: line 1: added '))' at column 183 to close the brackets from line 1
 fix: line 1: turned the 'n' at column 207 back into the line break it stood for
 fix: line 1: added the missing closing ' at column 462
+problem: line 1, column 115: the string from column 112 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 125: the string from column 122 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 1, column 183: ';' ends the statement while '(' from line 1, column 12 is still open
+problem: line 1, column 207: the string from column 184 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 1, column 207: 'n' right after ''' looks like a \n that lost its backslash
-problem: line 1, column 451: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 350: the string from column 325 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 401: the string from column 368 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 412: the string from column 407 ends right before this text; if its closing quote belongs to the text, escape it
 --- text after repair
 print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.stories.tsx,[{'from':'697:570','replace':'    await expect(nextGroups).toBeInTheDocument()));'}])); sh=await shell('
 px vitest --project=storybook --run src/screens/sessions/SessionProjectGroups.stories.tsx -t "Sticky Section Headers"',cwd=project_root_path/'apps/vis-companion'); r=await sh.wait(160); print('status',r['status'],'exit',r['exit'],'tail',r['out'][-2000:])'

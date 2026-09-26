@@ -2,6 +2,7 @@ package com.blockether.parinferish.python;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -11,8 +12,9 @@ import java.util.Set;
  * Delimiter repair for Python source: strings that never close, brackets that
  * never close or close the wrong opener, a ';' inside brackets, statements
  * glued together by ';' or by a line break that lost its backslash, stray
- * backslashes, typographic quotes, quote markers around the code and single
- * braces in f-strings.
+ * backslashes, typographic quotes, quote markers around the code, single
+ * braces and fields that hold only text in f-strings, invalid escapes and
+ * quotes inside a string's text that end it early.
  *
  * <p>Each round takes the first problem, tries the few edits that could fix
  * it, rescans the text after each one and keeps the edit that leaves the
@@ -134,17 +136,22 @@ public final class Repair {
     private static final int REMOVE_MARKER = 16;
     private static final int SPLIT_STATEMENT = 17;
     private static final int RESTORE_NEWLINE = 18;
+    private static final int LITERAL_BRACES = 19;
+    private static final int DOUBLE_BACKSLASH = 20;
+    private static final int ESCAPE_QUOTES = 21;
 
     private static final String[] FIX_KINDS = {
         "triple-quote", "close-quote", "escape-quote", "extend-triple-quote", "swap-triple-quote",
         "close-triple-quote", "close-brackets", "replace-closer", "remove-closer", "remove-backslash",
         "trim-continuation", "newline-escapes", "unescape-quotes", "straight-quotes", "double-brace",
-        "remove-brace", "remove-marker", "split-statement", "restore-newline"};
+        "remove-brace", "remove-marker", "split-statement", "restore-newline", "literal-braces", "double-backslash",
+        "escape-quotes"};
 
     private static final String[] PROBLEM_KINDS = {
         "unterminated-string", "unterminated-triple-string", "unclosed-bracket", "unmatched-closer",
         "mismatched-closer", "stray-backslash", "typographic-quote", "single-brace", "semicolon-in-brackets",
-        "quote-marker", "compound-after-semicolon", "lost-newline"};
+        "quote-marker", "compound-after-semicolon", "lost-newline", "literal-brace", "invalid-escape",
+        "text-after-string"};
 
     /** A candidate: a few non-overlapping edits against the current text. */
     private static final class Cand {
@@ -331,6 +338,7 @@ public final class Repair {
             Set<Long> skipped = new HashSet<>();
             int fixed = 0;
             while (fixed < MAX_FIXES && budget > 0 && pick(skipped)) {
+                budget -= sc.count;
                 Cand best = null;
                 long[] bestScore = {score[0], score[1], -1};
                 for (Cand c : candidates()) {
@@ -495,12 +503,112 @@ public final class Repair {
                     out.add(new Cand(DOUBLE_BRACE, pPos, -1).edit(pPos, 0, "}"));
                     out.add(new Cand(REMOVE_BRACE, pPos, -1).edit(pPos, 1, ""));
                 }
+                case Scanner.FSTRING_FIELD -> literalBraces(out);
+                case Scanner.INVALID_ESCAPE -> out.add(new Cand(DOUBLE_BACKSLASH, pPos, -1).edit(pPos, 0, "\\"));
+                case Scanner.TEXT_AFTER_STRING -> quotedText(out);
                 default -> {
                     Cand c = moveClose(pLine, pOpen);
                     if (c != null) out.add(c);
                 }
             }
             return out;
+        }
+
+        /** Escapes the quote that ended a string right before the text touching it and the quote that closes
+         *  that quoted text, for every quoted word up to the real end of the string; then that first quote
+         *  alone when letters surround it, as in a contraction. When the text is an 'n' that stood for a line
+         *  break, restoring the break competes too. On a line whose source left a string of the same quotes
+         *  open, a quote is missing rather than doubled, so the quoted words are left to the repair of that string. */
+        void quotedText(List<Cand> out) {
+            if (s[pPos] == 'n') {
+                for (int k = 0; k < sc.count; k++) {
+                    if (sc.kind[k] == Scanner.LOST_NEWLINE && sc.pos[k] == pPos) {
+                        out.add(new Cand(RESTORE_NEWLINE, pPos, -1).edit(pPos, 1, "\n" + indentOf(pPos)));
+                        break;
+                    }
+                }
+            }
+            char q = s[pAt];
+            boolean triple = pPos - pAt >= 6 && s[pAt + 1] == q && s[pAt + 2] == q
+                && s[pPos - 2] == q && s[pPos - 3] == q;
+            int w = triple ? 3 : 1;
+            int limit = pPos;
+            if (triple) limit = n;
+            else while (limit < n && s[limit] != '\n') limit++;
+            int a = pPos - w;
+            boolean pairs = !openOnLine(pPos, q);
+            Cand c = new Cand(ESCAPE_QUOTES, pPos, a);
+            while (pairs && c.edits < 32) {
+                int b = delimiter(a + w, limit, q, w);
+                int e = b < 0 ? -1 : delimiter(b + w, limit, q, w);
+                budget -= (e >= 0 ? e : limit) - a;
+                if (e < 0) break;
+                c.edit(a, 0, "\\").edit(b, 0, "\\");
+                if (!sc.touches(e + w)) {
+                    out.add(c);
+                    break;
+                }
+                a = e;
+            }
+            if (w == 1 && pPos > 1 && Character.isLetter(s[pPos - 2]) && Character.isLetter(s[pPos])) {
+                out.add(new Cand(ESCAPE_QUOTE, pPos, pPos - 1).edit(pPos - 1, 0, "\\"));
+            }
+        }
+
+        /** Lines of the source that leave a string open, for strings opened with ' and with ". */
+        BitSet[] openLines;
+
+        /** Whether the source left a string that opens with {@code q} open on the line holding {@code p}. */
+        boolean openOnLine(int p, char q) {
+            if (openLines == null) {
+                openLines = new BitSet[] {new BitSet(), new BitSet()};
+                for (int k = 0; k < first.count; k++) {
+                    if (first.kind[k] != Scanner.UNTERMINATED_STRING) continue;
+                    int o = first.pos[k];
+                    while (first.s[o] != '\'' && first.s[o] != '"') o++;
+                    openLines[first.s[o] == '\'' ? 0 : 1].set(first.lineOf(first.pos[k]));
+                }
+            }
+            return openLines[q == '\'' ? 0 : 1].get(first.lineOf(toOriginal(p)));
+        }
+
+        /** The first unescaped run of {@code w} quotes {@code q} in {@code [from, limit)}, or -1. */
+        int delimiter(int from, int limit, char q, int w) {
+            for (int i = from; i < limit; i++) {
+                if (s[i] == '\\') i++;
+                else if (s[i] == q && (w == 1 || (i + 2 < limit && s[i + 1] == q && s[i + 2] == q))) return i;
+            }
+            return -1;
+        }
+
+        /** Doubles the '{' of an f-string field that holds no expression and the '}' that closes it, so
+         *  the f-string keeps them as text; then, for fields that nest braces, every brace between them too. */
+        void literalBraces(List<Cand> out) {
+            char q = s[pAt];
+            boolean triple = pAt + 2 < n && s[pAt + 1] == q && s[pAt + 2] == q;
+            int end = -1;
+            for (int p = pPos + 1, d = 0; p < n && end < 0; p++) {
+                char x = s[p];
+                if (x == '\\') {
+                    if (p + 1 < n && s[p + 1] != '{' && s[p + 1] != '}') p++;
+                } else if ((x == q && (!triple || (p + 2 < n && s[p + 1] == q && s[p + 2] == q)))
+                    || (x == '\n' && !triple)) {
+                    break;
+                } else if (x == '{') {
+                    d++;
+                } else if (x == '}' && d-- == 0) {
+                    end = p;
+                }
+            }
+            Cand c = new Cand(LITERAL_BRACES, pPos, -1).edit(pPos, 0, "{");
+            out.add(end < 0 ? c : c.edit(end, 0, "}"));
+            if (end < 0) return;
+            Cand all = new Cand(LITERAL_BRACES, pPos, -1);
+            for (int p = pPos; p <= end; p++) {
+                if (s[p] == '{' || s[p] == '}') all.edit(p, 0, String.valueOf(s[p]));
+                else if (s[p] == '\\' && s[p + 1] != '{' && s[p + 1] != '}') p++;
+            }
+            if (all.edits > 2) out.add(all);
         }
 
         /**
@@ -546,6 +654,19 @@ public final class Repair {
             int qp = quoteAt(pPos);
             char q = s[qp];
             String qs = String.valueOf(q);
+            int ls = sc.lineStart[sc.lineOf(qp)];
+            // A triple-quoted string whose text ends with the quote: the first of four quotes ended it. Tried
+            // first, since closing the string the fourth quote opened scans as clean too.
+            for (int e = qp, made = 0; e >= ls && made < 2; e--) {
+                if (s[e] != q) continue;
+                int b = e;
+                while (b > ls && s[b - 1] == q) b--;
+                if (e - b == 3 && (b == 0 || s[b - 1] != '\\')) {
+                    out.add(new Cand(ESCAPE_QUOTE, pPos, b).edit(b, 0, "\\"));
+                    made++;
+                }
+                e = b;
+            }
             int end = trimEnd(qp + 1, pAt);
             out.add(new Cand(CLOSE_QUOTE, pPos, -1).edit(end, 0, qs));
             int k = end;
@@ -555,7 +676,6 @@ public final class Repair {
                 out.add(new Cand(CLOSE_QUOTE, pPos, -1).edit(k, 0, qs));
             }
             earlierQuote(out, qp);
-            int ls = sc.lineStart[sc.lineOf(qp)];
             for (int e = qp - 1, made = 0; e > ls && made < 3; e--) {
                 if (s[e] == q && Character.isLetter(s[e + 1]) && Character.isLetter(s[e - 1])) {
                     out.add(new Cand(ESCAPE_QUOTE, pPos, e).edit(e, 0, "\\"));
@@ -986,8 +1106,30 @@ public final class Repair {
             return o - first.lineStart[first.lineOf(o)] + 1;
         }
 
+        /** Where the edits of {@code c} are: their columns when they share a line, else lines and columns; the
+         *  first and the last when there are more than four. */
+        String places(Cand c) {
+            int[] o = c.order();
+            int first = c.at[o[0]];
+            int last = c.at[o[o.length - 1]];
+            boolean one = line(first) == line(last);
+            if (o.length > 4) {
+                return one ? "from column " + column(first) + " to column " + column(last)
+                    : "from line " + line(first) + ", column " + column(first) + " to line " + line(last) + ", column "
+                        + column(last);
+            }
+            StringBuilder b = new StringBuilder(one ? "at columns " : "at ");
+            for (int k = 0; k < o.length; k++) {
+                int p = c.at[o[k]];
+                if (k > 0) b.append(k == o.length - 1 ? " and " : ", ");
+                b.append(one ? "" : "line " + line(p) + ", column ").append(column(p));
+            }
+            return b.toString();
+        }
+
         Fix describe(Cand c) {
-            int p = c.kind == ESCAPE_QUOTE || c.kind == EXTEND_TRIPLE || c.kind == SWAP_TRIPLE ? c.ref2 : c.at[0];
+            int p = c.kind == ESCAPE_QUOTE || c.kind == ESCAPE_QUOTES
+                || c.kind == EXTEND_TRIPLE || c.kind == SWAP_TRIPLE ? c.ref2 : c.at[0];
             int line = line(p);
             int col = column(p);
             String where = "line " + line + ": ";
@@ -1018,6 +1160,14 @@ public final class Repair {
                     + " with straight quotes";
                 case DOUBLE_BRACE -> where + "doubled the single '}' at column " + col + " in the f-string";
                 case REMOVE_BRACE -> where + "removed the single '}' at column " + col + " in the f-string";
+                case LITERAL_BRACES -> where + "doubled the '{' at column " + col
+                    + (c.edits == 1 ? "" : c.edits == 2 ? " and its closing '}'"
+                        : ", its closing '}' and the braces between them")
+                    + " in the f-string, which held text rather than an expression";
+                case DOUBLE_BACKSLASH -> where + "doubled the backslash at column " + col
+                    + " so the string keeps it as text instead of an invalid escape";
+                case ESCAPE_QUOTES -> where + "escaped the " + (c.edits > 4 ? c.edits + " " : "") + s[c.ref2] + " "
+                    + places(c) + " so the string keeps them as text";
                 case REMOVE_MARKER -> where + "removed the quote marker " + s[c.ref] + " at column " + column(c.ref);
                 case SPLIT_STATEMENT -> where + "moved the statement after ';' at column " + col + " onto its own line";
                 default -> where + "turned the 'n' at column " + col + " back into the line break it stood for";
@@ -1109,6 +1259,17 @@ public final class Repair {
                     + (o - sc.lineStart[ol] + 1) + " is still open";
             }
             case Scanner.FSTRING_BRACE -> where + "single '}' in an f-string; write '}}' for a literal brace";
+            case Scanner.FSTRING_FIELD -> where + "'{' opens an f-string field that holds no Python expression;"
+                + " write '{{' and '}}' for literal braces";
+            case Scanner.INVALID_ESCAPE -> where + "'\\" + s[p + 1] + "' is not a valid escape; write '\\\\" + s[p + 1]
+                + "' to keep the backslash, or use a raw string";
+            case Scanner.TEXT_AFTER_STRING -> {
+                int o = sc.at[k];
+                int ol = sc.lineOf(o);
+                yield where + "the string from " + (ol == l ? "" : "line " + (ol + 1) + ", ") + "column "
+                    + (o - sc.lineStart[ol] + 1) + " ends right before this text; if its closing quote belongs to"
+                    + " the text, escape it";
+            }
             case Scanner.MARKER -> where + "'" + s[p] + "' is a quote marker, not Python; remove it";
             case Scanner.COMPOUND_AFTER_SEMICOLON -> where
                 + "a compound statement cannot follow ';'; start it on its own line";

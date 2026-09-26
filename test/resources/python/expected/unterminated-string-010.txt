@@ -8,9 +8,9 @@ problem: line 1, column 12: '(' is never closed
 problem: line 1, column 83: '[' is never closed
 problem: line 1, column 84: '{' is never closed
 problem: line 1, column 127: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 5, column 91: the string from column 88 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 5, column 101: the string from column 98 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 5, column 134: '(' is never closed
-problem: line 31, column 16: ')' does not match '[' from line 21, column 11
-problem: line 31, column 19: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
 --- text after repair
 print(patch(project_root_path/'src/com/blockether/vis/internal/activity/core.clj',[{'from':'221:491','to':'222:539','replace':'''        state
         (if (= kind :shell) (:state (last children)) (grouped-state children))

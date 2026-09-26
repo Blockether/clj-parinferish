@@ -1,11 +1,17 @@
 cpython: line 1, column 120: invalid decimal literal
 result: not repaired
+fix: line 1: escaped the ' at columns 114, 122, 124 and 132 so the string keeps them as text
+fix: line 1: escaped the ' at columns 232, 240, 242 and 250 so the string keeps them as text
 fix: line 1: added '))' at column 340 to close the brackets from line 1
 fix: line 6: added the missing closing ''' at column 126 for the triple-quoted string from line 6
+problem: line 1, column 115: the string from column 112 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 125: the string from column 122 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 233: the string from column 230 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 243: the string from column 240 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 1, column 340: ';' ends the statement while '(' from line 1, column 12 is still open
 problem: line 6, column 119: the triple-quoted string is never closed
 --- text after repair
-print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.stories.tsx,[{'from':'612:78c','replace':'// The next project takes both sticky levels away and shows Groups even with no bands.'},{'from':'655:828','replace':'''    const nextGroups = within(next as HTMLElement).getByText('Groups').parentElement!));
+print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.stories.tsx,[{'from':\'612:78c\',\'replace\':'// The next project takes both sticky levels away and shows Groups even with no bands.'},{'from':\'655:828\',\'replace\':'''    const nextGroups = within(next as HTMLElement).getByText('Groups').parentElement!));
     const nextSessions = within(next as HTMLElement).getByText('Sessions').parentElement!;'''},{'from':'696:8c7','to':'697:c2c','replace':'''    await expect(nextGroups.getBoundingClientRect().top).toBeCloseTo(nextProject.getBoundingClientRect().bottom, 0);
     await expect(nextSessions.getBoundingClientRect().top).toBeGreaterThan(nextProject.getBoundingClientRect().bottom);
     pane.scrollTop += nextSessions.getBoundingClientRect().top - nextProject.getBoundingClientRect().bottom + 40;

@@ -3,6 +3,8 @@ result: repaired
 fix: line 1: made the string at column 138 triple-quoted (''') because its text continues onto the next lines; it now ends on line 2
 fix: line 2: made the string at column 108 triple-quoted (''') because its text continues onto the next lines; it now ends on line 3
 problem: line 1, column 138: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 2, column 90: the string from column 87 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 2, column 99: the string from column 96 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 3, column 28: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
 problem: line 6, column 136: ';' ends the statement while '{' from line 1, column 97 is still open
 --- text after repair

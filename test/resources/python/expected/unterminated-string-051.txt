@@ -1,7 +1,8 @@
 cpython: line 29, column 69: unterminated string literal (detected at line 29)
-result: not repaired
-fix: line 29: added the missing closing " at column 77
+result: repaired
+fix: line 29: added the missing closing " at column 39
 problem: line 29, column 25: '(' is never closed
+problem: line 29, column 64: the string from column 26 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 29, column 69: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
 --- text after repair
 import urllib.request, json
@@ -32,7 +33,7 @@ for name, url in targets.items():
         else:
             print("AUTHOR", (tw.get("author") or {}).get("name"), "created=", tw.get("created_at"))
             print("TEXT:", tw.get("text"))
-            med = tw.get("media) or {}) if False else (tw.get("media") or {}")
+            med = tw.get("media) or {}") if False else (tw.get("media") or {})
             print("PHOTOS", [p.get("url") for p in (med.get("photos") or [])][:4])
             print("LINKS", med.get("links"))
             print("REPLIES", tw.get("replies"), "RTS", tw.get("retweets"), "LIKES", tw.get("likes"), "VIEWS", tw.get("views"))

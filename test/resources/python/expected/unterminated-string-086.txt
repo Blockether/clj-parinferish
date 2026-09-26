@@ -1,6 +1,6 @@
 cpython: line 15, column 85: unterminated string literal (detected at line 15)
 result: repaired
-fix: line 15: added the missing closing ' at column 86
+fix: line 15: escaped the ' at column 82 that ended the string early
 problem: line 15, column 85: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
 problem: line 20, column 1: ']' does not match '{' from line 8, column 2
 --- text after repair
@@ -18,7 +18,7 @@ native_edit=await patch(spel_root/'src/com/blockether/spel/native.clj',[
           ;;
           ;; Only LEADING flags are consumed. Once a command is in `cmd-args`,
           ;; the rest belongs to that command's parser. CLI commands re-parse
-          ;; the ORIGINAL args, while native modes use values kept in :cli-flags.'''''},
+          ;; the ORIGINAL args, while native modes use values kept in :cli-flags.\''''},
  {'from':'823:288│               (and (string? nxt)\n824:7f5│                 (not (contains? native-commands nxt))\n825:7ab│                 (not (str/starts-with? ^String nxt "-")))','replace':'''              (and (string? nxt)
                 (not (contains? native-commands nxt))
                 (not (cli/known-command? nxt))

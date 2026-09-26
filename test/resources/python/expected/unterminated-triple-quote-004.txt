@@ -1,9 +1,14 @@
 cpython: line 2, column 76: unterminated triple-quoted string literal (detected at line 2)
 result: not repaired
+fix: line 1: escaped the 8 ' from column 114 to column 147 so the string keeps them as text
 fix: line 1: added '))' at column 224 to close the brackets from line 1
 fix: line 2: added the missing closing ''' at column 83 for the triple-quoted string from line 2
+problem: line 1, column 115: the string from column 112 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 125: the string from column 122 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 130: the string from column 127 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 140: the string from column 137 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 1, column 224: ';' ends the statement while '(' from line 1, column 12 is still open
 problem: line 2, column 76: the triple-quoted string is never closed
 --- text after repair
-print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.stories.tsx,[{'from':'757:f0c','to':'758:d55','replace':'''    await expect(style(groups.firstElementChild!).fontSize).toBe('11px')));
+print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.stories.tsx,[{'from':\'757:f0c\',\'to\':\'758:d55\',\'replace\':'''    await expect(style(groups.firstElementChild!).fontSize).toBe('11px')));
     await expect(style(sessions.firstElementChild!).fontSize).toBe('11px');'''}]))'''

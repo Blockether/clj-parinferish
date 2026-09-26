@@ -6,6 +6,9 @@ problem: line 1, column 6: '(' is never closed
 problem: line 1, column 12: '(' is never closed
 problem: line 1, column 32: '[' is never closed
 problem: line 1, column 163: '{' is never closed
-problem: line 1, column 606: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 285: the string from column 191 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 323: the string from column 295 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 361: the string from column 333 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 399: the string from column 371 ends right before this text; if its closing quote belongs to the text, escape it
 --- text after repair
 print(patch(p/'components.clj',[{'from':'652:1fb','replace':'      [(keymap/label-for :session-metrics) "Session metrics — context health, totals and cache"]]}'},{'from':'664:046','replace':'           ["Mouse" "Click a session in Projects · ↓ latest jumps down"]]}]) ); print(cat(p/'screen.clj',7303,7318)); print(cat(p/'screen.clj',7616,7629)); print(cat(p/'screen.clj',7773,7788)); print(grep({'query':[':select-tab-index',':close-tab','header-new-session','tab-cell!','nav-arrow!','tab-divider!','tab-group-divider!'], 'paths':[t/'screen_test.clj',t/'components_test.clj',p/'components.clj'], 'context':1}'}]))

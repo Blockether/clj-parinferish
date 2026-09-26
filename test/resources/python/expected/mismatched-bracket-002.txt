@@ -1,5 +1,6 @@
 cpython: line 2, column 85: closing parenthesis '}' does not match opening parenthesis '(' on line 1
 result: not repaired
+fix: line 1: escaped the ' at columns 111, 119, 121 and 129 so the string keeps them as text
 fix: line 1: added '))' at column 161 to close the brackets from line 1
 fix: line 2: removed the unmatched '}' at column 85
 fix: line 2: removed the unmatched ')' at column 86
@@ -15,16 +16,16 @@ fix: line 26: added '})' at column 102 to close the brackets from line 23
 fix: line 37: removed the unmatched '}' at column 3
 fix: line 37: removed the unmatched ')' at column 4
 fix: line 39: added the missing closing ''' at column 83 for the triple-quoted string from line 39
+problem: line 1, column 112: the string from column 109 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 122: the string from column 119 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 1, column 161: ';' ends the statement while '(' from line 1, column 12 is still open
 problem: line 2, column 85: '}' has no opening bracket
 problem: line 2, column 86: ')' has no opening bracket
 problem: line 5, column 31: ';' ends the statement while '{' from line 4, column 77 is still open
 problem: line 9, column 44: ';' ends the statement while '{' from line 8, column 82 is still open
 problem: line 11, column 7: '}' has no opening bracket
-problem: line 11, column 8: ')' has no opening bracket
-problem: line 12, column 5: '}' has no opening bracket
 --- text after repair
-print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.test.tsx,[{'from':'684:952','replace':'''    await user.clear(field)));
+print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.test.tsx,[{'from':\'684:952\',\'replace\':'''    await user.clear(field)));
     await user.type(field, 'Existing{Enter}');'''},{'from':'660:a6f','replace':'''  ;
 
   it('saves an inline group rename when the field loses focus', async () => {

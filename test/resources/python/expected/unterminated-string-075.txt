@@ -1,8 +1,11 @@
 cpython: line 105, column 3: unterminated string literal (detected at line 105)
 result: not repaired
-fix: line 105: made the string at column 3 triple-quoted (""") because its text continues onto the next lines; it now ends on line 111
-fix: line 113: added the missing closing ' at column 137
-fix: line 114: added the missing closing " at column 179
+fix: line 105: made the string at column 3 triple-quoted (""") because its text continues onto the next lines; it now ends on line 113
+fix: line 114: added ')}]))' at column 123 to close the brackets from line 9
+fix: line 118: removed the unmatched '}' at column 8
+fix: line 129: removed the unmatched ']' at column 118
+fix: line 129: removed the unmatched ')' at column 119
+fix: line 130: removed the unmatched ')' at column 1
 problem: line 105, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
 problem: line 106, column 40: ';' ends the statement while '(' from line 104, column 53 is still open
 problem: line 106, column 81: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
@@ -10,7 +13,7 @@ problem: line 107, column 5: ')' has no opening bracket
 problem: line 110, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
 problem: line 111, column 28: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
 problem: line 113, column 113: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
-problem: line 114, column 118: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 114, column 84: the string from column 81 ends right before this text; if its closing quote belongs to the text, escape it
 --- text after repair
 root=Path(session['workspace']['root'])
 state=root/'src/com/blockether/vis/internal/gateway/state.clj'
@@ -122,14 +125,14 @@ results=await gather(
 
 (def min-gateway-protocol
   "Oldest gateway protocol this client accepts: the mirror of
-   [[min-client-protocol]]."""
+   [[min-client-protocol]]."
   10)'''}]),
- patch(shellp,[{"from":"113:01c","to":"115:d16","replace":'''   "Invalid control character" EVERY time. The loop's wire projection clips'
-   separately, so capturing a parseable stream costs context nothing."''},{"from":"2767:936","to":"2775:4ae","replace":''';; Compact shell labels used by the live process ticker."
+ patch(shellp,[{"from""":"113:01c","to":"115:d16","replace":'''   "Invalid control character" EVERY time. The loop's wire projection clips
+   separately, so capturing a parseable stream costs context nothing."''},{"from":"2767:936","to":"2775:4ae","replace":''')}]));; Compact shell labels used by the live process ticker.
 
 (def ^:private shell-chip-max
   "Display-width-ish budget for one command in a live shell label."
-  72)''},{"from":"2784:d7c","to":"2790:633","replace":'''(defn- shell-one-line
+  72)'',{"from":"2784:d7c","to":"2790:633","replace":'''(defn- shell-one-line
   "Collapse whitespace to one trimmed line for a shell ticker preview."
   [s]
   (some-> (present-str s)
@@ -140,6 +143,6 @@ results=await gather(
   [s n]
   (let [s (str s)
         n (long n)]
-    (if (> (count s) n) (str (subs s 0 (max 0 (dec n))) "…") s)))''},{"from":"2804:551","to":"3016:383","replace":""}])
-)
+    (if (> (count s) n) (str (subs s 0 (max 0 (dec n))) "…") s)))''},{"from":"2804:551","to":"3016:383","replace":""}
+
 for x in results: print(x)

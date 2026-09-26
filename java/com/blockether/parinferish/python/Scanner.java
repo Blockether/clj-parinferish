@@ -33,6 +33,9 @@ final class Scanner {
     static final int MARKER = 9;
     static final int COMPOUND_AFTER_SEMICOLON = 10;
     static final int LOST_NEWLINE = 11;
+    static final int FSTRING_FIELD = 12;
+    static final int INVALID_ESCAPE = 13;
+    static final int TEXT_AFTER_STRING = 14;
 
     private static final String[] COMPOUND = {"def", "class", "with", "for", "while", "if", "try", "async"};
 
@@ -48,6 +51,11 @@ final class Scanner {
     private static final int F_STRING = 0;
     private static final int F_FIELD = 1;
     private static final int F_SPEC = 2;
+
+    /** What a string prefix makes of its string: an f- or t-string, raw, bytes. */
+    private static final int FORMAT = 1;
+    private static final int RAW = 2;
+    private static final int BYTES = 4;
 
     final char[] s;
     final int n;
@@ -113,6 +121,8 @@ final class Scanner {
     private int[] fQuote = new int[8];
     private int[] fBase = new int[8];
     private boolean[] fTriple = new boolean[8];
+    private boolean[] fRaw = new boolean[8];
+    private boolean[] fBad = new boolean[8];
 
     private int cursor;
     private int stmtIndent;
@@ -335,7 +345,7 @@ final class Scanner {
                 add(STRAY_BACKSLASH, i, -1, null);
                 yield i + 1;
             }
-            case '\'', '"' -> ended(string(i, i, false));
+            case '\'', '"' -> ended(touching(i, string(i, i, 0)));
             case '(', '[', '{' -> {
                 push(i, c);
                 yield i + 1;
@@ -346,12 +356,18 @@ final class Scanner {
                 yield i + 1;
             }
             case ';' -> {
-                if (frames == 0 && depth > 0) {
+                if (frames > 0) {
+                    badField();
+                } else if (depth > 0) {
                     add(SEMICOLON, i, stPos[depth - 1], openWindow());
                     depth = 0;
-                } else if (frames == 0 && compound(i + 1)) {
+                } else if (compound(i + 1)) {
                     add(COMPOUND_AFTER_SEMICOLON, i, -1, null);
                 }
+                yield i + 1;
+            }
+            case '$', '?', '`' -> {
+                if (frames > 0 && (c != '$' || !identPart(s[i - 1]))) badField();
                 yield i + 1;
             }
             case '\u2018', '\u2019', '\u201C', '\u201D' -> {
@@ -372,7 +388,7 @@ final class Scanner {
                     }
                     if (j < n && j - i <= 2 && (s[j] == '\'' || s[j] == '"')) {
                         int p = prefix(i, j);
-                        if (p >= 0) yield ended(string(i, j, p == 1));
+                        if (p >= 0) yield ended((p & FORMAT) != 0 ? string(i, j, p) : touching(j, string(i, j, p)));
                     }
                     yield j;
                 }
@@ -403,7 +419,7 @@ final class Scanner {
         return true;
     }
 
-    /** -1 when {@code [i, j)} is no string prefix, 1 for an f- or t-string, 0 otherwise. */
+    /** -1 when {@code [i, j)} is no string prefix, else its {@link #FORMAT}, {@link #RAW} and {@link #BYTES} flags. */
     private int prefix(int i, int j) {
         boolean r = false;
         boolean f = false;
@@ -432,23 +448,27 @@ final class Scanner {
                 }
             }
         }
-        return f ? 1 : 0;
+        return (f ? FORMAT : 0) | (r ? RAW : 0) | (b ? BYTES : 0);
     }
 
-    private int string(int start, int qp, boolean fmt) {
+    private int string(int start, int qp, int flags) {
         char q = s[qp];
         boolean triple = qp + 2 < n && s[qp + 1] == q && s[qp + 2] == q;
         int j = qp + (triple ? 3 : 1);
-        if (fmt) {
+        if ((flags & FORMAT) != 0) {
             frame(F_STRING, start, depth);
             fQuote[frames - 1] = qp;
             fTriple[frames - 1] = triple;
+            fRaw[frames - 1] = (flags & RAW) != 0;
             return j;
         }
+        boolean check = (flags & RAW) == 0;
+        boolean bytes = (flags & BYTES) != 0;
         boolean spans = false;
         while (j < n) {
             char c = s[j];
             if (c == '\\') {
+                if (check && j + 1 < n && escapeEnd(j, bytes) < 0) add(INVALID_ESCAPE, j, -1, null);
                 j += j + 2 < n && s[j + 1] == '\r' && s[j + 2] == '\n' ? 3 : 2;
                 continue;
             }
@@ -476,7 +496,7 @@ final class Scanner {
         int f = frames - 1;
         char c = s[i];
         char q = s[fQuote[f]];
-        if (c == '\\') return escape(i);
+        if (c == '\\') return escape(i, fRaw[f]);
         if (c == q) {
             if (!fTriple[f]) return end(f, i + 1);
             if (i + 2 < n && s[i + 1] == q && s[i + 2] == q) return end(f, i + 3);
@@ -489,6 +509,7 @@ final class Scanner {
         if (c == '{') {
             if (i + 1 < n && s[i + 1] == '{') return i + 2;
             frame(F_FIELD, i, depth);
+            if (!expressionStart(i + 1)) badField();
             return i + 1;
         }
         if (c == '}') {
@@ -511,7 +532,7 @@ final class Scanner {
             frames -= 2;
             return i + 1;
         }
-        if (c == '\\') return escape(i);
+        if (c == '\\') return escape(i, fRaw[g]);
         if (c == q) {
             if (!fTriple[g]) return end(g, i + 1);
             if (i + 2 < n && s[i + 1] == q && s[i + 2] == q) return end(g, i + 3);
@@ -524,18 +545,73 @@ final class Scanner {
         return i + 1;
     }
 
-    /** A backslash in an f-string's text escapes the next character, but never a brace. */
-    private int escape(int i) {
+    /** A backslash in an f-string's text escapes the next character, but never a brace; a valid
+     *  {@code \N{name}} takes its braces along. */
+    private int escape(int i, boolean raw) {
         int j = i + 1;
         if (j < n && (s[j] == '{' || s[j] == '}')) return j;
         if (j + 1 < n && s[j] == '\r' && s[j + 1] == '\n') return j + 2;
+        if (!raw && j < n) {
+            int e = escapeEnd(i, false);
+            if (e < 0) add(INVALID_ESCAPE, i, -1, null);
+            else if (s[j] == 'N') return e;
+        }
         return Math.min(n, j + 1);
+    }
+
+    /** Where the escape at backslash {@code i} of a string that is not raw ends, or -1 when Python
+     *  rejects it: an x, u or U escape with too few hex digits, a code point past U+10FFFF, or an N
+     *  escape without a name in braces. Bytes know only the x escape. */
+    private int escapeEnd(int i, boolean bytes) {
+        char c = s[i + 1];
+        int digits = c == 'x' ? 2 : bytes ? 0 : c == 'u' ? 4 : c == 'U' ? 8 : 0;
+        if (digits > 0) {
+            int k = i + 2;
+            long v = 0;
+            while (k < n && k < i + 2 + digits && hex(s[k]) >= 0) v = v * 16 + hex(s[k++]);
+            return k == i + 2 + digits && v <= 0x10FFFF ? k : -1;
+        }
+        if (c != 'N' || bytes) return i + 2;
+        int k = i + 3;
+        if (k > n || s[i + 2] != '{') return -1;
+        while (k < n && k < i + 131 && nameChar(s[k])) k++;
+        return k < n && s[k] == '}' && k > i + 3 ? k + 1 : -1;
+    }
+
+    private static int hex(char c) {
+        if (c >= '0' && c <= '9') return c - '0';
+        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+        return c >= 'A' && c <= 'F' ? c - 'A' + 10 : -1;
+    }
+
+    private static boolean nameChar(char c) {
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == ' ' || c == '-';
+    }
+
+    /** Whether the text at {@code p}, after spaces, can start the expression of a replacement field. */
+    private boolean expressionStart(int p) {
+        while (p < n && (s[p] == ' ' || s[p] == '\t')) p++;
+        if (p >= n) return true;
+        if (s[p] == '.') {
+            return p + 1 < n && ((s[p + 1] >= '0' && s[p + 1] <= '9')
+                || (s[p + 1] == '.' && p + 2 < n && s[p + 2] == '.'));
+        }
+        return "}:!=)],;$?`/%&|^><@".indexOf(s[p]) < 0;
+    }
+
+    /** Reports the innermost replacement field, once, as text no expression can be: literal braces
+     *  that lost their doubling. Fields inside a format spec stay as they are. */
+    private void badField() {
+        int f = frames - 1;
+        if (f < 1 || fType[f] != F_FIELD || fType[f - 1] != F_STRING || fBad[f]) return;
+        fBad[f] = true;
+        add(FSTRING_FIELD, fStart[f], fQuote[f - 1], null);
     }
 
     private int end(int f, int next) {
         depth = fBase[f];
         frames = f;
-        return next;
+        return touching(fQuote[f], next);
     }
 
     private void abandon(int f, int newline) {
@@ -600,10 +676,13 @@ final class Scanner {
             fQuote = Arrays.copyOf(fQuote, m);
             fBase = Arrays.copyOf(fBase, m);
             fTriple = Arrays.copyOf(fTriple, m);
+            fRaw = Arrays.copyOf(fRaw, m);
+            fBad = Arrays.copyOf(fBad, m);
         }
         fType[frames] = type;
         fStart[frames] = start;
         fBase[frames] = base;
+        fBad[frames] = false;
         frames++;
     }
 
@@ -646,6 +725,13 @@ final class Scanner {
         } else if (col <= stmtIndent && startsStatement(f)) {
             suspect(l, openWindow());
         }
+    }
+
+    /** A string's closing quote followed right away by a name or a number: most likely a quote inside the
+     *  text ended the string early. */
+    private int touching(int qp, int j) {
+        if (touches(j)) add(TEXT_AFTER_STRING, j, qp, null);
+        return j;
     }
 
     /** Right after a string that ran over lines, in code: a checkpoint, since its line started inside
@@ -824,6 +910,25 @@ final class Scanner {
         while (e < n && s[e] != '\n' && s[e] != '#') e++;
         while (e > from && (s[e - 1] == ' ' || s[e - 1] == '\t' || s[e - 1] == '\r')) e--;
         return e > from && s[e - 1] == ':';
+    }
+
+    /** Whether a name or a number starts at {@code j}, which Python lets touch the closing quote of a string
+     *  only as a keyword or as the prefix of the next string. */
+    boolean touches(int j) {
+        if (j >= n) return false;
+        char c = s[j];
+        if (c >= '0' && c <= '9') return true;
+        if (!identStart(c)) return false;
+        int k = j + 1;
+        while (k < n && identPart(s[k])) k++;
+        if (k < n && k - j <= 2 && (s[k] == '\'' || s[k] == '"') && prefix(j, k) >= 0) return false;
+        return switch (new String(s, j, k - j)) {
+            case "False", "None", "True", "and", "as", "assert", "async", "await", "break", "class", "continue",
+                 "def", "del", "elif", "else", "except", "finally", "for", "from", "global", "if", "import", "in",
+                 "is", "lambda", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with",
+                 "yield" -> false;
+            default -> true;
+        };
     }
 
     static boolean identStart(char c) {

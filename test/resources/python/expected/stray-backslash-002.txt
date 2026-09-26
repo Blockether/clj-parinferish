@@ -1,13 +1,11 @@
 cpython: line 1, column 593: unexpected character after line continuation character
-result: not repaired
-fix: line 1: turned the literal \n outside strings into line breaks
-fix: line 1: added '}' at column 634 to close '{' from line 1
-fix: line 1: added the missing closing ' at column 638
+result: repaired
+fix: line 1: escaped the ' at column 535 that ended the string early
 problem: line 1, column 6: '(' is never closed
 problem: line 1, column 12: '(' is never closed
+problem: line 1, column 536: the string from column 499 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 1, column 592: backslash outside a string; there it may only end a line
 problem: line 1, column 634: ']' does not match '{' from line 1, column 471
 problem: line 1, column 635: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
 --- text after repair
-print(patch(project_root_path/'build.clj',[{'from':'337:08f','to':'343:d1a','replace':'   every platform\'s JNI libs — sherpa-onnx, Microsoft ONNX Runtime, DJL\n   tokenizers and sqlite-jdbc — because the native image extracts the relevant\n   libraries at runtime. Exclude only dep-jar warts and ORT debug symbols:\n   the macOS dSYM is not needed to load the native library and adds 16 MB."\n  [;; dep-jar warts: babashka/http-client ships scratch.clj and sci ships'},{'from':'348:ef8','replace':'    ".*\\.omc/.*"\n    ;; Microsoft's macOS debug symbols do not participate in JNI loading.
-    "ai/onnxruntime/native/.*\\.dSYM/.*"}]'}]'))
+print(patch(project_root_path/'build.clj',[{'from':'337:08f','to':'343:d1a','replace':'   every platform\'s JNI libs — sherpa-onnx, Microsoft ONNX Runtime, DJL\n   tokenizers and sqlite-jdbc — because the native image extracts the relevant\n   libraries at runtime. Exclude only dep-jar warts and ORT debug symbols:\n   the macOS dSYM is not needed to load the native library and adds 16 MB."\n  [;; dep-jar warts: babashka/http-client ships scratch.clj and sci ships'},{'from':'348:ef8','replace':'    ".*\\.omc/.*"\n    ;; Microsoft\'s macOS debug symbols do not participate in JNI loading.\n    "ai/onnxruntime/native/.*\\.dSYM/.*"]'}]))

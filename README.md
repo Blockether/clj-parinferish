@@ -126,8 +126,11 @@ reader can rerun.
 quotes and brackets a language model gets wrong. It closes a string that never ends,
 replaces a closer that closes the wrong bracket, closes brackets left open, removes a
 closer nothing opened, closes the brackets a `;` interrupts and straightens
-typographic quotes. Source whose quotes and brackets balance comes back unchanged,
-even when it is not valid Python.
+typographic quotes. Inside strings, it escapes quotes that end the text too early, as
+in `print("He said "hi" to me")`, doubles the braces of an f-string field that holds
+text instead of an expression, and doubles the backslash of an escape Python rejects.
+Source in which the repair finds no problem comes back unchanged, even when it is not
+valid Python.
 
 ```clojure
 (require '[com.blockether.parinferish.python :as python])
@@ -148,9 +151,9 @@ have it. `diagnose` answers the `:problems` alone, without repairing.
 The repair makes the delimiters consistent. It cannot know whether the result is the
 program that was meant, so parse `:text` before you run it, show `:fixes` to whoever
 wrote the source, and show `:problems` when the repair cannot finish. Every call is
-bounded by the size of its input: a case of the corpus below takes 5 µs at the median
-and under 1 ms at worst, and 200 000 characters built to defeat the repair take well
-under a second.
+bounded by the size of its input: a case of the corpus below takes under 10 µs at the
+median and around 1 ms at worst, and 200 000 characters built to defeat the repair take
+well under a second.
 
 ### The corpus
 
@@ -158,7 +161,7 @@ under a second.
 from real Vis sessions: 422 that CPython refused and 39 valid ones the repair must
 leave alone. Each case has a report of what CPython said, the fixes, the problems and
 the repaired text, and the tests compare every case with its report. The repair makes
-279 of the 422 broken cases parse (66 %). To improve it, change the engine, run
+304 of the 422 broken cases parse (72 %). To improve it, change the engine, run
 `clojure -M:python-corpus` and review the diff of the reports; the corpus
 [README](test/resources/python/README.md) describes the workflow.
 

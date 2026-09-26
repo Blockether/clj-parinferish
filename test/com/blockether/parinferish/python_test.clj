@@ -70,8 +70,114 @@
             :fixes [:straight-quotes] :problems [:typographic-quote :typographic-quote]}
            (summary "print(\u201chi\u201d)\n"))))
 
+  (testing "doubles the braces of an f-string field that holds text, not an expression"
+    (let [r (py/repair "cmd = f\"ps | awk '{print $1}' {x}\"\n")]
+      (is (= "cmd = f\"ps | awk '{{print $1}}' {x}\"\n" (:text r)))
+      (is (= [{:kind :literal-braces :line 1 :column 19
+               :message "line 1: doubled the '{' at column 19 and its closing '}' in the f-string, which held text rather than an expression"}]
+             (:fixes r)))
+      (is (= [{:kind :literal-brace :line 1 :column 19
+               :message "line 1, column 19: '{' opens an f-string field that holds no Python expression; write '{{' and '}}' for literal braces"}]
+             (:problems r))))
+    (is (= {:text "js = f\"new Promise(() => {{}}) {x}\"\n" :changed? true :clean? true
+            :fixes [:literal-braces] :problems [:literal-brace]}
+           (summary "js = f\"new Promise(() => {}) {x}\"\n")))
+    (is (= {:text "cmd = f\"sed 's/ {{.*//' {x}\"\n" :changed? true :clean? true
+            :fixes [:literal-braces] :problems [:unterminated-string :literal-brace :unterminated-string]}
+           (summary "cmd = f\"sed 's/ {.*//' {x}\"\n")))
+    (is (= {:text "code = f\"(let [{{:keys [a]}} {x}] {{:b {{:c 1}}}})\"\n" :changed? true :clean? true
+            :fixes [:literal-braces :literal-braces] :problems [:literal-brace :literal-brace]}
+           (summary "code = f\"(let [{:keys [a]} {x}] {:b {:c 1}})\"\n"))))
+
+  (testing "doubles the backslash of an escape Python rejects"
+    (let [r (py/repair "s = \"a\\x\"\n")]
+      (is (= "s = \"a\\\\x\"\n" (:text r)))
+      (is (= [{:kind :invalid-escape :line 1 :column 7
+               :message "line 1, column 7: '\\x' is not a valid escape; write '\\\\x' to keep the backslash, or use a raw string"}]
+             (:problems r))))
+    (doseq [[source text] [["x = '''(= c \\x)'''\n" "x = '''(= c \\\\x)'''\n"]
+                           ["x = f\"{a}\\N\"\n" "x = f\"{a}\\\\N\"\n"]
+                           ["x = \"\\U00110000\"\n" "x = \"\\\\U00110000\"\n"]]]
+      (is (= {:text text :changed? true :clean? true :fixes [:double-backslash] :problems [:invalid-escape]}
+             (summary source))
+          source)))
+
+  (testing "escapes the quote that ended a triple-quoted string before its closing quotes"
+    (is (= {:text "run(f\"\"\"git commit -m \"{msg}\\\"\"\"\", id=\"c1\")\n" :changed? true :clean? true
+            :fixes [:escape-quote]
+            :problems [:unclosed-bracket :text-after-string :unterminated-string]}
+           (summary "run(f\"\"\"git commit -m \"{msg}\"\"\"\", id=\"c1\")\n"))))
+
+  (testing "escapes the quotes a string holds as text"
+    (let [r (py/repair "print(\"He said \"hi\" to me\")\n")]
+      (is (= "print(\"He said \\\"hi\\\" to me\")\n" (:text r)))
+      (is (= [{:kind :escape-quotes :line 1 :column 16
+               :message "line 1: escaped the \" at columns 16 and 19 so the string keeps them as text"}]
+             (:fixes r)))
+      (is (= [{:kind :text-after-string :line 1 :column 17
+               :message "line 1, column 17: the string from column 7 ends right before this text; if its closing quote belongs to the text, escape it"}]
+             (:problems r))))
+    (is (= ["line 1: escaped the \" at columns 8, 10, 16 and 18 so the string keeps them as text"]
+           (mapv :message (:fixes (py/repair "x = \"a \"p\" and \"q\" z\"\n")))))
+    (doseq [[source text problems] [["x = \"a \"p\" and \"q\" z\"\n" "x = \"a \\\"p\\\" and \\\"q\\\" z\"\n"
+                                     [:text-after-string :text-after-string]]
+                                    ["x = \"\"\"say \"\"\"hi\"\"\" now\"\"\"\n" "x = \"\"\"say \\\"\"\"hi\\\"\"\" now\"\"\"\n"
+                                     [:text-after-string]]]]
+      (is (= {:text text :changed? true :clean? true :fixes [:escape-quotes] :problems problems}
+             (summary source))
+          source))
+    (is (= {:text "print('it\\'s here')\n" :changed? true :clean? true
+            :fixes [:escape-quote]
+            :problems [:unclosed-bracket :text-after-string :unterminated-string]}
+           (summary "print('it's here')\n"))))
+
+  (testing "reports text right after a string when it has no repair for it"
+    (let [r (py/repair "x = \"a\"1\n")]
+      (is (= "x = \"a\"1\n" (:text r)))
+      (is (false? (:clean? r)))
+      (is (= [{:kind :text-after-string :line 1 :column 8
+               :message "line 1, column 8: the string from column 5 ends right before this text; if its closing quote belongs to the text, escape it"}]
+             (:problems r)))))
+
+  (testing "does not escape quotes on a line whose string is never closed"
+    (let [r (summary "x = [\"a\", \"b, \"c\"]\n")]
+      (is (some #{:text-after-string} (:problems r)))
+      (is (not-any? #{:escape-quotes} (:fixes r)))))
+
+  (testing "leaves valid f-string fields and escapes alone"
+    (doseq [source ["x = f\"{x:{w}}\"\n"
+                    "x = f\"{ x }\"\n"
+                    "x = f\"{-x}\"\n"
+                    "x = f\"{.5}\"\n"
+                    "x = f\"{...}\"\n"
+                    "x = f\"{*a,}\"\n"
+                    "x = f\"{x!r}\"\n"
+                    "x = f\"{x=}\"\n"
+                    "x = f\"{'{'}\"\n"
+                    "x = f\"\\N{EM DASH} {x}\"\n"
+                    "x = \"\\x41\\u00e9\\U0001F600\\N{em dash}\"\n"
+                    "x = b\"\\N{x} \\u\"\n"
+                    "x = r\"\\x\"\n"
+                    "x = rf\"\\x{a}\"\n"
+                    "x = f\"{a}\\\\x\"\n"]]
+      (is (= {:text source :changed? false :clean? true :fixes [] :problems []}
+             (summary source))
+          source)))
+
+  (testing "leaves a string that touches a keyword or another string alone"
+    (doseq [source ["x = \"a\"if y else\"b\"\n"
+                    "x = \"a\"or\"b\"\n"
+                    "x = 'a'not in'b'\n"
+                    "x = [s for s in \"ab\"if s]\n"
+                    "with open(\"f\")as f: pass\n"
+                    "x = \"a\"f\"{y}\"\n"
+                    "x = \"a\"rb\"c\"\n"]]
+      (is (= {:text source :changed? false :clean? true :fixes [] :problems []}
+             (summary source))
+          source)))
+
   (testing "leaves balanced source alone, even when it is not valid Python"
-    (doseq [source ["" "def f(x):\n    return [x, (x + 1)]\n" "x = 1y = 2\n"]]
+    (doseq [source ["" "def f(x):\n    return [x, (x + 1)]\n" "x = 1y = 2\n" "x = f\"{in$}\"\n"]]
       (is (= {:text source :changed? false :clean? true :fixes [] :problems []}
              (summary source))
           source))))
@@ -249,7 +355,11 @@
                                 ["triple quotes" "'''a\n" 20000]
                                 ["semicolons" "f(a; b)\n" 20000]
                                 ["f-strings" "f'{x'\n" 20000]
-                                ["backslashes" "a \\ b\n" 50000]]]
+                                ["backslashes" "a \\ b\n" 50000]
+                                ["touching text" "\"a\"x" 50000]
+                                ["inner quotes" "print(\"a \"q\" c\")\n" 20000]
+                                ["triple touching" "\"\"\"a\"\"\"x" 20000]
+                                ["contractions" "print('it's')\n" 20000]]]
       (let [s (apply str (repeat times unit))]
         (py/repair s)
         (is (< (best-nanos 2 #(py/repair s)) 2000000000) label))))

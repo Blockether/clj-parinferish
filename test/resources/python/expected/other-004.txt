@@ -3,6 +3,8 @@ result: not repaired
 fix: line 1: added the missing closing ' at column 123
 problem: line 1, column 6: '(' is never closed
 problem: line 1, column 12: '(' is never closed
+problem: line 1, column 99: the string from column 95 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 109: the string from column 105 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 1, column 120: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
 --- text after repair
 print(patch(project_root_path/'apps/vis-companion/src/components/SessionNavigator.tsx, [{'from': '61:07d', 'replace': ''}]'))

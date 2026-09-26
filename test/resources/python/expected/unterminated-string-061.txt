@@ -1,6 +1,6 @@
 cpython: line 5, column 78: unterminated string literal (detected at line 5)
 result: repaired
-fix: line 5: added the missing closing ' at column 79
+fix: line 5: escaped the ' at column 75 that ended the string early
 problem: line 1, column 17: '(' is never closed
 problem: line 5, column 78: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
 --- text after repair
@@ -8,7 +8,7 @@ sh = await shell('''cd /home/user/vis && S=diag-review-4 && \
 spel --session $S set viewport 1280 800 && \
 spel --session $S --content-boundaries open "file:///home/user/vis/apps/vis-companion/.review-dist/settings-diagnostics-review.html" && \
 spel --session $S wait --text "Log retention" && \
-spel --session $S --content-boundaries snapshot -i -c 2>&1 | sed -n '1,70p''''')
+spel --session $S --content-boundaries snapshot -i -c 2>&1 | sed -n '1,70p\'''')
 await sh.wait(120)
 print(sh.logs(80))
 sh.stop()

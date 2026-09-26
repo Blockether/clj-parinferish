@@ -1,6 +1,6 @@
 cpython: line 87, column 63: unterminated string literal (detected at line 87)
 result: repaired
-fix: line 87: added the missing closing " at column 64
+fix: line 87: escaped the " at column 60 that ended the string early
 problem: line 87, column 63: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
 problem: line 97, column 1: ']' does not match '{' from line 85, column 3
 --- text after repair
@@ -90,7 +90,7 @@ patch(str(p), [
   # asset copies
   {"from": "419:fc7", "replace": """    "vis-docs/assets/select-init.js" "assets/select-init.js"
     "vis-docs/assets/search.js" "assets/search.js"
-    "vis-docs/assets/search-init.js" "assets/search-init.js"""""},
+    "vis-docs/assets/search-init.js" "assets/search-init.js\""""},
   # static index spit
   {"from": "439:902", "replace": "      (copy-assets! out-dir)\n      (spit (io/file out-dir \"assets\" \"search.json\") (search-json :static))"},
   # live JSON route ahead of the generic resource branch

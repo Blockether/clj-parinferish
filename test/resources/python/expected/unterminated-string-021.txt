@@ -5,7 +5,10 @@ problem: line 1, column 6: '(' is never closed
 problem: line 1, column 12: '(' is never closed
 problem: line 1, column 90: '[' is never closed
 problem: line 1, column 120: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
-problem: line 2, column 472: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 2, column 150: the string from column 112 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 2, column 212: the string from column 209 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 2, column 223: the string from column 220 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 2, column 352: the string from column 316 ends right before this text; if its closing quote belongs to the text, escape it
 --- text after repair
 print(patch(project_root_path/'test/com/blockether/vis/internal/gateway/server_test.clj',[{'from':'4651:fc6','replace':'''                             :headers {"x-content-sha256" sha
                                        "content-length" (str (inc decision-assets/max-inference-upload-bytes))}'''}])); print(patch(project_root_path/'src/com/blockether/vis/internal/gateway/server.clj',[{'from':'4834:06a','replace':'  "POST /v1/systemone — explicit installed model, typed questions and action head."'}])); r=await clj.run_tests(vars=['com.blockether.vis.internal.gateway.server-test/decision-import-route-streams-with-checksum-and-never-activates-an-alias'],cwd=str(project_root_path),timeout_s=180); print(r)

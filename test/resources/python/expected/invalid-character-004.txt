@@ -1,7 +1,7 @@
 cpython: line 18, column 261: invalid character '…' (U+2026)
-result: not repaired
-fix: line 18: removed the stray backslash at column 262
-fix: line 18: removed the stray backslash at column 263
+result: repaired
+fix: line 18: escaped the " at columns 233 and 264 so the string keeps them as text
+problem: line 18, column 234: the string from column 45 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 18, column 262: backslash outside a string; there it may only end a line
 problem: line 18, column 263: backslash outside a string; there it may only end a line
 --- text after repair
@@ -22,7 +22,7 @@ results.append(patch(str(src/"dialogs.clj"),[
 ]))
 results.append(patch(str(src/"state.clj"),[
  {"from":"32:967","to":"38:8d2","replace":"   Every band on the session screen is anchored the SAME way: it may not climb\n   over the header (`[:layout :messages-top]`) and it sits ABOVE the prompt box\n   at its LIVE height (`[:layout :input-h]`, which grows with what is typed).\n   Spelling that pair out at each call site is how one band ended up glued to a\n   three-row prompt while the box under it had grown to five, so the anchor is\n   read HERE and handed to the dialog band renderer as one value."},
- {"from":"416:d35","to":"419:04d","replace":"  \"Pending-assistant placeholder for a registered slash command (`/cd …`,\n   `/voice`, …). Slash dispatch runs LOCALLY with no provider round-trip, so the\n   bubble must never claim \\"Sending request to provider…". The engine flips it to\n   `Vis is running: /<name>` the instant it emits the slash-phase chunk.\""},
+ {"from":"416:d35","to":"419:04d","replace":"  \"Pending-assistant placeholder for a registered slash command (`/cd …`,\n   `/voice`, …). Slash dispatch runs LOCALLY with no provider round-trip, so the\n   bubble must never claim \\\"Sending request to provider…\\\". The engine flips it to\n   `Vis is running: /<name>` the instant it emits the slash-phase chunk.\""},
  {"from":"458:4cd","replace":"   registered slash command (`/cd …`) runs LOCALLY with no provider round-trip,"},
  {"from":"2014:092","to":"2015:7e3","replace":"              ;; Replace the session's current workspace record after a turn that may\n              ;; have changed it (`/cd`, or a future model-managed isolation action)."},
  {"from":"5778:394","to":"5779:e87","replace":"                        ;; A turn may have changed the session's workspace (`/cd <path>`,\n                        ;; or a future model-managed isolation action)."},

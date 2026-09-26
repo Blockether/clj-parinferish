@@ -1,5 +1,6 @@
 cpython: line 1, column 129: invalid decimal literal
 result: not repaired
+fix: line 1: escaped the 8 ' from column 106 to column 141 so the string keeps them as text
 fix: line 1: replaced '}' at column 150 with ')' to match '(' from line 1
 fix: line 2: added '})' at column 67 to close the brackets from line 1
 fix: line 4: removed the unmatched '}' at column 5
@@ -10,16 +11,16 @@ fix: line 14: removed the unmatched '}' at column 18
 fix: line 14: removed the unmatched ']' at column 19
 fix: line 14: removed the unmatched ')' at column 20
 fix: line 14: removed the unmatched ')' at column 21
+problem: line 1, column 107: the string from column 104 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 118: the string from column 115 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 123: the string from column 120 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 134: the string from column 131 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 1, column 150: '}' does not match '(' from line 1, column 12
 problem: line 2, column 67: ';' ends the statement while '{' from line 1, column 158 is still open
 problem: line 4, column 5: '}' has no opening bracket
 problem: line 5, column 37: ';' ends the statement while '{' from line 4, column 112 is still open
-problem: line 8, column 9: '}' has no opening bracket
-problem: line 8, column 80: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
-problem: line 9, column 136: '}' has no opening bracket
-problem: line 9, column 137: '}' has no opening bracket
 --- text after repair
-print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.tsx,[{'from':'1314:fb3','to':'1316:53b','replace':'''    ) catch {
+print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.tsx,[{'from':\'1314:fb3\',\'to\':\'1316:53b\',\'replace\':'''    ) catch {
       setMoveFailure('That did not reach the machine. Try again.')});
       requestAnimationFrame(() => moveChoicesRef.current?.querySelector('button')?.focus());
      finally {'''},{'from':'1372:c7c','to':'1375:f4f','replace':'''        moveToGroup: (session: Session) => {

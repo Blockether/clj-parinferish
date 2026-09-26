@@ -3,6 +3,11 @@ result: not repaired
 fix: line 1: added the missing closing ' at column 678
 problem: line 1, column 6: '(' is never closed
 problem: line 1, column 12: '(' is never closed
-problem: line 1, column 665: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 112: the string from column 109 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 123: the string from column 120 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 128: the string from column 125 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 139: the string from column 136 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 201: the string from column 146 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 238: the string from column 207 ends right before this text; if its closing quote belongs to the text, escape it
 --- text after repair
 print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.test.tsx,[{'from':'1246:532','to':'1247:3a6','replace':"    );\n    expect(within((await screen.findByText('Groups')).parentElement!).getByText('Archived')).toHaveClass(\n      'font-mono', 'text-ui', 'text-white',\n    );\n    expect(within(steps).getByText('Page 2 of 3')).toBeInTheDocument();"},{'from':'1262:dc5','replace':"    await waitFor(() => expect(within(steps).getByText('Page 2 of 3')).toBeInTheDocument());\n    expect(within((await screen.findByText('Sessions')).parentElement!).getByText('Archived')).toHaveClass(\n      'font-mono', 'text-ui', 'text-white',\n    );"}]'))

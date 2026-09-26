@@ -1,2 +1,6 @@
 cpython: line 1, column 20: invalid syntax. Perhaps you forgot a comma?
 result: not repaired
+fix: line 1: escaped the " at columns 156 and 169 so the string keeps them as text
+problem: line 1, column 157: the string from column 20 ends right before this text; if its closing quote belongs to the text, escape it
+--- text after repair
+r=await uplink.run("systemd-run --quiet --wait --collect --pipe -p MemoryMax=512M -p CPUQuota=100% /bin/sh -c 'CG=$(cut -d: -f3 /proc/self/cgroup); printf \"path=%s max=\" "$CG"; cat "/sys/fs/cgroup$CG/memory.max"'",timeout_s=20); print(r.exit_code,r.stdout,r.stderr)

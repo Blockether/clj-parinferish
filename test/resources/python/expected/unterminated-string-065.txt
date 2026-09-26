@@ -1,7 +1,9 @@
 cpython: line 24, column 3: unterminated string literal (detected at line 24)
 result: not repaired
+fix: line 17: escaped the ' at line 17, column 62 and line 19, column 71 so the string keeps them as text
 fix: line 24: made the string at column 3 triple-quoted (""") because its text continues onto the next lines; it now ends on line 31
 fix: line 31: added ')' at column 90 to close '(' from line 23
+problem: line 17, column 65: the string from line 7, column 80 ends right before this text; if its closing quote belongs to the text, escape it
 problem: line 24, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
 problem: line 29, column 71: ';' ends the statement while '(' from line 23, column 110 is still open
 problem: line 30, column 54: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
@@ -23,9 +25,9 @@ No system package, helper executable, `PATH` entry, or operator install is requi
 loads the platform library adjacent to `libvispython`; the library applies Seatbelt or
 bubblewrap before the child command starts. On Linux, a filtered proxy policy currently
 uses a private network namespace with no route, so it fails closed rather than exposing
-direct egress.''},{"from":"248:e92","to":"250:d1f","replace":'''4. If startup reports a missing enforcer, verify that the selected Python runtime
+direct egress.''},{"from":"248:e92","to":"250:d1f","replace":\'''4. If startup reports a missing enforcer, verify that the selected Python runtime
    contains the matching `libvisjail` platform library.
-5. An enabled jail that cannot be enforced refuses to start the child.'''}],
+5. An enabled jail that cannot be enforced refuses to start the child.\'''}],
 root+'/src/com/blockether/vis/internal/paths.clj':[{"from":"120:2b8","to":"124:824","replace":'''(def ^:private log-roles
   "Every vis writer whose diagnostics land in `~/.vis/logs`."
   process-roles)'''}],

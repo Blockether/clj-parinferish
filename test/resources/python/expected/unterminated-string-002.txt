@@ -10,9 +10,9 @@ problem: line 1, column 87: '(' is never closed
 problem: line 1, column 90: '[' is never closed
 problem: line 1, column 207: '{' is never closed
 problem: line 1, column 252: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
-problem: line 15, column 136: '(' is never closed
-problem: line 17, column 44: '(' is never closed
-problem: line 19, column 41: '(' is never closed
+problem: line 4, column 111: the string from column 108 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 4, column 122: the string from column 119 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 4, column 127: the string from column 124 ends right before this text; if its closing quote belongs to the text, escape it
 --- text after repair
 p=project_root_path/'apps/vis-tui/src/com/blockether/vis/tui/dialogs.clj'; print(patch(p,[{'from':'1854:afa','replace':'      (fn [{:keys [selected query] :as state} key {:keys [total filtered list-h]}]'}, {'from':'1860:b15','to':'1861:092','replace':'''              KeyType/ArrowUp (assoc state :selected (clampf (dec (long selected))))
               KeyType/ArrowDown (assoc state :selected (clampf (inc (long selected))))

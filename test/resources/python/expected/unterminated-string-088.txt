@@ -1,6 +1,6 @@
 cpython: line 28, column 31: unterminated string literal (detected at line 28)
 result: repaired
-fix: line 28: added the missing closing " at column 33
+fix: line 28: escaped the " at column 28 that ended the string early
 problem: line 28, column 31: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
 --- text after repair
 test_patch = await patch(
@@ -30,7 +30,7 @@ run_in_fresh_pty() {
             "to": "2474:430",
             "replace": """# DAEMON HEALTH, CANCEL, KILL (22)
 # =============================================================================
-section "Daemon health (22)"""","
+section "Daemon health (22)\"""",
         },
         {
             "from": "2509:57f",

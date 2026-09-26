@@ -6,9 +6,9 @@ problem: line 1, column 27: '(' is never closed
 problem: line 1, column 30: '[' is never closed
 problem: line 5, column 45: '{' is never closed
 problem: line 5, column 74: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
-problem: line 6, column 146: '(' is never closed
-problem: line 10, column 9: '(' is never closed
-problem: line 14, column 60: the triple-quoted string is never closed
+problem: line 6, column 93: the string from column 90 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 6, column 104: the string from column 101 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 6, column 109: the string from column 106 ends right before this text; if its closing quote belongs to the text, escape it
 --- text after repair
 results=await gather(patch(p,[{'from':'1085:486','to':'1087:afa','replace':'''            (p/set-colors! g
                            (if (and (= :project-group kind) (not focused?))
