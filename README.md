@@ -9,7 +9,7 @@ Python source. Parinfer itself is [Shaun Williams](https://github.com/shaunlebro
 design; see [Credits](#credits).
 
 ```clojure
-com.blockether/parinferish {:mvn/version "0.1.2"}
+com.blockether/parinferish {:mvn/version "0.2.0"}
 ```
 
 ## Why
