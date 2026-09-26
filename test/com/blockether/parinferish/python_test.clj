@@ -41,6 +41,15 @@
             :fixes [:close-triple-quote] :problems [:unterminated-triple-string]}
            (summary "s = \"\"\"abc\nprint(s)\n"))))
 
+  (testing "triple-quotes a string that spans lines with a quote its text does not hold three times"
+    (is (= {:text "s = '''first\nit\\'''s\nlast'''\nprint(s)\n" :changed? true :clean? true
+            :fixes [:triple-quote]
+            :problems [:unterminated-string :stray-backslash :unterminated-triple-string]}
+           (summary "s = 'first\nit\\'''s\nlast'\nprint(s)\n")))
+    (is (= {:text "s = \"\"\"first\nx = '''doc'''\nlast\"\"\"\nprint(s)\n" :changed? true :clean? true
+            :fixes [:triple-quote] :problems [:unterminated-string :unterminated-string]}
+           (summary "s = 'first\nx = '''doc'''\nlast'\nprint(s)\n"))))
+
   (testing "closes brackets left open at the end of the source"
     (is (= {:text "x = foo(1, [2, 3])\n" :changed? true :clean? true
             :fixes [:close-brackets] :problems [:unclosed-bracket :unclosed-bracket]}
@@ -243,4 +252,10 @@
                                 ["backslashes" "a \\ b\n" 50000]]]
       (let [s (apply str (repeat times unit))]
         (py/repair s)
-        (is (< (best-nanos 2 #(py/repair s)) 2000000000) label)))))
+        (is (< (best-nanos 2 #(py/repair s)) 2000000000) label))))
+  (testing "an unclosed string followed by many quotes still finishes in under 2 s"
+    (let [lines #(apply str (repeat 25000 %))
+          s (str "x = 'abc\n" (lines "w = \"v\"\n") "y = \"\"\"doc\"\"\"\nz = '''doc'''\n"
+                 (lines "w = 'v'\n"))]
+      (py/repair s)
+      (is (< (best-nanos 2 #(py/repair s)) 2000000000)))))

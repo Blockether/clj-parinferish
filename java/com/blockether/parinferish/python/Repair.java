@@ -225,6 +225,59 @@ public final class Repair {
         }
     }
 
+    /**
+     * Which quote can triple-quote the text from {@code from} to an end that only moves on: not the
+     * quote the text ends with, nor one it holds three times in a row outside an escape. However
+     * often the end moves, it reads each character once.
+     */
+    private static final class Triple {
+        private final char[] s;
+        private final int from;
+        private final char[] quotes;
+        private final int[] next = new int[2];
+        private final int[] run = new int[2];
+        private final boolean[] tripled = new boolean[2];
+
+        Triple(char[] s, int from, char q) {
+            this.s = s;
+            this.from = from;
+            this.quotes = new char[] {q, q == '\'' ? '"' : '\''};
+            next[0] = from;
+            next[1] = from;
+        }
+
+        /** The quote character that can triple-quote {@code [from, to)}, or 0. */
+        char quote(int to) {
+            for (int i = 0; i < 2; i++) {
+                char t = quotes[i];
+                if (to > from && s[to - 1] == t) continue;
+                if (!tripled(i, to)) return t;
+            }
+            return 0;
+        }
+
+        /** Whether quote {@code i} appears three times in a row in {@code [from, to)}. */
+        private boolean tripled(int i, int to) {
+            char t = quotes[i];
+            int k = next[i];
+            int r = run[i];
+            while (!tripled[i] && k < to) {
+                char c = s[k];
+                if (c == '\\') {
+                    k += 2;
+                    r = 0;
+                } else {
+                    r = c == t ? r + 1 : 0;
+                    tripled[i] = r >= 3;
+                    k++;
+                }
+            }
+            next[i] = k;
+            run[i] = r;
+            return tripled[i];
+        }
+    }
+
     private static final class Work {
         final String original;
         final Scanner first;
@@ -509,6 +562,7 @@ public final class Repair {
                     made++;
                 }
             }
+            Triple triple = null;
             for (int e = pAt, found = 0; e < n && found < 8; e++) {
                 char c = s[e];
                 if (c == '\\') {
@@ -519,7 +573,8 @@ public final class Repair {
                 int r = 1;
                 while (e + r < n && s[e + r] == q) r++;
                 if (r == 1 && plausibleEnd(e + 1)) {
-                    char t = tripleQuote(qp + 1, e, q);
+                    if (triple == null) triple = new Triple(s, qp + 1, q);
+                    char t = triple.quote(e);
                     if (t != 0) {
                         String ttt = repeat(t, 3);
                         Cand c3 = new Cand(TRIPLE_QUOTE, pPos, e).edit(qp, 1, ttt).edit(e, 1, ttt);
@@ -864,29 +919,6 @@ public final class Repair {
                 case "if", "else", "for", "in", "is", "and", "or", "not" -> true;
                 default -> false;
             };
-        }
-
-        /** The quote character that can triple-quote the text {@code [from, to)}, or 0. */
-        char tripleQuote(int from, int to, char q) {
-            char o = q == '\'' ? '"' : '\'';
-            for (char t : new char[] {q, o}) {
-                if (to > from && s[to - 1] == t) continue;
-                int run = 0;
-                boolean bad = false;
-                for (int k = from; k < to && !bad; k++) {
-                    char c = s[k];
-                    if (c == '\\') {
-                        k++;
-                        run = 0;
-                    } else if (c == t) {
-                        bad = ++run >= 3;
-                    } else {
-                        run = 0;
-                    }
-                }
-                if (!bad) return t;
-            }
-            return 0;
         }
 
         int quoteAt(int p) {
