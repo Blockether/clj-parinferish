@@ -1,0 +1,7 @@
+root = Path(session["workspace"]["root"])
+app = root / "apps" / "vis-companion"
+gateway_top, normalize_hits = await gather(
+    cat(app / "src" / "lib" / "gateway.ts", 1, 115),
+    grep({"query": ["function normalizeBase", "const normalizeBase"], "paths": [str(app / "src" / "lib" / "gateway.ts")]})
+print("TOP\n" + str(gateway_top))
+print("\nNORMALIZE\n" + str(normalize_hits))

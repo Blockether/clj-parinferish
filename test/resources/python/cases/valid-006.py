@@ -1,0 +1,21 @@
+import sys, sqlite3, json
+sys.path.insert(0, str(project_root_path / 'src'))
+db = sqlite3.connect(str(project_root_path / 'data/public-pilot.sqlite'))
+power = json.loads(db.execute("select body_json from results where id=29").fetchone()[0])
+print("feasibility:", json.dumps(power["feasibility"], indent=1))
+print("required_trades[0]:", power["required_trades"][0])
+src = (project_root_path / 'src/cryptosyf/comparison.py').read_text()
+src = src.replace("bez dopiał", "bez dopłat")
+(project_root_path / 'src/cryptosyf/comparison.py').write_text(src)
+print("typo fixed")
+
+from cryptosyf import comparison
+registration = json.loads((project_root_path / 'research/public-pilot.json').read_text())
+artifacts = comparison.latest_complete_artifacts(db)
+print("artifact commands:", sorted(artifacts))
+comp = comparison.build_comparison(artifacts, registration)
+print("scenarios:", len(comp["scenarios"]), "families:", len(comp["families"]), "coverage:", len(comp["coverage"]))
+print("digest:", comp["comparison_sha256"][:16])
+md1 = comparison.render_markdown(comp)
+md2 = comparison.render_markdown(comparison.build_comparison(comparison.latest_complete_artifacts(db), registration))
+print("deterministic:", md1 == md2, "length:", len(md1))

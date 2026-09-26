@@ -1,0 +1,6 @@
+cpython: line 1, column 90: unmatched ')'
+result: repaired
+fix: line 1: removed the unmatched ')' at column 90
+problem: line 1, column 90: ')' has no opening bracket
+--- text after repair
+print(grep({"paths": [project_root_path / "README.md"], "query": ["public-comparison"]}))

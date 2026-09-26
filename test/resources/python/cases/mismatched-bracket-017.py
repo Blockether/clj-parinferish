@@ -1,0 +1,40 @@
+entry = '''    },
+    {
+      "audience": "sdk",
+      "operations": {
+        "get": {
+          "request": "none",
+          "response": "json"
+        }
+      },
+      "path": "/v1/sessions/:sid/fs/file"
+    },'''
+sdk = '''
+    def get_session_fs_file(
+        self, sid: str, *, query: Query | None = None, timeout: float | None = None
+    ) -> JSONValue:
+        """GET /v1/sessions/:sid/fs/file — read one workspace file as text."""
+        response = self._request(
+            "GET",
+            "/v1/sessions/:sid/fs/file",
+            path={"sid": sid},
+            query=query,
+            timeout=timeout,
+        )
+        return response.json()
+'''
+r = await gather(
+  patch(str(V/"packages/vis-contract/resources/vis-contract/schema/gateway.json"),
+        [{"from":"806:f4f","replace":entry}]),
+  patch(str(V/"packages/vis-agent/src/blockether/vis/engine/_client.py"),
+        [{"from":"1392:000","replace":sdk}]),
+  patch(str(V/"test/com/blockether/vis/contract/gateway_test.clj"),
+        [{"from":"34:6ba","to":"39:863","replace":
+          '    (expect (= 127 (count contract/route-table)))\n'
+          '    (expect (= 156 (count (contract/route-methods))))\n'
+          '    (expect (= {:none 106 :json 46 :binary 4}\n'
+          '               (frequencies (map :request (mapcat (comp vals :operations) contract/route-table)))))\n'
+          '    (expect (= {:json 138 :resource 2 :sse 5 :empty 3 :binary 5 :negotiated 1 :html 1 :markdown 1}\n'
+          '               (frequencies (map :response (mapcat (comp vals :operations) contract/route-table)))))'}),
+)
+for x in r: print(x)

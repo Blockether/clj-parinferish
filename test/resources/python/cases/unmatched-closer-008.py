@@ -1,0 +1,9 @@
+review_remaining_sh = await shell('git diff -- test/com/blockether/vis/internal/foundation/shell_log_test.clj test/com/blockether/vis/internal/foundation/shell_test.clj test/com/blockether/vis/internal/gateway/discovery_test.clj test/com/blockether/vis/internal/language/clojure/repl_manager_test.clj packages/vis-agent/tests/test_outside.py')
+review_remaining = review_remaining_sh.wait(10)
+print(review_remaining['out'])
+print(cat(project_root_path / 'test/com/blockether/vis/internal/jfr_test.clj', 1, 140))
+print(cat(project_root_path / 'test/com/blockether/vis/internal/python/worker_paths_test.clj', 1, 60))
+worker_head_sh = await shell('git show HEAD:src/com/blockether/vis/internal/python/worker.clj')
+worker_head_result = worker_head_sh.wait(10)
+worker_head_text = worker_head_result['out']
+print('Worker HEAD excerpt:', '\n'.join(line for line in worker_head_text.splitlines() if 'gateway.discovery' in line or 'paths :as' in line or '(doto (io/file (System/getProperty "user.home") ".vis" "run"' in line)))}

@@ -1,0 +1,3 @@
+turn7_own_final = {str(p): p.read_bytes() for p in turn7_own_paths}
+print(await companion_command('git log -1 --oneline && git diff --cached --stat && git diff --check',10))
+print('Verification: layout/trace/answer 29 passed; Storybook 202 passed; lint/build passed; full suite 2501 passed, 2 skipped, one SessionsScreen.fit failure passed isolated rerun (4 tests). Contrast failed on 6 scanner timeouts: ImageViewer DrawingToolsHidden and IterationTrace ActivityAxis. Browser and temporary Storybook server stopped. No staging, commit or push performed.'))

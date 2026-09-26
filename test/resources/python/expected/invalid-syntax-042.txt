@@ -1,0 +1,9 @@
+cpython: line 1, column 71: invalid syntax
+result: repaired
+fix: line 1: moved the statement after ';' at column 69 onto its own line
+problem: line 1, column 69: a compound statement cannot follow ';'; start it on its own line
+--- text after repair
+root=Path(session['workspace']['root']); c=root/'apps/vis-companion'
+async def run(cn,timeout=180):
+ h=await shell(cn,cwd=str(c)); return await h.wait(timeout)
+res=await gather(run('npm run lint',180),run('npm run build',180)); print(res)

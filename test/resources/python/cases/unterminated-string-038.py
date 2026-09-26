@@ -1,0 +1,4 @@
+print(cat(project_root_path / 'apps/vis-tui/src/com/blockether/vis/tui/live_view.clj',964,978)); print(cat(project_root_path / 'apps/vis-tui/src/com/blockether/vis/tui/live_view.clj',1755,1817)); print(patch(project_root_path / 'apps/vis-tui/test/com/blockether/vis/tui/live_view_test.clj',[{'from':'683:d32','replace':';; Regression #220: description follows the title, then one blank row before nodes.'},{'from':'713:bd1','to':'715:78b','replace':'    (is (str/includes? (nth lines (inc title-row)) "Three jobs"))
+    (is (str/blank? (str/replace (nth lines (+ title-row 2)) "│" ""))
+        "one empty row separates the description from the first node")
+    (is (str/includes? (nth lines (+ title-row 3)) "Watching"))'}])); print(await run_tests('clojure',ns='com.blockether.vis.tui.live-view-test/live-view-heading-spacing-test'))

@@ -1,0 +1,55 @@
+cpython: line 18, column 3: unterminated string literal (detected at line 18)
+result: not repaired
+fix: line 18: made the string at column 3 triple-quoted (""") because its text continues onto the next lines; it now ends on line 41
+fix: line 41: added ')' at column 89 to close '(' from line 17
+fix: line 41: added the missing closing ''' at column 94 for the triple-quoted string from line 41
+problem: line 18, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 19, column 27: ';' ends the statement while '(' from line 17, column 53 is still open
+problem: line 19, column 66: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 20, column 5: ')' has no opening bracket
+problem: line 23, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 24, column 28: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 38, column 181: '}' has no opening bracket
+problem: line 38, column 182: ']' has no opening bracket
+--- text after repair
+root=Path(session['workspace']['root'])
+p=root/'src/com/blockether/vis/internal/gateway/protocol.clj'
+print(await patch(p,[{'from':'38:578','to':'49:dea','replace':'''   11 — iteration forms have one success channel: `stdout`. The obsolete `result`
+   field and its provider-native-tool branches are gone from persistence and wire.
+
+   10 — `block.output` carries canonical execution facts only. Its duplicated
+   presentation field is gone, and `!cmd` writes its output once as `stdout`.
+
+   9 — Activity owns one event type for its whole lifecycle: running revisions are
+   transient/materialized `block.activity`; the settled revision is durable
+   `block.activity`. `block.output` carries execution output only.
+
+   8 — One turn id survives submission, execution, persistence, replay, and trace
+   lookup. Coarse ticker frames are `turn.progress`; form frames route by the
+   truthful numeric `form_index`. The split-id reconciliation contract and the
+   overloaded `activity` event name are gone."
+  11)'},{'from':'51:31c','to':'59:dea','replace':'''(def min-client-protocol
+  """Oldest client protocol this gateway serves. Protocol 11 removes the obsolete
+   iteration-form `result`; clients consume `stdout` and `error`."
+  11)
+
+(def min-gateway-protocol
+  "Oldest gateway protocol this client accepts: the mirror of
+   [[min-client-protocol]]."
+  11)'''}]))
+p=root/'apps/vis-companion/src/lib/compat.ts'
+print(await patch(p,[{'from':'18:5af','to':'25:280','replace':'''/**
+ * Wire protocol number THIS app build speaks. Protocol 11 gives iteration forms
+ * one success channel, `stdout`; the obsolete `result` field is gone.
+ */
+export const APP_PROTOCOL = 11;
+
+/** Oldest gateway protocol this app accepts: the canonical protocol 11 shape. */
+export const APP_MIN_GATEWAY_PROTOCOL = 11;'''}]))
+p=root/'test/com/blockether/vis/internal/gateway/protocol_test.clj'
+print(await patch(p,[{'from':'29:c76','to':'31:5da','replace':'''    (is (= 11 protocol/protocol-version))
+    (is (= 11 protocol/min-client-protocol))
+    (is (= 11 protocol/min-gateway-protocol))'''},{'from':'69:6f9','to':'72:d83','replace':'''         "protocol" {"protocol" 12 "min_client" 12 "min_gateway" 2 "version" "12.0.0"}}]
+
+    (try (is (= body ((client-var 'note-handshake!) body)))
+         (is (= {:protocol 12 :min-client 12 :min-gateway 2 :version "12.0.0""" :build nil)}'''}''']))

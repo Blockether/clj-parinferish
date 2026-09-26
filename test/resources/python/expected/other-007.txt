@@ -1,0 +1,2 @@
+cpython: line 10, column 21: Generator expression must be parenthesized
+result: not repaired

@@ -36,6 +36,12 @@ jobs:
           key: ${{ runner.os }}-cljdeps-${{ hashFiles('deps.edn') }}
           restore-keys: ${{ runner.os }}-cljdeps-
 
+      # The Python corpus test parses the repaired cases with the CPython that
+      # wrote their reports.
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
       - name: Compile the Java engine
         run: clojure -T:build compile-java
 

@@ -1,0 +1,23 @@
+cpython: line 15, column 29: closing parenthesis ')' does not match opening parenthesis '{' on line 1
+result: repaired
+fix: line 15: replaced ')' at column 29 with '}' to match '{' from line 1
+problem: line 15, column 29: ')' does not match '{' from line 1, column 21
+problem: line 15, column 30: ']' has no opening bracket
+problem: line 15, column 31: ')' has no opening bracket
+--- text after repair
+r_eng = patch(eng, [{"from": "1114:d4c", "replace": """  (live-node invalid-live-view! node))
+
+(defn live-nodes?
+  "Whether `nodes` are the picture a human WATCHES rather than the questions a
+   form asks. A layout group is the ONE node both vocabularies share, so a
+   builder composing one asks its children which check it is dated against — and
+   a group inside a group answers by its own children."
+  [nodes]
+  (boolean (some (fn [node]
+                   (when (map? node)
+                     (if (group-node? node)
+                       (live-nodes? (pick* node :fields))
+                       (contains? hi-spec/live-node-types
+                                  (some-> (trimmed (pick* node :type)) str/lower-case)))))
+                 nodes)))"""}])
+print(str(r_eng)[:400])

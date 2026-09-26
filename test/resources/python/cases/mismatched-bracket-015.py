@@ -1,0 +1,1 @@
+print(grep({'query':['site.edn','python-sdk.md','docs.edn'],'paths':[str(project_root_path/'test/com/blockether/vis'),'context':1,'is_files_only':True})[:2200]); print('worker2',worker2.logs(-2),'bytes',(real_tmp/'inference2.zip').stat().st_size)

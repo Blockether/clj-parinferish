@@ -1,0 +1,1 @@
+sh=await shell("for pat in 'com.blockether.vis.core gateway' 'com.blockether.vis.tui.main' 'vis-agent gateway'; do echo $pat; pgrep -f "$pat" | xargs -n 15 ps -o pid,etime,comm -p 2>/dev/null | head -12; done"); print((await sh.wait(8))['out'])

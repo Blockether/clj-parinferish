@@ -1,0 +1,11 @@
+cpython: line 2, column 40: closing parenthesis ')' does not match opening parenthesis '['
+result: repaired
+fix: line 2: added ']' at column 40 to close '[' from line 2
+problem: line 2, column 40: ')' does not match '[' from line 2, column 33
+--- text after repair
+
+root = Path(session["workspace"]["root"])
+ext_md = str(root/"resources/vis-docs/extending.md")
+
+# 1) the t19 row example, exactly as it stands now
+print(cat(ext_md, 1421, 1496))

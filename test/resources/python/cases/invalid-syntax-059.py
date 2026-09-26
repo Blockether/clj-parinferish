@@ -1,0 +1,27 @@
+> Verify the tests FAIL on the unfixed code (repo rule), then restore.
+saved = {p: Path(p).read_text() for p in [chat, lv]}
+
+# chat.clj: drop the three live cases I added (lines 1165-1183, 1-indexed).
+cl = saved[chat].split("\n")
+removed = cl[1164:1183]
+print("REMOVING first/last:", repr(removed[0]), "|", repr(removed[-1]), "| n =", len(removed))
+Path(chat).write_text("\n".join(cl[:1164] + cl[1183:]))
+
+# live_view.clj: back to the un-guarded `patched`.
+old_patched = '''(defn patched
+  "The pane one patch leaves behind. The view is advanced by the ENGINE's own
+   `live/apply-patch`, never by a second interpreter here: the terminal and the
+   phone disagreeing about a row is the one bug this primitive cannot afford."
+  [pane patch]
+  (-> pane
+      (update :view live/apply-patch patch)
+      (assoc :fresh (touched patch))))'''
+lvl = saved[lv].split("\n")
+Path(lv).write_text("\n".join(lvl[:260] + old_patched.split("\n") + lvl[275:]))
+
+res2 = run_tests({"paths": [cc]})
+out = res2["output"]
+print("PASS?", res2["is_pass"], "fail", res2["fail"], "errored", res2["errored"])
+for name in ["a-daemon-side-live-view-reaches-the-terminal-test", "a-live-view-that-arrives-on-both-routes-paints-once-test"]:
+    i = out.find(name)
+    print("\n=====", name, "=====\n", out[i:i+900] if i >= 0 else "NOT FOUND")

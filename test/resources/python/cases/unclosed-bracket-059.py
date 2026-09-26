@@ -1,0 +1,1 @@
+root=Path(session['workspace']['root']); print(ls(root/'packages/vis-contract',depth=3)); print(await grep({'query':['run_shape','"rows"'], 'paths':[root/'.vis/extensions/test_gh.py'], 'max_results':20})

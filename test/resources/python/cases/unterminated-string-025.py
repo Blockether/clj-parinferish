@@ -1,0 +1,72 @@
+BS = chr(92)
+ns_edit = '''            [com.blockether.vis.internal.config.core :as config]))'''
+
+toml_new = '''(def ^:private toml-string-opens
+  "TOML string openers, longest first so a multi-line delimiter wins the match."
+  ["@Q@@Q@@Q@" "'''" "@Q@" "'"])
+
+(defn- token-at
+  "The token from `tokens` that `line` carries at `i`, or nil."
+  [^String line ^long i tokens]
+  (some (fn [^String token] (when (.startsWith line token (int i)) token)) tokens))
+
+(defn- line-open-string
+  "The multi-line string delimiter still open after `line`, given none was open
+   before it, or nil when the line ends outside every string. A `#` outside a string
+   comments the rest of the line away."
+  [^String line]
+  (let [n (count line)]
+    (loop [i 0]
+      (if (>= i n)
+        nil
+        (let [open (token-at line i toml-string-opens)]
+          (cond (and (nil? open) (= @BS@# (.charAt line i))) nil
+                (nil? open) (recur (inc i))
+                :else
+                (let [escape?
+                      (str/starts-with? open "@Q@")
+
+                      close
+                      (loop [j (+ i (count open))]
+                        (cond (>= j n) nil
+                              (and escape? (= @BS@@BS@ (.charAt line j))) (recur (+ j 2))
+                              (.startsWith line open (int j)) (+ j (count open))
+                              :else (recur (inc j))))]
+
+                  (if close
+                    (recur (long close))
+                    (when (= 3 (count open)) open)))))))))
+
+(defn- toml-table-headers
+  "The dotted paths of the TOML TABLE HEADERS `text` declares, in order — `tool.uv`
+   for `[tool.uv]`, `tool.uv.index` for `[[tool.uv.index]]`.
+
+   READ AS TOML, never as substring soup: a header is the first thing on a line of
+   its own, so a `[tool.uv]` sitting in a comment, in a description string or inside
+   a multi-line string is not a declaration and never answers here."
+  [^String text]
+  (loop [lines
+         (str/split-lines (str text))
+
+         open
+         nil
+
+         headers
+         []]
+
+    (if-let [^String line (first lines)]
+      (if open
+        (recur (rest lines) (when-not (str/includes? line open) open) headers)
+        (let [header (second (re-matches #"@BS@s*@BS@[@BS@[?([^@BS@]]*)@BS@]@BS@]?@BS@s*(?:#.*)?" line))]
+          (recur (rest lines)
+                 (line-open-string line)
+                 (cond-> headers
+                   header
+                   (conj (str/join "." (map unquote-seg (str/split (str/trim header) #"@BS@."))))))))
+      headers)))'''
+toml_new = toml_new.replace("@BS@", BS).replace("@Q@", BS + '"')
+
+r6 = patch("/home/user/vis/src/com/blockether/vis/internal/language/python/interpreter.clj",
+           [{"from": "7:bbc", "to": "8:1c6", "replace": ns_edit},
+            {"from": "50:2d8", "to": "67:236", "replace": toml_new}])
+print(r6)

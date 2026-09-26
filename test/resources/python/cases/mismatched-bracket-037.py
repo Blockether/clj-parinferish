@@ -1,0 +1,1 @@
+root=Path(session['workspace']['root']); c=root/'apps/vis-companion'; print(await grep({'query':['attachment.base64','base64}`','base64)', 'paths':[str(c/'src/components/ChatContent.tsx'),str(c/'src/lib'),str(c/'src/screens/SessionScreen.tsx')]})); print(await cat(c/'src/screens/SessionScreen.tsx',1625,1660))

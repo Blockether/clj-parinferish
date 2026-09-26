@@ -1,0 +1,7 @@
+cpython: line 2, column 6: '(' was never closed
+result: repaired
+fix: line 2: added ')' at column 139 to close '(' from line 2
+problem: line 2, column 6: '(' is never closed
+--- text after repair
+print(await cat(str(root / "src/com/blockether/vis/internal/gateway/state.clj"), 1760, 1800))
+print(await grep({"query": ["db-list-iterations-attachments-meta"], "paths": [str(root / "src/com/blockether/vis/internal/persistance")]}))

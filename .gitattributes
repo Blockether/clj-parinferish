@@ -1,0 +1,2 @@
+# The Python corpus is compared byte for byte: never convert its line endings.
+test/resources/python/** -text

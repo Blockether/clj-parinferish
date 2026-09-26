@@ -1,0 +1,16 @@
+cpython: line 11, column 6: '(' was never closed
+result: repaired
+fix: line 11: added ')' at column 166 to close '(' from line 11
+problem: line 11, column 6: '(' is never closed
+--- text after repair
+import httpx
+url = "https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing"
+async with httpx.AsyncClient(follow_redirects=True, timeout=20) as client:
+    resp = await client.get(url)
+from bs4 import BeautifulSoup
+soup = BeautifulSoup(resp.text, "html.parser")
+headings = [h.get_text(" ", strip=True) for h in soup.select("h2, h3")]
+items = [li.get_text(" ", strip=True) for li in soup.select("main li")]
+print("STATUS", resp.status_code, str(resp.url))
+print("HEADINGS\n" + "\n".join(headings[:40]))
+print("\nSELECTED GUIDANCE\n" + "\n".join(x for x in items if any(k in x.lower() for k in ["avoid", "title", "section", "em dash", "summary", "conclusion"]) )[:8000])

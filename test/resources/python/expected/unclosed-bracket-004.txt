@@ -1,0 +1,8 @@
+cpython: line 2, column 6: '(' was never closed
+result: repaired
+fix: line 2: added ')' at column 172 to close '(' from line 2
+problem: line 2, column 6: '(' is never closed
+--- text after repair
+print(doc('design'))
+print(grep({'query':['output_reasoning_tokens','llm_reasoning_tokens','reasoning'], 'paths':[project_root_path / 'apps/vis-companion/src/components'], 'context':1})[:6500])
+print(grep({'query':['output_reasoning_tokens','llm_reasoning_tokens','reasoning-tokens'], 'paths':[project_root_path / 'src/com/blockether/vis/internal/gateway'], 'context':2})[:8000])

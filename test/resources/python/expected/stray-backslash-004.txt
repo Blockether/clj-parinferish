@@ -1,0 +1,11 @@
+cpython: line 2, column 84: unexpected character after line continuation character
+result: not repaired
+fix: line 2: removed the stray backslash at column 83
+fix: line 2: removed the backslashes before quotes outside strings, from column 84
+problem: line 2, column 83: backslash outside a string; there it may only end a line
+problem: line 2, column 84: backslash outside a string; there it may only end a line
+--- text after repair
+root=str(Path(session['workspace']['root']))
+sh=await shell("rg -n 'root-command|Run a registered channel|:cmd/name \\"channels"' src/com/blockether/vis/internal/main.clj src/com/blockether/vis/internal/registry.clj",cwd=root)
+await sh.wait(20)
+print(sh.logs(-60))

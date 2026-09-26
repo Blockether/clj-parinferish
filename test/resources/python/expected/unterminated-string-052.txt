@@ -1,0 +1,17 @@
+cpython: line 1, column 18: unterminated string literal (detected at line 1); perhaps you escaped the end quote?
+result: repaired
+fix: line 1: made the string at column 18 triple-quoted (""") because its text continues onto the next lines; it now ends on line 8
+problem: line 1, column 18: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 8, column 1: backslash outside a string; there it may only end a line
+--- text after repair
+sh = await shell("""cd /home/user/CryptoSyf && PYTHONPATH=src vis-agent python -c \"
+import traceback
+from cryptosyf import fvg_study, public_pilot
+try:
+    result = fvg_study.run_study()
+except Exception:
+    traceback.print_exc()
+\" 2>&1 | tail -40""")
+w = await sh.wait(300)
+print("exit:", w["exit"])
+print(sh.logs(-40))

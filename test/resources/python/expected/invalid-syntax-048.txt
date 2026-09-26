@@ -1,0 +1,6 @@
+cpython: line 1, column 293: invalid syntax
+result: repaired
+fix: line 1: added ')' at column 293 to close '(' from line 1
+problem: line 1, column 293: ';' ends the statement while '(' from line 1, column 61 is still open
+--- text after repair
+root=Path(session['workspace']['root']); chunks=await gather(cat(root/'src/com/blockether/vis/internal/gateway/bus.clj',810,900),grep({'query':['defn replay','event-since','events-since','ring','hydrate!'], 'paths':[str(root/'src/com/blockether/vis/internal/gateway/state.clj')],'limit':100})); print('\n---\n'.join(map(str,chunks)))

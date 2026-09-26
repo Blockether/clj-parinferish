@@ -1,0 +1,15 @@
+cpython: line 2, column 91: unexpected character after line continuation character
+result: repaired
+fix: line 2: removed the backslashes before quotes outside strings, from column 90
+problem: line 2, column 18: '(' is never closed
+problem: line 2, column 33: the f-string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 2, column 90: backslash outside a string; there it may only end a line
+problem: line 2, column 122: ')' does not match '[' from line 2, column 89
+--- text after repair
+
+cfg = cfg.replace("  plugins:", f"  define: {{ __VIS_APP_VERSION__: JSON.stringify('{pkg["version"]}') }},\n  plugins:")
+(mock / "vite.config.mts").write_text(cfg)
+print(cfg)
+print(await sh_out(f"cd {REAL} && npx vite build 2>&1 | tail -6"))
+out, esc, size = inline_dist(mock / "dist")
+print(out, size)

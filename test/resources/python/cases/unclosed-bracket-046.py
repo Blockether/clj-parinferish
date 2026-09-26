@@ -1,0 +1,78 @@
+unit_test_patch = await patch(
+    spel_root / "test/com/blockether/spel/cli_test.clj",
+    [{
+        "from": "3048:75d",
+        "to": "3080:106",
+        "replace": """(defdescribe daemon-launch-command-test
+  \"How the CLI relaunches itself as a daemon.\"
+
+  (describe \"native image\"
+    (it \"re-execs the running binary through nohup on Unix\"
+      (expect (= [\"nohup\" \"/opt/bin/spel-macos-arm64\" \"daemon\" \"--session\" \"s1\"]
+                (sut/daemon-launch-command
+                  {:native?   true
+                   :windows?  false
+                   :exec-path \"/opt/bin/spel-macos-arm64\"
+                   :classpath \"\"}
+                  [\"daemon\" \"--session\" \"s1\"]))))
+
+    (it \"re-execs a binary named spel through nohup too\"
+      (expect (= [\"nohup\" \"/usr/local/bin/spel\" \"daemon\"]
+                (sut/daemon-launch-command
+                  {:native? true :windows? false :exec-path \"/usr/local/bin/spel\" :classpath \"\"}
+                  [\"daemon\"]))))
+
+    (it \"re-execs spel.exe directly on Windows\"
+      (expect (= [\"C:\\\\tools\\\\spel-windows-x64.exe\" \"daemon\"]
+                (sut/daemon-launch-command
+                  {:native? true :windows? true :exec-path \"C:\\\\tools\\\\spel-windows-x64.exe\" :classpath \"\"}
+                  [\"daemon\"])))))
+
+  (describe \"jvm\"
+    (it \"relaunches through nohup and the classpath on Unix\"
+      (expect (= [\"nohup\" \"java\" \"-cp\" \"/cp/spel.jar\" \"clojure.main\"
+                  \"-m\" \"com.blockether.spel.native\" \"daemon\"]
+                (sut/daemon-launch-command
+                  {:native?   false
+                   :windows?  false
+                   :exec-path \"/usr/bin/java\"
+                   :classpath \"/cp/spel.jar\"}
+                  [\"daemon\"]))))
+
+    (it \"relaunches directly through the classpath on Windows\"
+      (expect (= [\"java\" \"-cp\" \"C:\\\\cp\\\\spel.jar\" \"clojure.main\"
+                  \"-m\" \"com.blockether.spel.native\" \"daemon\"]
+                (sut/daemon-launch-command
+                  {:native?   false
+                   :windows?  true
+                   :exec-path \"C:\\\\Java\\\\bin\\\\java.exe\"
+                   :classpath \"C:\\\\cp\\\\spel.jar\"}
+                  [\"daemon\"]))))))""",
+    }],
+)
+cli_test_patch = await patch(
+    spel_root / "test-cli.sh",
+    [
+        {"from": "2472:948", "to": "2474:430", "replace": """# DAEMON HEALTH, CANCEL, KILL (22)
+# =============================================================================
+section \"Daemon health (22)\"""},
+        {"from": "2501:cc3", "replace": """fi
+
+# Regression, issue #117: a daemon launched from a short-lived caller inherited
+# its terminal hangup and exited after the first otherwise-successful command.
+HUP_SESSION=\"terminal-hangup-$$\"
+\"$SPEL\" --session \"$HUP_SESSION\" open \"data:text/html,<h1>hangup</h1>\" >/dev/null 2>&1
+OUT=$(\"$SPEL\" --session \"$HUP_SESSION\" --json health 2>&1)
+assert_jq \"terminal hangup test starts a daemon\" \"$OUT\" '.status == \"ok\" and (.pid | tonumber) > 0'
+HUP_PID=$(echo \"$OUT\" | jq -r '.pid // empty')
+if [[ \"$HUP_PID\" =~ ^[0-9]+$ ]]; then
+  kill -HUP \"$HUP_PID\" 2>/dev/null || true
+  sleep 1
+fi
+OUT=$(\"$SPEL\" --session \"$HUP_SESSION\" --json health 2>&1)
+assert_jq_eq \"daemon survives its caller terminal closing\" \"$OUT\" '.status' 'ok'
+\"$SPEL\" --session \"$HUP_SESSION\" close >/dev/null 2>&1 || true"""},
+    ],
+)
+print("UNIT TEST PATCH\n" + str(unit_test_patch))
+print("CLI TEST PATCH\n" + str(cli_test_patch))

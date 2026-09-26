@@ -1,0 +1,6 @@
+cpython: line 1, column 40: closing parenthesis ')' does not match opening parenthesis '['
+result: repaired
+fix: line 1: added ']' at column 40 to close '[' from line 1
+problem: line 1, column 40: ')' does not match '[' from line 1, column 33
+--- text after repair
+root = Path(session["workspace"]["root"])

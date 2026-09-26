@@ -1,0 +1,14 @@
+root = "/home/user/vis"
+sid = "00000000-0000-4000-8000-000000000024"
+c1 = await shell(f"""cd {shlex.quote(root)} && git add apps/vis-companion/scripts/storybook-contrast.mjs apps/vis-companion/src/components/JumpToLatestButton.tsx && git commit -m "fix(companion): scan jump-to-latest hover for contrast" -m "The floating button kept its resting tone on hover: hover:bg-hover painted an
+inverted foreground on the page-hover background. Drop the class and give the
+Storybook contrast scanner a real-pointer hover job for this story, since DOM
+userEvent.hover never activates CSS :hover." -m "Vis-Session: {sid}"""", id="commit-1", timeout_s=120)
+w = await c1.wait(60); print(c1.logs(-6).get("out",""))
+c2 = await shell(f"""cd {shlex.quote(root)} && git add src/com/blockether/vis/internal/workspace/drafts.clj src/com/blockether/vis/internal/foundation/drafts.clj test/com/blockether/vis/internal/foundation/drafts_test.clj && git commit -m "fix(drafts): keep a vetoed discard pinned to its draft" -m "draft-discard repointed the session to the trunk before crossing the
+:draft/discard hook boundary, so an :around veto arrived after the unpivot.
+Move exit-to-trunk! inside the boundary, mirroring approve!, and return the
+trunk from discard! for confinement sync." -m "Vis-Session: {sid}" """, id="commit-2", timeout_s=120)
+w = await c2.wait(60); print(c2.logs(-6).get("out",""))
+p = await shell(f"cd {shlex.quote(root)} && git push origin main 2>&1 | tail -3 && git status --short && git rev-parse HEAD origin/main", id="push", timeout_s=180)
+w = await p.wait(120); print(p.logs(-14).get("out",""))

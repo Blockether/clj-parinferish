@@ -1,0 +1,13 @@
+cpython: line 3, column 94: invalid character '·' (U+00B7)
+result: not repaired
+fix: line 3: replaced the typographic quotes at column 150 with straight quotes
+problem: line 3, column 150: typographic quote ”; Python needs straight quotes (' or ")
+problem: line 3, column 151: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 6, column 28: ';' ends the statement while '(' from line 2, column 12 is still open
+--- text after repair
+
+a1 = attach(str(fix), filename="roznica.png",
+            label="Przed zapisem 1 wiersz · dziś 2 wiersze i nagłówek „2 documents · 25.6KB" · propozycja 1 wiersz z „v2 · your 3 comments · just now"")
+a2 = attach(str(pick), filename="warianty.png",
+            label="Trzy sposoby na ten sam wiersz: A znacznik v2 · B wątek pod wierszem · C druga linia + kropki (rekomendacja)")
+print(json.dumps(a1)[:400]); print(json.dumps(a2)[:400])

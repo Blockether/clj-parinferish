@@ -1,0 +1,21 @@
+cpython: line 1, column 134: unterminated string literal (detected at line 1)
+result: repaired
+fix: line 1: made the string at column 134 triple-quoted (''') because its text continues onto the next lines; it now ends on line 12
+problem: line 1, column 134: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 3, column 66: ']' does not match '(' from line 2, column 24
+problem: line 12, column 53: backslash outside a string; there it may only end a line
+problem: line 12, column 60: ')' has no opening bracket
+problem: line 12, column 61: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+r=patch(project_root_path/'apps/vis-tui/test/com/blockether/vis/tui/projects_test.clj',[{'from':'1722:bb1','to':'1732:604','replace':'''      (let [entry (first (filter #(= set-name (:label %)) entries))
+            hit (first (filter #(= kind (:kind %)) (.current projects/hit-map)))
+            expected [:menu (assoc entry :initial-action choice)]]
+        (is (some? hit))
+        (when hit
+          (let [{:keys [col row]} (:bounds hit)
+                click (MouseAction. MouseActionType/CLICK_DOWN 1
+                                    (TerminalPosition. (int col) (int row)))]
+            (is (= expected (projects/key-action db click)))))
+        (is (= expected
+               (projects/key-action (assoc-in db [:project-sidebar :index] (:index entry))
+                                    (cap/key-stroke \+))))))'''}]); print(r)

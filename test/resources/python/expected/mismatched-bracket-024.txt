@@ -1,0 +1,16 @@
+cpython: line 10, column 1: closing parenthesis ']' does not match opening parenthesis '{' on line 9
+result: repaired
+fix: line 10: added '}' at column 1 to close '{' from line 9
+problem: line 10, column 1: ']' does not match '{' from line 9, column 2
+--- text after repair
+res = await patch(root/'src/com/blockether/vis/internal/voice.clj',[
+ {"from":"12:70e","to":"22:622","replace":"   2. The ENGINE SET. The gateway owns one process-wide voice subsystem. Its fixed\n      Parakeet, Piper and pocket-tts descriptors live in `internal.voice.engine` and\n      `internal.voice.speech`; surfaces select among those built-ins per direction.\n      `VIS_VOICE_ENGINE` / `VIS_SPEECH_ENGINE`, [[set-default-engine!]], or a request\n      may choose a descriptor without loading or registering an extension."},
+ {"from":"32:2d7","to":"33:eea","replace":"  (:require [clojure.string :as str]\n             [com.blockether.vis.internal.util :as util]\n             [com.blockether.vis.internal.voice.engine :as builtin-engine]\n             [com.blockether.vis.internal.voice.speech :as builtin-speech])"},
+ {"from":"114:d71","to":"126:24a","replace":"(defonce ^:private engines*\n  (atom {:transcribe [builtin-engine/descriptor]\n         :synthesize builtin-speech/descriptors}))\n(defonce ^:private default-engine* (atom {}))"},
+ {"from":"151:c04","to":"152:41a","replace":"(defn register-engine!\n  \"Register (or replace, by `:id`) an engine for ONE direction. Kept as the\n   process-local injection seam used by focused tests; product engines are fixed built-ins.\n   Returns its id."},
+ {"from":"180:0dd","to":"182:b8c","replace":"(defn unregister-engine!\n  \"Drop an engine from one direction by id. This is a process-local test seam.\""},
+ {"from":"211:178","to":"261:3da","replace":""},
+ {"from":"263:282","to":"268:49c","replace":"(defn engines\n  \"Every built-in or test-injected engine for `direction`, in order.\"\n  [direction]\n  (check-direction! direction)\n  (get @engines* direction []))"},
+ {"from":"300:812","to":"317:10e","replace":"(defn resolve-engine\n  \"The `direction` engine for an explicit `id` (nil = the default).\"\n  [direction id]\n  (or (if id (engine direction id) (default-engine direction))\n      (throw (ex-info (if id\n                        (str \"Unknown \" (direction-nouns direction) \" engine: \" (name id))\n                        (str \"No \" (direction-nouns direction) \" engine is available\"))\n                      {:type :vis/voice-engine-unavailable\n                       :direction direction\n                       :engine-id id\n                       :available (mapv :id (engines direction))}))))"
+}])
+print(res)

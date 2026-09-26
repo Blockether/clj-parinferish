@@ -1,0 +1,1 @@
+print(grep({'query':['application/vnd.vis.diff+json'], 'paths':[project_root_path/'src'/'com'/'blockether'/'vis'/'internal'/'context'/'prompt.clj'], 'context':6})); print('owner baseline current diff length',len(''.join(unified_diff(task_start['screens/sessions/SessionProjectGroups.tsx'].splitlines(True),owner.read_text().splitlines(True))))))

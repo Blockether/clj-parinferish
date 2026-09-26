@@ -1,0 +1,35 @@
+cpython: line 6, column 131: unexpected character after line continuation character
+result: not repaired
+fix: line 6: turned the literal \n outside strings into line breaks
+fix: line 8: added '})' at column 109 to close the brackets from line 2
+fix: line 9: removed the unmatched '}' at column 9
+fix: line 10: removed the unmatched '}' at column 5
+fix: line 11: removed the unmatched '}' at column 1
+fix: line 14: added the missing closing ''' at column 34 for the triple-quoted string from line 12
+problem: line 6, column 38: backslash outside a string; there it may only end a line
+problem: line 6, column 60: backslash outside a string; there it may only end a line
+problem: line 6, column 71: backslash outside a string; there it may only end a line
+problem: line 6, column 86: backslash outside a string; there it may only end a line
+problem: line 8, column 109: ';' ends the statement while '{' from line 7, column 32 is still open
+problem: line 9, column 9: '}' has no opening bracket
+problem: line 10, column 5: '}' has no opening bracket
+problem: line 11, column 1: '}' has no opening bracket
+--- text after repair
+probe = T / "HlProbe.java"
+probe.write_text(r'''
+import com.blockether.vis.python.PythonHighlighter;
+public class HlProbe {
+    public static void main(String[] a) {
+        String[] cases = {"x = '''abc
+", "s = '''a\n\nb'''
+", "x = 1
+", "def f(x):
+    return x  # c\n", "\"unterminated\n"};
+        for (String c : cases) {
+            System.out.println(PythonHighlighter.highlight(c).replace("\u001b", "\\e").replace("\n", "\\n"))});
+        
+    
+
+''')
+sh = await shell(f"cd {T} && java -cp {pkg/'target/classes'} {probe} 2>&1")
+print((await sh.wait(60))["out"])'''

@@ -1,0 +1,7 @@
+cpython: line 1, column 32: closing parenthesis ')' does not match opening parenthesis '['
+result: repaired
+fix: line 1: replaced ')' at column 32 with ']' to match '[' from line 1
+problem: line 1, column 32: ')' does not match '[' from line 1, column 24
+problem: line 1, column 33: ')' has no opening bracket
+--- text after repair
+r = await cat(P, range=[324,328])

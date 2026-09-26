@@ -1,0 +1,2 @@
+cpython: line 11, column 133: ':' expected after dictionary key
+result: not repaired

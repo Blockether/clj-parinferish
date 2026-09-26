@@ -4,7 +4,8 @@ Parinfer for Clojure source, in pure Java — a from-scratch rewrite of
 [parinferish](https://github.com/oakes/parinferish) 0.8.0 by
 [oakes](https://github.com/oakes), answering exactly what it answers, **hundreds of
 times faster** — plus `balance`, the layer that decides when a repair may be written
-to a file at all. Parinfer itself is [Shaun Williams](https://github.com/shaunlebron)'
+to a file at all, and `python`, the same kind of repair for the quotes and brackets of
+Python source. Parinfer itself is [Shaun Williams](https://github.com/shaunlebron)'
 design; see [Credits](#credits).
 
 ```clojure
@@ -119,6 +120,48 @@ files and mutations of them, 255 repaired and 547 refused, verdict for verdict i
 the code it came from — but that comparison ended with its other half. The suite is what a
 reader can rerun.
 
+## Repairing Python
+
+`com.blockether.parinferish.python` applies the same idea to Python: it repairs the
+quotes and brackets a language model gets wrong. It closes a string that never ends,
+replaces a closer that closes the wrong bracket, closes brackets left open, removes a
+closer nothing opened, closes the brackets a `;` interrupts and straightens
+typographic quotes. Source whose quotes and brackets balance comes back unchanged,
+even when it is not valid Python.
+
+```clojure
+(require '[com.blockether.parinferish.python :as python])
+
+(python/repair "print(len([1, 2)")
+;; => {:text     "print(len([1, 2]))"
+;;     :changed? true
+;;     :clean?   true
+;;     :fixes    [{:kind :close-brackets :line 1 :column 16
+;;                 :message "line 1: added ']' at column 16 to close '[' from line 1"} ...]
+;;     :problems [{:kind :unclosed-bracket :line 1 :column 6
+;;                 :message "line 1, column 6: '(' is never closed"} ...]}
+```
+
+Pass `{:error-line n}`, the line where the Python parser reported the error, when you
+have it. `diagnose` answers the `:problems` alone, without repairing.
+
+The repair makes the delimiters consistent. It cannot know whether the result is the
+program that was meant, so parse `:text` before you run it, show `:fixes` to whoever
+wrote the source, and show `:problems` when the repair cannot finish. Every call is
+bounded by the size of its input: a case of the corpus below takes 5 µs at the median
+and under 1 ms at worst, and 200 000 characters built to defeat the repair take well
+under a second.
+
+### The corpus
+
+[`test/resources/python/`](test/resources/python/) holds 461 blocks of Python taken
+from real Vis sessions: 422 that CPython refused and 39 valid ones the repair must
+leave alone. Each case has a report of what CPython said, the fixes, the problems and
+the repaired text, and the tests compare every case with its report. The repair makes
+279 of the 422 broken cases parse (66 %). To improve it, change the engine, run
+`clojure -M:python-corpus` and review the diff of the reports; the corpus
+[README](test/resources/python/README.md) describes the workflow.
+
 ## Compatibility
 
 The claim is exactness, so it is checked rather than asserted. `dev/fuzz.clj` runs the
@@ -171,6 +214,7 @@ clojure -T:build compile-java   # java/ -> target/classes (needed once, and afte
 clojure -X:test                 # unit tests + the differential suite against upstream
 clojure -M:bench                # the table above
 clojure -M:fuzz <dir>... [n]    # the same differential, over any tree
+clojure -M:python-corpus        # repair the Python corpus, rewrite its reports, print the score
 clojure -T:build jar            # target/parinferish.jar
 ```
 
@@ -200,8 +244,8 @@ this README documents is his. He dedicated the project to the public domain unde
 all. It is owed regardless.
 
 What is Blockether's here is the engine — an independent Java implementation of those
-rules, linear where the original is quadratic — and `balance`, extracted from vis. No
-upstream code was copied into either.
+rules, linear where the original is quadratic — `balance`, extracted from vis, and the
+Python repair. No upstream code was copied into any of them.
 
 ## License
 

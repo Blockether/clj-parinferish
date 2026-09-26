@@ -1,0 +1,6 @@
+cpython: line 1, column 161: invalid syntax
+result: repaired
+fix: line 1: added ')' at column 161 to close '(' from line 1
+problem: line 1, column 161: ';' ends the statement while '(' from line 1, column 42 is still open
+--- text after repair
+print(await cat(str(p),1975,2010)); print(await grep({"query":["projectGroups(","searchGroups("],"paths":[str(root/"apps/vis-companion/src")],"max_results":80})); print(await cat(str(ui),2210,2290))

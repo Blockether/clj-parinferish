@@ -1,0 +1,20 @@
+cpython: line 4, column 6: '(' was never closed
+result: repaired
+fix: line 4: added ')' at column 94 to close '(' from line 4
+problem: line 4, column 6: '(' is never closed
+--- text after repair
+import pathlib
+p = pathlib.Path("/home/user/CryptoSyf/tests/test_bollpb_study.py")
+t = p.read_text()
+print("bar.at refs:", t.count("bar.at.date()), open_at refs:", t.count("bar.open_at.date()")))
+t = t.replace("bar.at.date()", "bar.open_at.date()")
+old = '''    config = tiny_config(WINDOW, min_trades=99)'''
+new = '''    config = tiny_config(["2025-01-01T00:00:00+00:00", "2025-02-16T00:00:00+00:00"], min_trades=99)'''
+assert t.count(old) == 1
+t = t.replace(old, new)
+old = '''    one = tiny_config(WINDOW, min_trades=1)'''
+new = '''    one = tiny_config(["2025-01-01T00:00:00+00:00", "2025-02-16T00:00:00+00:00"], min_trades=1)'''
+assert t.count(old) == 1
+t = t.replace(old, new)
+p.write_text(t)
+print("fixed")

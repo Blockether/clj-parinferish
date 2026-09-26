@@ -1,0 +1,3 @@
+h7rail=await shell(f"spel --session {spel_session} open 'http://127.0.0.1:6011/iframe.html?id=screens-session-list--narrow-rail&viewMode=story' && spel --session {spel_session} wait --text uberworkspace && spel --session {spel_session} get box '.overflow-y-auto'",{'cwd':str(project_root_path / 'apps/vis-companion')}); print(await h7rail.wait(10))
+h7diff=await shell('git diff --check && git diff -- src/components/SessionHeader.tsx src/components/SessionHeader.stories.tsx',{'cwd':str(project_root_path / 'apps/vis-companion')}); print(await h7diff.wait(1))
+print('\n'.join(l for l in h7stories.logs(-230)['out'].splitlines() if any(w in l for w in ['FAIL','Error','SessionHeader.stories.tsx (','SessionsScreen.stories.tsx (','Test Files','Tests ']))))

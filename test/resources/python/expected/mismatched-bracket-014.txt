@@ -1,0 +1,7 @@
+cpython: line 1, column 227: closing parenthesis ']' does not match opening parenthesis '('
+result: repaired
+fix: line 1: replaced ']' at column 227 with ')' to match '(' from line 1
+problem: line 1, column 227: ']' does not match '(' from line 1, column 44
+problem: line 1, column 236: ';' ends the statement while '(' from line 1, column 34 is still open
+--- text after repair
+print(type(p27), len(p27)); print('\n'.join(f'{i+1}: {s}' for i,s in enumerate(p27.splitlines()) if ('Task 8' in s or 'Task 9' in s or 'Task 10' in s or 'Task 11' in s or 'Task 12' in s or 'SDK' in s or 'trainer' in s.lower()))[:9500]); print(ls(project_root_path/'packages/vis-agent/src/blockether/vis/decisions',depth=2)); print(cat(project_root_path/'packages/vis-agent/src/blockether/vis/decisions/__init__.py',1,250))

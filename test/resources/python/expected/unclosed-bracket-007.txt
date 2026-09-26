@@ -1,0 +1,25 @@
+cpython: line 5, column 35: '[' was never closed
+result: repaired
+fix: line 19: added '])' at column 16 to close the brackets from line 5
+problem: line 5, column 6: '(' is never closed
+problem: line 5, column 35: '[' is never closed
+--- text after repair
+patch('tests/test_registry.py', [
+  {"from": "10:dce", "replace": "    assert len(strategies) == 15"},
+  {"from": "11:cc6", "replace": '    assert {item["id"] for item in strategies} == {f"S{i:02}" for i in range(1, 16)}'},
+])
+patch('tests/test_comparison.py', [
+  {"from": "1253:f4f", "replace": '''        },
+        "public-engulf": {
+            **complete,
+            "experiment": "ENGULFING-ALT100-v1",
+            "status": "BLOCKED_DATA",
+            "audit_complete": True,
+            "collection_complete": False,
+            "archive_audit": {"verified_assets": {}, "expected_months_per_asset": []},
+            "summary": [],
+            "pooled": {},
+            "engulf_signal_count": 0,
+            "failure": "OFFLINE_CACHE_MISS",
+            "total_net_pnl_state": "NOT_REPORTABLE",
+        },'''},])

@@ -1,0 +1,62 @@
+print(patch(project_root_path / "src/com/blockether/vis/internal/activity/event.clj", [
+ {"from":"91:8dd", "replace":"  (if-not (string? text)\n    text"},
+ {"from":"105:6c5", "replace":"      text"},
+ {"from":"111:608", "to":"126:66c", "replace":'''(defn- compact-presentation
+  [workspace-root presentation]
+  (let [field-key (fn [m k] (if (contains? m (keyword k)) (keyword k) k))
+        compact #(compact-path-text workspace-root %)
+        block (fn [block]
+                (case (some-> (get block (field-key block "type")) name)
+                  ("text" "heading") (update block (field-key block "text") compact)
+                  "table" (update block (field-key block "rows")
+                                  #(mapv (fn [row] (mapv compact row)) %))
+                  block))]
+    (cond-> (-> presentation
+                (update (field-key presentation "headline") compact)
+                (update (field-key presentation "summary") compact)
+                (update (field-key presentation "content") #(mapv block %)))
+      (contains? presentation (field-key presentation "sections"))
+      (update (field-key presentation "sections")
+              #(mapv (partial compact-presentation workspace-root) %)))))'''}
+]))
+print(patch(project_root_path / "test/com/blockether/vis/internal/python/extensions_test.clj", [{"from":"388:000", "replace":'''\n(defdescribe sdk-activity-paths-test
+  (it "compacts Python callback and publication paths without changing the tool result"
+    (let [project (str (System/getProperty "user.home") "/activity-project")
+          path (str project "/src/example.clj")
+          source (-> counter-py
+                     (str/replace "Check counter" path)
+                     (str/replace "Ready" path))]
+      (with-loaded {"counter.py" source}
+        (fn [_ _]
+          (let [ext (registered "counter")
+                entry (second (get-in ext [:ext/engine :ext.engine/symbols]))
+                events (atom [])]
+            (binding [extension/*tool-event-sink* #(swap! events conj %)]
+              (expect (= {"count" 0 "op" "counter_counter_read"}
+                         (extension/invoke-symbol-wrapper ext entry [] {:workspace/root project}))))
+            (let [views (map :presentation (filter #(= :content (:phase %)) @events))]
+              (expect (= 3 (count views)))
+              (expect (every? #(= "src/example.clj" (get % "summary")) views)))
+            (expect (activity-contract/valid-projection?
+                      (activity/presentation (activity/replay @events)))))))))\n"}]))
+print(patch(project_root_path / "test/com/blockether/vis/internal/foundation/shim_ls_test.clj", [{"from":"354:83a", "replace":'''  (it "compacts absolute single and batched directory paths only in Activity"
+    (let [project (.getCanonicalPath (java.io.File. "."))
+          path (str project "/resources/vis-shims")
+          other (str project "/src/com/blockether/vis/internal/foundation")
+          symbol (deref (ns-resolve 'com.blockether.vis.internal.foundation.shim-ls 'listing-symbol))]
+      (doseq [paths [[path] [path other]]]
+        (let [events (atom [])
+              result (binding [extension/*tool-event-sink* #(swap! events conj %)]
+                       (extension/invoke-symbol-wrapper
+                         {:ext/name "foundation-shim-ls"} symbol [{"paths" paths}]
+                         {:workspace/root project}))
+              view (get-in (activity/presentation (activity/replay @events)) [:rows 0 :presentation])]
+          (expect (= paths (mapv #(get % "path") result)))
+          (expect (not (string/includes? (get view "summary") project)))
+          (if (= 1 (count paths))
+            (expect (string/starts-with? (get view "summary") "resources/vis-shims ·"))
+            (expect (= ["resources/vis-shims" "src/com/blockether/vis/internal/foundation"]
+                       (mapv #(get % "headline") (get view "sections")))))))))
+  (it "bounds batch content and reports omitted entries without losing nested paths"'''}]))
+print(await run_tests({"language":"clojure", "paths":["test/com/blockether/vis/internal/activity/event_test.clj", "test/com/blockether/vis/internal/foundation/shim_ls_test.clj", "test/com/blockether/vis/internal/extension/core_test.clj"], "ns":None}))
+print(await run_tests({"language":"clojure", "ns":"com.blockether.vis.internal.python.extensions-test/sdk-activity-paths-test"}))

@@ -1,0 +1,6 @@
+cpython: line 1, column 282: invalid syntax
+result: repaired
+fix: line 1: added ')' at column 282 to close '(' from line 1
+problem: line 1, column 282: ';' ends the statement while '(' from line 1, column 99 is still open
+--- text after repair
+print(cat(project_root_path/'src/com/blockether/vis/internal/gateway/state.clj',6482,6546)); print(grep({'query':['defn delete-project!','defn project-session-ids','defn delete-session!'], 'paths':[project_root_path/'src/com/blockether/vis/internal/loop.clj'], 'context':3})[:6000]); print(cat(p/'screen.clj',5933,5945))

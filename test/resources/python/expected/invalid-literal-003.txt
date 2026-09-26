@@ -1,0 +1,8 @@
+cpython: line 1, column 133: invalid decimal literal
+result: not repaired
+fix: line 1: added the missing closing ' at column 678
+problem: line 1, column 6: '(' is never closed
+problem: line 1, column 12: '(' is never closed
+problem: line 1, column 665: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.test.tsx,[{'from':'1246:532','to':'1247:3a6','replace':"    );\n    expect(within((await screen.findByText('Groups')).parentElement!).getByText('Archived')).toHaveClass(\n      'font-mono', 'text-ui', 'text-white',\n    );\n    expect(within(steps).getByText('Page 2 of 3')).toBeInTheDocument();"},{'from':'1262:dc5','replace':"    await waitFor(() => expect(within(steps).getByText('Page 2 of 3')).toBeInTheDocument());\n    expect(within((await screen.findByText('Sessions')).parentElement!).getByText('Archived')).toHaveClass(\n      'font-mono', 'text-ui', 'text-white',\n    );"}]'))

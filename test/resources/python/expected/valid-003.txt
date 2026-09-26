@@ -1,0 +1,2 @@
+cpython: ok
+result: valid

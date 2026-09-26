@@ -1,0 +1,5 @@
+print(cat(project_root_path/'daily/2026-09-09.md',278,294))
+print(cat(project_root_path/'daily/2026-09-09.md',336,382))
+print(cat(project_root_path/'knowledge/investing/strategies.md',1,140))
+print({'nansen_screener_contract': next(s for s in nansen_registry_t71['studies'] if s['id']=='NANSEN-FLOW-DAILY-v2')})
+print(ap ropos if False else apropos('browse|fetch|search|web'))

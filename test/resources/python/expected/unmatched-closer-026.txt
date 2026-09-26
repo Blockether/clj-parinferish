@@ -1,0 +1,6 @@
+cpython: line 1, column 133: unmatched ')'
+result: repaired
+fix: line 1: removed the unmatched ')' at column 133
+problem: line 1, column 133: ')' has no opening bracket
+--- text after repair
+print({k:s.get(k) for k in ('id','session_id','uuid') if isinstance(s,dict) and s.get(k)}) if 's' in globals() else 'no-session-var'

@@ -1,0 +1,14 @@
+outs=await gather(
+ patch(str(app/'src/components/Menu.test.tsx'),[
+  {"from":"81:7e7","to":"83:a6f","replace":"    it('is an ordinary button in the dialog’s native Tab order', () => {\n      expect(html()).toContain('<button');\n      expect(html()).not.toContain('role=\"menuitem\"');\n    });"}
+ ]),
+ patch(str(app/'src/components/TextArtifact.test.tsx'),[
+  {"from":"55:cd6","to":"58:a6f","replace":"    expect(markup).toContain('<pre');\n    expect(markup).toContain('tabindex=\"0\"');\n    expect(markup).toContain('aria-label=\"a.log\"');\n    expect(markup).toContain('whitespace-pre-wrap');\n    expect(markup).toContain('# not markdown');\n  });"}
+ ]),
+ patch(str(app/'src/components/LiveView.test.tsx'),[
+  {"from":"68:46f","to":"69:102","replace":"    expect(html).toContain('db-2 · 1 critical (openssl)');\n    expect(screen.getByLabelText('Output output').getAttribute('tabindex')).toBe('0');\n    expect(screen.getAllByRole('row').length).toBe(3);"}
+ ]),
+ patch(str(app/'src/components/HumanInputPrompt.test.tsx'),[
+  {"from":"120:a6f","replace":"  });\n\n  it('connects every written-field label and refusal to its native control', () => {\n    markup('grouped', { errors: { user: 'Use a service account.' } });\n\n    expect(screen.getByRole('textbox', { name: 'User required' })).toBeTruthy();\n    expect(screen.getByLabelText('Password required')).toBeTruthy();\n    expect(screen.getByRole('textbox', { name: 'Notes' })).toBeTruthy();\n    const user = screen.getByRole('textbox', { name: 'User required' });\n    const describedBy = user.getAttribute('aria-describedby');\n    expect(describedBy).toBeTruthy();\n    expect(document.getElementById(describedBy ?? '')?.textContent).toBe('Use a service account.');\n    expect(user.getAttribute('aria-invalid')).toBe('true');\n  });"}
+ )
+print('\n'.join(map(str,outs)))

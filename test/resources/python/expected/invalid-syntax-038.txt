@@ -1,0 +1,13 @@
+cpython: line 5, column 56: invalid syntax
+result: repaired
+fix: line 5: turned the 'n' at column 56 back into the line break it stood for
+problem: line 5, column 56: 'n' right after ')' looks like a \n that lost its backslash
+--- text after repair
+root = Path(session["workspace"]["root"])
+patch_path = Path.home() / ".vis" / "tmp" / "artifact-story-fixture.patch"
+patch_path.parent.mkdir(parents=True, exist_ok=True)
+selected_patch = header + hunks[1]
+patch_path.write_text(selected_patch, encoding="utf-8")
+sh = await shell(f"git apply --cached --check {shlex.quote(str(patch_path))}", cwd=root)
+result = await sh.wait(30)
+print(result.logs[-4000:] or "cached patch check passed")

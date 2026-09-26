@@ -1,0 +1,28 @@
+cpython: line 16, column 85: unterminated string literal (detected at line 16)
+result: repaired
+fix: line 16: added the missing closing ' at column 86
+problem: line 16, column 85: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 21, column 1: ']' does not match '{' from line 9, column 2
+--- text after repair
+native_edit=await patch(spel_root/'src/com/blockether/spel/native.clj',[
+ {'from':'657:442│ (def ^:private native-commands\n658:85a│   "Every first token THIS namespace dispatches on, including the bare help and\n659:499│    version spellings. Anything else is a cli.clj command.\n660:000│ \n661:667│    `parse-global-flags` used to leave a flag it did not recognize in\n662:d25│    `:command-args`, so ONE unknown flag in front of a command hid it and\n663:27b│    `spel --provider ios eval-sci \'(+ 1 2)\'` answered `Unknown command:\n664:034│    eval-sci`. The parser now consumes leading unknown flags generically, and\n665:27a│    this closed set — not a copy of cli.clj\'s flag list, which would drift — is\n666:684│    what tells a flag\'s VALUE apart from the command."\n667:e22│   #{"init-agents" "ci-assemble" "merge-reports" "report" "daemon" "eval-sci"\n668:3d9│     "version" "--version" "help" "--help" "-h"})','replace':'''(def ^:private native-commands
+  "Every first token THIS namespace dispatches on, including bare help and
+   version spellings. CLI commands remain owned by `cli/known-command?`; keeping
+   each command vocabulary with its dispatcher avoids a second flag registry."
+  #{"init-agents" "ci-assemble" "merge-reports" "report" "codegen" "search"
+    "install" "bridge" "upgrade" "inspector" "show-trace" "stitch" "daemon"
+    "eval-sci" "version" "--version" "help" "--help" "-h"})'''},
+ {'from':'795:6bb│           ;; A `--flag` this parser does not know belongs to cli.clj, and it is\n796:0a5│           ;; consumed here for ONE reason: so the COMMAND token behind it can\n797:354│           ;; still be found. `spel --provider ios eval-sci \'(+ 1 2)\'` used to\n798:aac│           ;; dispatch on "--provider" and die with `Unknown command: eval-sci`.\n799:760│           ;;\n800:c73│           ;; No list of cli.clj\'s flags lives here: a second flag registry\n801:7ff│           ;; drifts the day a flag is added over there, which is this same bug\n802:d3b│           ;; one release later. Whether the token after a flag is its VALUE or\n803:4c4│           ;; the command is decided by `native-commands` — the closed set this\n804:456│           ;; namespace owns and can never be wrong about.\n805:760│           ;;\n806:0a7│           ;; Only LEADING flags are consumed: once a command is in `cmd-args`\n807:dd3│           ;; the rest of the line belongs to that command\'s own parser\n808:250│           ;; (`report --results-dir`, `daemon --port`, eval-sci\'s script args).\n809:c2e│           ;; CLI commands re-parse the ORIGINAL args, so nothing is lost for\n810:3f4│           ;; them; the values are kept in :cli-flags for the commands parsed HERE.','replace':'''          ;; A `--flag` this parser does not know belongs to cli.clj. Consume it
+          ;; only to expose the command behind it: the native and CLI command
+          ;; registries distinguish a BOOLEAN flag followed by a command from a
+          ;; value-taking flag. No copy of cli.clj's flag list lives here.
+          ;;
+          ;; Only LEADING flags are consumed. Once a command is in `cmd-args`,
+          ;; the rest belongs to that command's parser. CLI commands re-parse
+          ;; the ORIGINAL args, while native modes use values kept in :cli-flags.'''''},
+ {'from':'823:288│               (and (string? nxt)\n824:7f5│                 (not (contains? native-commands nxt))\n825:7ab│                 (not (str/starts-with? ^String nxt "-")))','replace':'''              (and (string? nxt)
+                (not (contains? native-commands nxt))
+                (not (cli/known-command? nxt))
+                (not (str/starts-with? ^String nxt "-")))'''}
+])
+print(native_edit)

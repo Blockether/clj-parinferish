@@ -1,0 +1,1 @@
+root=Path(session['workspace']['root']); p=root/'src/com/blockether/vis/internal/gateway/server.clj'; print(await patch(p,[{'from':'513:9ac','to':'515:000','replace':'          wire/parse-json))'}]); print(await format_code({'paths':[str(p)]}))

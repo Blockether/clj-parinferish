@@ -1,0 +1,6 @@
+cpython: line 1, column 184: invalid syntax
+result: repaired
+fix: line 1: added ')' at column 184 to close '(' from line 1
+problem: line 1, column 184: ';' ends the statement while '(' from line 1, column 69 is still open
+--- text after repair
+print(await cat(companion/'scripts/ios-prepare.mjs',590,640)); print(await grep({'query':['ios-share-open.test','scripts/*.test','npm test'], 'paths':[str(companion/'package.json')]})); h=await shell('git show --stat --oneline 66a384544 && git show --format= -- apps/vis-companion/src/components/DocArtifact.tsx apps/vis-companion/src/components/DocArtifact.test.tsx',cwd=str(root)); print(h.wait(30))

@@ -1,0 +1,11 @@
+cpython: line 1, column 215: unterminated string literal (detected at line 1)
+result: repaired
+fix: line 1: added the missing closing ' at column 369
+fix: line 1: added '}]' at column 369 to close the brackets from line 1
+problem: line 1, column 96: '(' is never closed
+problem: line 1, column 102: '(' is never closed
+problem: line 1, column 105: '[' is never closed
+problem: line 1, column 172: '{' is never closed
+problem: line 1, column 215: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+p=project_root_path/'src'/'com'/'blockether'/'vis'/'internal'/'speech'/'attribution.clj'; print(patch(p,[{'from':'137:056','replace':'          (str "Decision model - "'},{'from':'158:f34','to':'159:c83','replace':'         "- Model scores do not authorize autonomous actions; evaluate both decision"\n         "  heads on held-out examples before relying on them."]))'}]))

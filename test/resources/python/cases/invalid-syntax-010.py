@@ -1,0 +1,13 @@
+print(defs(pattern='extract.*asset'));def _safe_extract_laya_asset(asset,destination):
+ """Extract a staged Laya ZIP, rejecting traversal and checking every provenance SHA-256."""
+ destination.mkdir(exist_ok=True)
+ with zipfile.ZipFile(asset) as z:
+  names=z.namelist()
+  if len(names)!=len(set(names)) or any(n.startswith('/') or '..' in Path(n).parts for n in names):raise ValueError('Unsafe asset archive')
+  z.extractall(destination)
+ metadata=json.loads((destination/'PROVENANCE.json').read_text())
+ if set(metadata.get('files',{}))-{str(p.relative_to(destination)) for p in destination.rglob('*') if p.is_file()}:raise ValueError('Missing model files')
+ for name,entry in metadata.get('files',{}).items():
+  if _hash_file(destination/name)!=entry:raise ValueError('Asset provenance digest mismatch: '+name)
+ return metadata
+fp32_unpack=pack_tmp/'verify-fp32';train_unpack=pack_tmp/'verify-training';a=_safe_extract_laya_asset(fp32_asset,fp32_unpack);b=_safe_extract_laya_asset(train_asset,train_unpack);print('verified archives',a['kind'],b['kind'],a['model'],a['revision'],len(a['files']),len(b['files']))

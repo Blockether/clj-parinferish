@@ -1,0 +1,6 @@
+root = Path(session["workspace"]["root"])
+searches = await gather(
+    grep({"query": ["resize", "winsize", "TIOCSWINSZ", "columns", "rows", "term-size", "terminal size", "TERM="], "paths": [str(root / "src"), str(root / "resources/vis-python"), str(root / "packages/vis-agent/src"), str(root / "test")]}),
+    grep({"query": ["pty", "PTY", "attach", "log_path", "shell-input", "shell-stop"], "paths": [str(root / "src/com/blockether/vis"), str(root / "resources/vis-python/async_runtime.py"), str(root / "test/com/blockether/vis")]})
+print("SIZE SEARCH\n", searches[0])
+print("\nPTY SEARCH\n", searches[1])

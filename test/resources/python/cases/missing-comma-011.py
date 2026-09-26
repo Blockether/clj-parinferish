@@ -1,0 +1,6 @@
+worker_variant_cpu_probe_code = worker_variant_probe_code.replace('"-o" "rss="', '"-o" "rss=,time="').replace(':worker-cpu-ms (/ (.toNanos ^java.time.Duration cpu) 1e6)', ':worker-cpu-ms (* 1000 (reduce (fn [total part] (+ (* 60 total) (Double/parseDouble part))) 0.0 (clojure.string/split (second (clojure.string/split (clojure.string/trim (:out ps)) #"\\s+")) #":")))').replace('(Long/parseLong (clojure.string/trim (:out ps)))', '(Long/parseLong (first (clojure.string/split (clojure.string/trim (:out ps)) #"\\s+")))').replace('(range 5)', '(range 3)')
+worker_variant_cpu_probe_result = await repl_eval({'language': 'clojure', 'id': 'nrepl:~/vis', 'code': worker_variant_cpu_probe_code})
+print({k: worker_variant_cpu_probe_result[k] for k in ('value', 'ms', 'status') if k in worker_variant_cpu_probe_result})
+print(cat(project_root_path / 'src/com/blockether/vis/internal/python/worker.clj', 174, 194))
+print(cat(project_root_path / 'test/com/blockether/vis/internal/python/worker_test.clj', 321, 365))
+print(ap ropos(''))

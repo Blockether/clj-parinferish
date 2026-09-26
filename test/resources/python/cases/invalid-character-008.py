@@ -1,0 +1,7 @@
+« rows2 = context_of(*[None])» if False else None
+per2, seq2 = parse_appium(L+"spel-ios-scroll-check.appium.log")
+print("scroll-check /source predecessors:")
+for ms, pre in context_of(seq2, "/source"): print(f"  {ms:7d}ms  <= {pre}")
+print("\nios-fix /window/rect successors:")
+idx = [i for i,(m,p,s,ms) in enumerate(seq) if p.endswith("/window/rect")]
+print(collections.Counter(seq[i+1][0]+" "+seq[i+1][1].split('<id>')[-1] for i in idx if i+1<len(seq)))

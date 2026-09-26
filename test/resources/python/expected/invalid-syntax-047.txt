@@ -1,0 +1,7 @@
+cpython: line 1, column 71: invalid syntax
+result: repaired
+fix: line 1: moved the statement after ';' at column 69 onto its own line
+problem: line 1, column 69: a compound statement cannot follow ';'; start it on its own line
+--- text after repair
+root=Path(session['workspace']['root']); c=root/'apps/vis-companion'
+async def npm22(cmd,timeout=180): h=await shell(cmd,cwd=str(c)); return await h.wait(timeout); a,b=await gather(run_tests({'language':'clojure','paths':[str(root/'test/com/blockether/vis/internal/gateway/human_input_test.clj')]}),npm22('npm test -- --run src/components/LiveView.test.tsx src/screens/SessionScreen.activity-stream.test.tsx',180)); print({'clojure':a,'companion':b})

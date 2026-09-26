@@ -1,0 +1,1 @@
+print('helpers',defs(pattern='clj_literals|scan_prompt_text')); print('known',('plan' in globals()),('intro' in globals()),('csrc' in globals())); print(repr(csrc[csrc.index('(defn prompt\n'):csrc.index('(defn prompt\n')+110])); print('candidate',csrc.find('     (str\n',csrc.index('(defn prompt\n')),csrc.find('    (str\n',csrc.index('(defn prompt\n'))))

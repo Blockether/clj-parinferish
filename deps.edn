@@ -1,7 +1,8 @@
-;; clj-parinferish — parinfer for Clojure source, in pure Java. See README.md.
+;; clj-parinferish — parinfer for Clojure source, in pure Java, and the same kind
+;; of repair for the quotes and brackets of Python. See README.md.
 ;;
-;; No runtime dependencies: the engine is three java/ classes, src/ adds the
-;; Clojure facade and `balance`, and neither reaches past clojure.core. Compile
+;; No runtime dependencies: the engines are plain java/ classes, src/ adds the
+;; Clojure facades and `balance`, and none reaches past clojure.core. Compile
 ;; the Java with `clojure -T:build compile-java` — it lands in target/classes,
 ;; which is on :paths for development and inside the published jar. Depend on
 ;; the Maven coordinate, never a git one.
@@ -33,6 +34,13 @@
    :extra-deps  {org.clojure/clojure {:mvn/version "1.12.4"}
                  parinferish/parinferish {:mvn/version "0.8.0"}}
    :main-opts   ["-m" "bench"]}
+
+  ;; `clojure -M:python-corpus` — repair every case in test/resources/python/,
+  ;; rewrite its expected/ reports and print the score and the timing.
+  :python-corpus
+  {:extra-paths ["dev"]
+   :extra-deps  {org.clojure/clojure {:mvn/version "1.12.4"}}
+   :main-opts   ["-m" "python-corpus"]}
 
   ;; `clojure -M:fuzz <dir>... [mutations]` — the same differential the tests run,
   ;; pointed at any tree of Clojure source.

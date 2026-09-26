@@ -1,0 +1,19 @@
+cpython: line 1, column 1: invalid syntax
+result: repaired
+fix: line 1: removed the quote marker > at column 1
+problem: line 1, column 1: '>' is a quote marker, not Python; remove it
+--- text after repair
+
+# 1) :zai overlay entry (after glm-5.2, line 792)
+p1 = patch(R, "792:2f4", """     "glm-5.2"                   {:context 1000000 :output-limit 32768 :json-object-mode? true}
+     ;; GLM-5.3 shipped on the Coding Plan first: models.dev carries it under
+     ;; `zai-coding-plan` / `zhipuai-coding-plan` but NOT yet under retail
+     ;; `zai`, so this overlay is the only source of its metadata on every
+     ;; z.ai surface (all three share `:pricing-source :zai`). Rates mirror
+     ;; glm-5.2 retail — what z.ai meters the Coding Plan overage at, and what
+     ;; the catalog quotes for glm-5.3 on the gateways that already list it.
+     ;; Rungs are the catalog's own: unlike glm-5.2, GLM-5.3 sells a "low".
+     "glm-5.3"                   {:pricing {:input 1.40 :cached-input 0.26 :output 4.40}
+                                  :context 1000000 :output-limit 32768 :json-object-mode? true
+                                  :reasoning-options [{:type "effort" :values ["low" "high" "max"]}]}""")
+print(p1)

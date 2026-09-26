@@ -1,0 +1,6 @@
+cpython: line 1, column 149: invalid syntax
+result: repaired
+fix: line 1: added ')' at column 149 to close '(' from line 1
+problem: line 1, column 149: ';' ends the statement while '(' from line 1, column 38 is still open
+--- text after repair
+print(await cat(str(p),1,135)); print(await grep({"query":["function LiveCount","export function LiveCount","NeedsInput"],"paths":[str(ui),str(p)]})); print(await cat(str(p),2635,2670))

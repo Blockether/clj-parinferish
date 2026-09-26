@@ -1,0 +1,39 @@
+root=Path(session['workspace']['root']); s=root/'apps/vis-companion/src/screens/SessionsScreen.tsx'
+r=await patch(s,[{'from':'960:ac5','to':'961:e11','replace':'''  // (a cached fleet already is), and the five-second poll below stays the business of the
+  // screen that is on the glass.''},{'from':'970:99d','to':'990:b7b','replace':'''  // Behind an open transcript this screen is mounted but invisible, and a list
+  // nobody can see must not do fleet-wide work: this poll refetched every machine
+  // every 5s and re-ran the filter and the sort of the whole fleet — under the
+  // composer the reader was typing in. Becoming visible re-runs the effect, whose
+  // first act is a full load, so the rows are fresh the moment they are back on
+  // the glass.
+  useEffect(() => {
+    if (!isVisible) return;
+    const controller = new AbortController();
+    const refreshLiveStates = () => {
+      void load(controller.signal, true);
+    };
+
+    void load(controller.signal);
+    // The session-list head is already the reachability check and carries live/idle
+    // totals, so do not add a second health request. Five seconds bounds how long a
+    // machine can still look active after it stops answering. Cheap on BOTH ends — an
+    // unchanged fleet comes back as a 304 with no body (see `GatewayClient.listSessions`),
+    // and `load(_, true)` drops a tick that fires while the previous one is still in
+    // flight instead of queueing it. A frozen webview runs no timers. Do not trust
+    // `document.visibilityState` here: a resumed Capacitor webview can keep reporting
+    // `hidden` while this screen is on the glass.
+    const timer = window.setInterval(refreshLiveStates, 5_000);'''},{'from':'1452:2b0','to':'1455:532','replace':'''  const machineColors = useMemo(
+    () => assignMachineColors(machines.map((machine) => machineKey(machine.conn))),
+    [machines],
+  );
+  // Pairing order still owns sections, hues and every persisted identity. The switch is
+  // only a destination list: keep each band's original order, but put every destination
+  // that no longer answers after all the destinations the reader can still enter.
+  const switcherMachines = useMemo(
+    () => [
+      ...machines.filter((machine) => !machine.error),
+      ...machines.filter((machine) => Boolean(machine.error)),
+    ],
+    [machines],
+  );'''.replace("each band's", "each group's")},{'from':'2106:145','to':'2106:145','replace':'              {switcherMachines.map((machine) => {'}])
+print(r)

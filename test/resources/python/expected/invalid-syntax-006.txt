@@ -1,0 +1,11 @@
+cpython: line 1, column 68: invalid syntax
+result: repaired
+fix: line 1: moved the statement after ';' at column 67 onto its own line
+problem: line 1, column 67: a compound statement cannot follow ';'; start it on its own line
+--- text after repair
+print(defs('settled_perf_metrics',details=True).splitlines()[:12])
+def settled_perf_metrics(reservation, cdp_symbol, wait_ms=650):
+    """Collect post-GC renderer heap and DOM counters for a reserved performance tab."""
+    r=spel.sci(reservation.id,f'(do (spel/wait-for-timeout {int(wait_ms)}) (spel/cdp-send {cdp_symbol} "HeapProfiler.collectGarbage") {{:metrics (str (spel/cdp-send {cdp_symbol} "Performance.getMetrics")) :dom (str (spel/cdp-send {cdp_symbol} "Memory.getDOMCounters"))}})')
+    m=json.loads(r.data['result']['metrics'])['metrics'];d=json.loads(r.data['result']['dom']);picked={v['name']:round(v['value']/1048576,2) if v['name'].startswith('JSHeap') else round(v['value'],2) for v in m if v['name'] in ('JSHeapUsedSize','JSHeapTotalSize','Nodes','LayoutCount','RecalcStyleCount')};picked.update({'dom_nodes':d['nodes'],'listeners':d['jsEventListeners']});return picked
+print('clean first',settled_perf_metrics(perf_clean,'clean-cdp',1400))

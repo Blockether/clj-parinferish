@@ -1,0 +1,5 @@
+print(cat(project_root_path / 'e2e/run.py', 69, 99))
+print(cat(project_root_path / 'deps.edn', 1, 38))
+print(grep({'query': [':vis', 'classes', ':jvm-opts'], 'paths': [project_root_path / 'deps.edn'], 'context': 3}))
+print(grep({'query': ['CORE_SYSTEM_PROMPT', 'core-system-prompt', 'system-prompt'], 'paths': [project_root_path / 'src/com/blockether/vis/internal/context/prompt.clj'], 'context': 2}))
+print(ap ropos if False else 'No new E2E started; checking whether the CLI actually receives the changed policy.')

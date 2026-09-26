@@ -1,0 +1,22 @@
+cpython: line 1, column 23: unterminated string literal (detected at line 1)
+result: repaired
+fix: line 1: made the string at column 23 triple-quoted (""") because its text continues onto the next lines; it now ends on line 9
+problem: line 1, column 22: '(' is never closed
+problem: line 1, column 23: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 2, column 18: backslash outside a string; there it may only end a line
+problem: line 2, column 19: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 3, column 16: backslash outside a string; there it may only end a line
+problem: line 3, column 17: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 9, column 12: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+--- text after repair
+menu_sh = await shell("""osascript <<'APPLESCRIPT'
+tell application \"System Events\"
+  tell process \"Safari\"
+    set frontmost to true
+    set names to name of every menu bar item of menu bar 1
+    return names
+  end tell
+end tell
+APPLESCRIPT""")
+menu_res = await menu_sh.wait(10)
+print(menu_res.get("out", ""))

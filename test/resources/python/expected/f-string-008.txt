@@ -1,0 +1,10 @@
+cpython: line 1, column 68: f-string: single '}' is not allowed
+result: repaired
+fix: line 1: doubled the single '}' at column 68 in the f-string
+fix: line 1: doubled the single '}' at column 162 in the f-string
+problem: line 1, column 68: single '}' in an f-string; write '}}' for a literal brace
+problem: line 1, column 162: single '}' in an f-string; write '}}' for a literal brace
+--- text after repair
+r = await shell(op="run", commands=[f"grep -o 'content-visibility[^}};]*' {B}/public/assets/index-ZC9VG1V_.css | sort | uniq -c; grep -o 'contain-intrinsic-size[^}};]*' {B}/public/assets/index-ZC9VG1V_.css | sort | uniq -c"])
+print(r["commands"][0]["stdout"])
+print(await ev("var a=document.querySelector('[aria-label=Transcript] article'); return {cls:a.className, cv:getComputedStyle(a).contentVisibility, cis:getComputedStyle(a).containIntrinsicSize, contain:getComputedStyle(a).contain, h:Math.round(a.getBoundingClientRect().height)};"))

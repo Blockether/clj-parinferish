@@ -1,0 +1,9 @@
+cpython: line 4, column 172: unmatched ')'
+result: repaired
+fix: line 4: removed the unmatched ')' at column 172
+problem: line 4, column 172: ')' has no opening bracket
+--- text after repair
+app_baseline_full = await app_story_baseline_checked_sh.logs(-12000)
+print('log keys:', list(app_baseline_full))
+print('\n'.join(line for line in app_baseline_full['out'].splitlines() if 'BASELINE' in line))
+print('\n'.join(line for line in app_baseline_node_checked.splitlines() if any(s in line for s in ['const repo', 'const names', 'originals =', 'if (source', 'BASELINE'])))

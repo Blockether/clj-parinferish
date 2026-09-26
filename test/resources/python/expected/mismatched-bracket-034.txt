@@ -1,0 +1,11 @@
+cpython: line 2, column 96: closing parenthesis ')' does not match opening parenthesis '['
+result: repaired
+fix: line 2: removed the unmatched ')' at column 96
+problem: line 2, column 96: ')' does not match '[' from line 2, column 23
+problem: line 2, column 97: ']' has no opening bracket
+problem: line 2, column 166: '}' has no opening bracket
+problem: line 2, column 167: ')' has no opening bracket
+--- text after repair
+root=Path(session["workspace"]["root"])
+hits = grep({"query": ["gateway-client/request! :get", "session-id", '"session_id"', "/usage\""], "paths": [root / "e2e", root / "test", root / "src"], "context": 4})
+print(hits)

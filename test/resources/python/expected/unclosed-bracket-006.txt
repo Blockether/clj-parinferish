@@ -1,0 +1,6 @@
+cpython: line 1, column 269: '(' was never closed
+result: repaired
+fix: line 1: added ')' at column 387 to close '(' from line 1
+problem: line 1, column 269: '(' is never closed
+--- text after repair
+f10=json.loads((project_root_path/'packages/vis-contract/resources/vis-contract/fixtures/activity-repl.json').read_text());print([{ 'content':r.get('presentation',{}).get('content'), 'sections':r.get('presentation',{}).get('sections')} for r in f10['rows']][:1]);print(grep({'query':['h5','margin: 0','margin:0'], 'paths':[str(project_root_path/'apps/vis-companion/src')], 'context':1}))

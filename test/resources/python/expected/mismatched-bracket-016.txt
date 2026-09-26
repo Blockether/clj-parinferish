@@ -1,0 +1,9 @@
+cpython: line 1, column 446: closing parenthesis ')' does not match opening parenthesis '['
+result: repaired
+fix: line 1: replaced ')' at column 446 with ']' to match '[' from line 1
+problem: line 1, column 446: ')' does not match '[' from line 1, column 319
+problem: line 1, column 452: ')' does not match '[' from line 1, column 295
+problem: line 1, column 476: ']' has no opening bracket
+problem: line 1, column 477: ')' has no opening bracket
+--- text after repair
+print([x for x in dir(w) if not x.startswith('_')]); print('summary', {k:getattr(w,k) for k in ('status','conclusion','url') if hasattr(w,k)}); print('jobs',[(getattr(j,'name',None),getattr(j,'status',None),getattr(j,'conclusion',None)) for j in getattr(w,'jobs',[])][:60]); print('failedlogs',[(x.job_id,len(x.lines),[l for l in x.lines if any(t in l for t in ('Ran ','failures.','ERROR','Expectation failed','Check the failing job','Clojure'))][:12]) for x in w.failed_logs])

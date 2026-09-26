@@ -1,0 +1,9 @@
+cpython: line 1, column 55: closing parenthesis ')' does not match opening parenthesis '['
+result: not repaired
+fix: line 1: added ']}' at column 55 to close the brackets from line 1
+fix: line 1: added the missing closing ' at column 527
+problem: line 1, column 6: '(' is never closed
+problem: line 1, column 55: ')' does not match '[' from line 1, column 21
+problem: line 1, column 519: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+print(grep({'query':['1 group','2 sessions','Sessions']}).parentElement','bg-project-header','bg-panel','MachineTab','aria-pressed','bg-level-machine'],'paths':[project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.test.tsx',project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.stories.tsx',project_root_path/'apps/vis-companion/src/components/SessionNavigator.test.tsx',project_root_path/'apps/vis-companion/src/components/ui.stories.tsx'],'context':1,'is_files_only':True})')

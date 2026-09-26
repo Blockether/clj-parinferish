@@ -1,0 +1,17 @@
+cpython: line 10, column 117: unterminated triple-quoted string literal (detected at line 10)
+result: not repaired
+fix: line 6: added '}]))' at column 351 to close the brackets from line 6
+fix: line 10: added the missing closing ''' at column 125 for the triple-quoted string from line 10
+problem: line 6, column 351: ';' ends the statement while '{' from line 6, column 157 is still open
+problem: line 10, column 117: the triple-quoted string is never closed
+--- text after repair
+print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.test.tsx',[{'from':'227:981','to':'231:d28','replace':'''    expect(within(groupButton).getByText('Wallet work')).toHaveClass(
+      'text-ui', 'font-medium', 'text-dialog-hint',
+    );
+    expect([...wallet.querySelectorAll('[data-session-id]')].map((row) =>
+      row.getAttribute('data-session-id'),
+    )).toEqual([ROWS[0].id, ROWS[1].id]);'''}])); print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.stories.tsx',[{'from':'367:7ce','replace':'''    // The unpaged Groups strip is as tall as Sessions with its own actions.''},{'from':'371:c5a','replace':'''    const projectName = page.getByText(fixture.name)}]));'''},{'from':'376:df2','replace':'''    await expect(
+      groupName.getBoundingClientRect().left - projectName.getBoundingClientRect().left,
+    ).toBeGreaterThanOrEqual(16);'''},{'from':'388:b59','replace':'''      await expect(getComputedStyle(header).borderBottomColor).toBe(
+        getComputedStyle(band).borderTopColor,
+      );'''},{'from':'390:7ce','replace':'''    // Keep full-size action targets even when the captions get smaller.'''}]));'''

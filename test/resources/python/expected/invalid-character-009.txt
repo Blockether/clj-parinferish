@@ -1,0 +1,17 @@
+cpython: line 1, column 1: invalid character '«' (U+00AB)
+result: repaired
+fix: line 1: removed the quote marker « at column 1
+fix: line 10: removed the quote marker » at column 1
+problem: line 1, column 1: '«' is a quote marker, not Python; remove it
+problem: line 10, column 1: '»' is a quote marker, not Python; remove it
+--- text after repair
+# session_fold real call sites
+sf = []
+for x in I:
+    for ln in x["code"].splitlines():
+        st = ln.strip()
+        if re.match(r"^\s*(?:[\w ,=]+=\s*)?(?:await\s+)?session_fold\s*\(", ln) or st.startswith("session_fold("):
+            sf.append((x["sid"], x["turn"], x["pos"], st[:150]))
+print("session_fold invocation lines:", len(sf))
+for r_ in sf[:20]: print(f'{r_[0]} t{r_[1]}/i{r_[2]} {r_[3]}')
+

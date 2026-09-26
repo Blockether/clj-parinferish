@@ -1,0 +1,13 @@
+cpython: line 4, column 34: '(' was never closed
+result: repaired
+fix: line 6: added ')' at column 246 to close '(' from line 4
+problem: line 4, column 34: '(' is never closed
+--- text after repair
+root = Path(session["workspace"]["root"])
+lanterna = root / ".vis" / "lanterna"
+visroot = root
+session_info, hits = await gather(
+    read_session(),
+    grep({"query": ["DefaultKeyDecodingProfile", "CarriageReturn", "KeyType.Enter", "getText()", "KeyType/Enter"], "paths": [str(lanterna / "src"), str(lanterna / "src/test"), str(visroot / "extensions/channels/vis-channel-tui")], "context": 4}))
+turns = session_info.get("transcript", {}).get("turns", []) if isinstance(session_info, dict) else []
+print(f"session_read=yes turns={len(turns)}\n{hits}")

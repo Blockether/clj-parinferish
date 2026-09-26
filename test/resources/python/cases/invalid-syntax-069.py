@@ -1,0 +1,71 @@
+> 
+# --- test 1: the dedicated DialogHeader contract test
+sub_once("apps/vis-companion/src/components/DialogHeader.test.tsx",
+"""  it("routes every close through the one way out, and makes it say its name", async () => {""",
+"""  // Regression, user report from a phone ("the headline has wrong height and the …
+  // height and width of the x button is not consistent with other … places", about the
+  // image viewer): the band cleared the notch with padding on the SAME box that spells
+  // `min-h-12`, and a min-height is a BORDER-BOX minimum — so the inset was subtracted
+  // from the band instead of standing over it. Measured at 390px with a 47px inset, the
+  // band stood 77px instead of 47+48, its row collapsed to the 30px the title happened
+  // to need, and `CloseButton isBand`, which stretches to that row, shipped 48x30 rather
+  // than the 48x48 square it is on every other band — under the app's own 44px minimum
+  // for the one gesture that leaves a screen.
+  it("stands the notch strip ABOVE its own row, never out of it", () => {
+    const worn = () => band().className.split(/\\s+/).filter(Boolean);
+    const view = render(
+      <DialogHeader title="report.png" closeLabel="Close report.png" onClose={() => {}} />,
+    );
+    const plain = worn();
+
+    view.rerender(
+      <DialogHeader title="report.png" isUnderNotch closeLabel="Close report.png" onClose={() => {}} />,
+    );
+    const notched = worn();
+
+    // The row is untouched: same height, same paper, same rhythm as a band with no
+    // notch over it — the notch adds a STRIP and nothing else.
+    expect(notched).toEqual(expect.arrayContaining(plain));
+    expect(notched.filter((one) => !plain.includes(one)).sort()).toEqual([
+      "box-content",
+      "pt-[env(safe-area-inset-top)]",
+      "sm:pt-0",
+    ]);
+  });
+
+  it("routes every close through the one way out, and makes it say its name", async () => {""")
+
+# --- test 2: the same class string where ui.test.tsx already owns it
+sub_once("apps/vis-companion/src/components/ui.test.tsx",
+"""      renderToStaticMarkup(<DialogHeader title="Pasted #1" isUnderNotch />),
+    ).toContain("pt-[env(safe-area-inset-top)]");""",
+"""      renderToStaticMarkup(<DialogHeader title="Pasted #1" isUnderNotch />),
+    ).toContain("pt-[env(safe-area-inset-top)]");
+    // ...as a strip STANDING ON the band, never taken out of its `min-h-12` row —
+    // `DialogHeader.test.tsx` holds the numbers that reported it.
+    expect(
+      renderToStaticMarkup(<DialogHeader title="Pasted #1" isUnderNotch />),
+    ).toContain("box-content");""")
+
+# --- test 3: the picture clears the band that clears the notch
+sub_once("apps/vis-companion/src/components/ImageViewer.test.tsx",
+"""  // Regression, reported attachment filename click:""",
+"""  // Regression, same phone report ("the headline has wrong height"): the title band is
+  // the safe-area inset TALLER under a notch (48px + inset), while the picture's top pad
+  // and its own cap were a fixed 5rem/10rem — so the top of a tall image sat under the
+  // title bar it was supposed to clear.
+  it("keeps the picture clear of the band that clears the notch", () => {
+    const header = document.querySelector('[role="dialog"] header');
+    expect(header?.className).toContain("box-content");
+
+    const picture = document.querySelector('[role="dialog"] img');
+    expect(picture?.closest(".place-items-center")?.className).toContain(
+      "pt-[calc(5rem+env(safe-area-inset-top))]",
+    );
+    expect(picture?.className).toContain(
+      "max-h-[calc(100dvh-10rem-env(safe-area-inset-top))]",
+    );
+  });
+
+  // Regression, reported attachment filename click:""")
+print("tests written")

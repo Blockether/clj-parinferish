@@ -1,0 +1,6 @@
+cpython: line 1, column 182: closing parenthesis ']' does not match opening parenthesis '{'
+result: repaired
+fix: line 1: removed the unmatched ']' at column 160
+problem: line 1, column 182: ']' does not match '{' from line 1, column 87
+--- text after repair
+print(cat(p,635,653)); print(cat(tp,1345,1388)); print(cat(tp,1838,1862)); print(grep({'query':['sidebar-width',':width 80','assoc-in [:project-sidebar :width', 'set-sidebar-width'], 'paths':[str(tp)], 'context':2}))

@@ -1,0 +1,9 @@
+cpython: line 1, column 21: '(' was never closed
+result: not repaired
+fix: line 4: added ')' at column 27 to close '(' from line 1
+problem: line 1, column 21: '(' is never closed
+--- text after repair
+results=await gather(
+ patch(gw_server,[{"from":"509:d8a","to":"514:3f9","replace":""}]),
+ patch(tui_screen,[{"from":"637:e34","to":"645:95d","replace":"        local?\n        (or (nil? session-id) (some? (vis/pending-human-input-request request-id)))\n\n        action\n        (cond-> {:action op}\n          (= :submit op)\n          (assoc :values values))]\n\n    (if local?\n      (vis/view-action! request-id action)\n      (vis/gateway-view-action! session-id request-id action))))"}])
+for r in results: print(r))

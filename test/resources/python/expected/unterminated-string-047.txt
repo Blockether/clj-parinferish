@@ -1,0 +1,12 @@
+cpython: line 3, column 149: unterminated string literal (detected at line 3)
+result: not repaired
+fix: line 3: added the missing closing " at column 138
+problem: line 3, column 9: '(' is never closed
+problem: line 3, column 10: '{' is never closed
+problem: line 3, column 20: '[' is never closed
+problem: line 3, column 149: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+--- text after repair
+root = project_root_path
+print(cat(root / "src/cryptosyf/journal.py"))
+r = grep({"query": ["RESEARCH_COMMANDS = ", "^def ", "SWEEP", "SEPARATOR", "\"## \"], "paths": [str(root / "src/cryptosyf/comparison.py")"], "context": 0})
+print(r if isinstance(r, str) else r.get("stdout", r))

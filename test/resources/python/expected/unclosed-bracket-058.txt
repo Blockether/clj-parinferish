@@ -1,0 +1,6 @@
+cpython: line 1, column 126: '(' was never closed
+result: repaired
+fix: line 1: added ')' at column 262 to close '(' from line 1
+problem: line 1, column 126: '(' is never closed
+--- text after repair
+root=Path(session['workspace']['root']); print(await cat(root/'src/com/blockether/vis/internal/human_input.clj',1,45)); print(await grep({'query':['json-str','write-str','generate-string'], 'paths':[str(root/'src/com/blockether/vis/internal/human_input.clj')]}))

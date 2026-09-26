@@ -1,0 +1,1 @@
+print(await cat(src,1380,1425)); print(await grep({'query':['reasoning','encrypted_content'],'paths':[str(test)],'limit':30}); print(await grep({'query':['defn resolve-routing','defn select-provider'],'paths':[str(svar/'src/clj/com/blockether/svar')],'limit':20}))

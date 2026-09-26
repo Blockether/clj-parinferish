@@ -1,0 +1,8 @@
+reset_extension_tests = await run_tests({'language': 'clojure', 'path': 'test/com/blockether/vis/internal/extension/core_test.clj'})
+print(reset_extension_tests)
+print('Companion:', await reset_companion_tests.logs(-12))
+await spel_steps(['press y'])
+print(await reset_tui_preview.logs(-4))
+print(await reset_tui_preview.type('\n'))
+print(await reset_tui_preview.wait(20))
+print(ap ropos('attach') if False else doc('attach'))

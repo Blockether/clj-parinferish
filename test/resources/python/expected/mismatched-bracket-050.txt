@@ -1,0 +1,14 @@
+cpython: line 3, column 127: closing parenthesis ']' does not match opening parenthesis '{'
+result: repaired
+fix: line 3: added '}' at column 127 to close '{' from line 3
+problem: line 3, column 127: ']' does not match '{' from line 3, column 23
+--- text after repair
+root = Path(session["workspace"]["root"])
+tfn = str(root/"extensions/languages/vis-language-python/test/com/blockether/vis/ext/language_python/test_fn_test.clj")
+r = await patch(tfn, [{"from": "355:5d3", "replace": ';; Regression, issue #136: `run_tests("python", {"runner" "project"})`}'}])
+print("comment:", (r if isinstance(r, str) else json.dumps(r))[:120])
+
+# how are ext tests wired into the root runner?
+de = (root/"deps.edn").read_text()
+i = de.find(":test")
+print("\n:deps.edn :test alias region:\n", de[i-50:i+700])

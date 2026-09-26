@@ -1,0 +1,14 @@
+cpython: line 3, column 183: unterminated string literal (detected at line 3)
+result: repaired
+fix: line 3: added the missing closing ' at column 172
+problem: line 3, column 6: '(' is never closed
+problem: line 3, column 11: '(' is never closed
+problem: line 3, column 12: '{' is never closed
+problem: line 3, column 94: '[' is never closed
+problem: line 3, column 183: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+print(cat(project_root_path / 'src/com/blockether/vis/internal/python/runtime.clj',269,301))
+print(cat(project_root_path / 'src/com/blockether/vis/internal/python/runtime.clj',382,408))
+print(grep({'query':['diagnostic','timeout','bundled','private-index','stale-lock'], 'paths':[project_root_path / 'test/com/blockether/vis/internal/python/runtime_test.clj'], 'context':1}))
+sh = await shell('git log -6 --oneline -- src/com/blockether/vis/internal/python/runtime.clj')
+print(await sh.wait(10))

@@ -1,0 +1,7 @@
+cpython: line 2, column 29: unmatched ')'
+result: repaired
+fix: line 2: removed the unmatched ')' at column 29
+problem: line 2, column 29: ')' has no opening bracket
+--- text after repair
+p = project_root_path / "src" / "cryptosyf" / "__main__.py"
+print(cat(str(p), 105, 118))

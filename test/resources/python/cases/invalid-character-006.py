@@ -1,0 +1,53 @@
+« # --- 5. has-url glob guard ------------------------------------------------
+guard = '''(def ^:private url-glob-re
+  "The `**` of the glob dialect `wait --url` and `network route` accept. A real URL
+   never contains it, so it can only be a caller reaching for the wrong dialect."
+  #"\\*\\*")
+
+(defn- refuse-url-glob!
+  "Throws when an expected URL is written as a glob.
+
+   `wait --url \\"**/dashboard\\"` matches globs, so the same pattern looks supported
+   here. Playwright compares a String URL for equality instead: it matched the glob
+   literally, spent the whole assertion timeout, and then reported
+   `Expected: **/dashboard` as an unequal string — an answer that never mentions
+   the dialect."
+  [url]
+  (when (and (string? url) (re-find url-glob-re url))
+    (throw (IllegalArgumentException.
+             (str "A URL assertion matches the WHOLE URL exactly, never as a glob: \\""
+               url "\\" would have to appear in the URL literally. Globs belong to "
+               "`wait --url` and `network route` — assert a partial URL with a regex "
+               "instead, e.g. (spel/assert-url #\\"/dashboard\\")."))))) 
+
+'''
+src = src.replace("(defn has-url", guard.replace(" \n", "\n") + "(defn has-url", 1)
+old_a1 = """  ([pa url]
+   (with-assertions ^PageAssertions pa"""
+new_a1 = """  ([pa url]
+   (refuse-url-glob! url)
+   (with-assertions ^PageAssertions pa"""
+old_a2 = """  ([pa url opts]
+   (with-assertions ^PageAssertions pa"""
+new_a2 = """  ([pa url opts]
+   (refuse-url-glob! url)
+   (with-assertions ^PageAssertions pa"""
+assert src.count(old_a1) == 1 and src.count(old_a2) == 1
+src = src.replace(old_a1, new_a1).replace(old_a2, new_a2)
+
+# --- 6. docstrings --------------------------------------------------------
+old_ret = "   nil or anomaly map on assertion failure."
+new_ret = ("   nil when the assertion holds. Throws AssertionFailedError when it does not;\n"
+           "   only a driver fault (the page closed mid-assertion) answers an anomaly map.")
+n_ret = src.count(old_ret)
+src = src.replace(old_ret, new_ret)
+pairs = [("- LocatorAssertions instance.", "- Locator, or the LocatorAssertions assert-that answers."),
+         ("- PageAssertions instance.", "- Page, or the PageAssertions assert-that answers."),
+         ("- APIResponseAssertions instance.", "- APIResponse, or the APIResponseAssertions assert-that answers.")]
+counts = []
+for o, n in pairs:
+    counts.append(src.count(o)); src = src.replace(o, n)
+print("Returns lines rewritten:", n_ret, "| Params lines:", counts)
+Path(ap).write_text(src)
+print(cat(ap, 76, 106))
+»

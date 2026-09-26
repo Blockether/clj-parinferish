@@ -1,0 +1,4 @@
+track_failed_lines = track_failed_output['out'].splitlines()
+track_failure_indexes = [i for i,l in enumerate(track_failed_lines) if re.search(r'FAIL|ERROR|Failures|failed|Exception|expected:',l)]
+print('\n'.join(track_failed_lines[i] for i in sorted({k for n in track_failure_indexes for k in range(max(0,n-2),min(len(track_failed_lines),n+5))}) )
+print({k:track_failed_output[k] for k in ['exit','out_omitted_chars','log_path']})

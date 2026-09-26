@@ -1,0 +1,5 @@
+print(defs(pattern='settled_perf_metrics'));def settled_perf_metrics(wait_ms=650):
+    """Collect post-GC renderer heap and DOM counters for the reserved performance tab."""
+    r=spel.sci(perf_res.id,f'(do (spel/wait-for-timeout {int(wait_ms)}) (spel/cdp-send full-perf-cdp "HeapProfiler.collectGarbage") {{:metrics (str (spel/cdp-send full-perf-cdp "Performance.getMetrics")) :dom (str (spel/cdp-send full-perf-cdp "Memory.getDOMCounters"))}})')
+    m=json.loads(r.data['result']['metrics'])['metrics'];d=json.loads(r.data['result']['dom']);picked={v['name']:round(v['value']/1048576,2) if v['name'].startswith('JSHeap') else round(v['value'],2) for v in m if v['name'] in ('JSHeapUsedSize','JSHeapTotalSize','Nodes','LayoutCount','RecalcStyleCount')};picked.update({'dom_nodes':d['nodes'],'listeners':d['jsEventListeners']});return picked
+print(settled_perf_metrics(100))

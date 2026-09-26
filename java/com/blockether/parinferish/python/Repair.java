@@ -1,0 +1,1078 @@
+package com.blockether.parinferish.python;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Delimiter repair for Python source: strings that never close, brackets that
+ * never close or close the wrong opener, a ';' inside brackets, statements
+ * glued together by ';' or by a line break that lost its backslash, stray
+ * backslashes, typographic quotes, quote markers around the code and single
+ * braces in f-strings.
+ *
+ * <p>Each round takes the first problem, tries the few edits that could fix
+ * it, rescans the text after each one and keeps the edit that leaves the
+ * fewest problems. It stops when nothing is left, when no edit helps, or when
+ * its work budget (a small multiple of the text size) runs out, so the time
+ * spent is bounded by the size of the input. The result lists every change
+ * with its position in the original source; the problems of the original
+ * source serve as a diagnosis when the repair cannot finish.
+ *
+ * <p>The repair only answers "what would make the delimiters consistent". It
+ * cannot tell whether the result is valid Python: compile it before running it.
+ */
+public final class Repair {
+    private Repair() {
+    }
+
+    /** One change the repair made, at a 1-based line and column of the original source. */
+    public static final class Fix {
+        public final String kind;
+        public final int line;
+        public final int column;
+        public final String message;
+
+        Fix(String kind, int line, int column, String message) {
+            this.kind = kind;
+            this.line = line;
+            this.column = column;
+            this.message = message;
+        }
+
+        @Override
+        public String toString() {
+            return message;
+        }
+    }
+
+    /** One delimiter problem, at a 1-based line and column of the original source. */
+    public static final class Problem {
+        public final String kind;
+        public final int line;
+        public final int column;
+        public final String message;
+
+        Problem(String kind, int line, int column, String message) {
+            this.kind = kind;
+            this.line = line;
+            this.column = column;
+            this.message = message;
+        }
+
+        @Override
+        public String toString() {
+            return message;
+        }
+    }
+
+    /** What a repair produced. {@code clean} means no delimiter problem is left in {@code text}. */
+    public static final class Result {
+        public final String text;
+        public final boolean changed;
+        public final boolean clean;
+        public final List<Fix> fixes;
+        public final List<Problem> problems;
+
+        Result(String text, boolean changed, boolean clean, List<Fix> fixes, List<Problem> problems) {
+            this.text = text;
+            this.changed = changed;
+            this.clean = clean;
+            this.fixes = Collections.unmodifiableList(fixes);
+            this.problems = Collections.unmodifiableList(problems);
+        }
+    }
+
+    /** Repairs {@code source} using only its own text. */
+    public static Result repair(String source) {
+        return repair(source, 0);
+    }
+
+    /**
+     * Repairs {@code source}. {@code errorLine} is the 1-based line where the Python compiler
+     * reported a syntax error, or 0 when unknown; when the scanner finds no delimiter problem of
+     * its own, it lets the repair close a bracket that a statement near that line left open.
+     */
+    public static Result repair(String source, int errorLine) {
+        Scanner first = new Scanner(source).scan();
+        List<Problem> problems = problems(first, errorLine);
+        if (problems.isEmpty()) return new Result(source, false, true, new ArrayList<>(), problems);
+        Work w = new Work(source, first, errorLine);
+        w.run();
+        return new Result(w.cur, !w.cur.equals(source), w.sc.count == 0, w.fixes, problems);
+    }
+
+    /** The delimiter problems of {@code source}, without repairing anything. */
+    public static List<Problem> diagnose(String source, int errorLine) {
+        return Collections.unmodifiableList(problems(new Scanner(source).scan(), errorLine));
+    }
+
+    private static final int SUSPECT = 100;
+    private static final int MAX_FIXES = 32;
+    private static final int MAX_PROBLEMS = 8;
+
+    private static final int TRIPLE_QUOTE = 0;
+    private static final int CLOSE_QUOTE = 1;
+    private static final int ESCAPE_QUOTE = 2;
+    private static final int EXTEND_TRIPLE = 3;
+    private static final int SWAP_TRIPLE = 4;
+    private static final int CLOSE_TRIPLE = 5;
+    private static final int CLOSE_BRACKETS = 6;
+    private static final int REPLACE_CLOSER = 7;
+    private static final int REMOVE_CLOSER = 8;
+    private static final int REMOVE_BACKSLASH = 9;
+    private static final int TRIM_CONTINUATION = 10;
+    private static final int NEWLINE_ESCAPES = 11;
+    private static final int UNESCAPE_QUOTES = 12;
+    private static final int STRAIGHT_QUOTES = 13;
+    private static final int DOUBLE_BRACE = 14;
+    private static final int REMOVE_BRACE = 15;
+    private static final int REMOVE_MARKER = 16;
+    private static final int SPLIT_STATEMENT = 17;
+    private static final int RESTORE_NEWLINE = 18;
+
+    private static final String[] FIX_KINDS = {
+        "triple-quote", "close-quote", "escape-quote", "extend-triple-quote", "swap-triple-quote",
+        "close-triple-quote", "close-brackets", "replace-closer", "remove-closer", "remove-backslash",
+        "trim-continuation", "newline-escapes", "unescape-quotes", "straight-quotes", "double-brace",
+        "remove-brace", "remove-marker", "split-statement", "restore-newline"};
+
+    private static final String[] PROBLEM_KINDS = {
+        "unterminated-string", "unterminated-triple-string", "unclosed-bracket", "unmatched-closer",
+        "mismatched-closer", "stray-backslash", "typographic-quote", "single-brace", "semicolon-in-brackets",
+        "quote-marker", "compound-after-semicolon", "lost-newline"};
+
+    /** A candidate: a few non-overlapping edits against the current text. */
+    private static final class Cand {
+        final int kind;
+        final int ref;
+        final int ref2;
+        int edits;
+        int[] at = new int[2];
+        int[] del = new int[2];
+        String[] ins = new String[2];
+        String text;
+        Cand then;
+        long own;
+        Scanner scanner;
+
+        Cand(int kind, int ref, int ref2) {
+            this.kind = kind;
+            this.ref = ref;
+            this.ref2 = ref2;
+        }
+
+        Cand edit(int a, int d, String i) {
+            if (edits == at.length) {
+                at = Arrays.copyOf(at, edits * 2);
+                del = Arrays.copyOf(del, edits * 2);
+                ins = Arrays.copyOf(ins, edits * 2);
+            }
+            at[edits] = a;
+            del[edits] = d;
+            ins[edits] = i;
+            edits++;
+            return this;
+        }
+
+        /** Edit indices by position; an insertion sorts before a deletion at the same place. */
+        int[] order() {
+            int[] o = new int[edits];
+            for (int k = 0; k < edits; k++) o[k] = k;
+            for (int k = 1; k < edits; k++) {
+                int x = o[k];
+                int j = k - 1;
+                while (j >= 0 && (at[o[j]] > at[x] || (at[o[j]] == at[x] && del[o[j]] > del[x]))) {
+                    o[j + 1] = o[j];
+                    j--;
+                }
+                o[j + 1] = x;
+            }
+            return o;
+        }
+
+        String apply(String cur) {
+            StringBuilder b = new StringBuilder(cur.length() + 16);
+            int prev = 0;
+            for (int k : order()) {
+                b.append(cur, prev, at[k]).append(ins[k]);
+                prev = at[k] + del[k];
+            }
+            return b.append(cur, prev, cur.length()).toString();
+        }
+
+        /** Maps a position in the applied text back to the text before the edits. */
+        int back(int p) {
+            int shift = 0;
+            for (int k : order()) {
+                int a = at[k] + shift;
+                if (p < a) break;
+                int li = ins[k].length();
+                if (p < a + li) return at[k];
+                shift += li - del[k];
+            }
+            return p - shift;
+        }
+    }
+
+    private static final class Work {
+        final String original;
+        final Scanner first;
+        final int errorLine;
+        String cur;
+        Scanner sc;
+        char[] s;
+        int n;
+        final List<Fix> fixes = new ArrayList<>();
+        long budget;
+        int logSize;
+        int[] logAt = new int[8];
+        int[] logDel = new int[8];
+        int[] logIns = new int[8];
+
+        int pKind;
+        int pPos;
+        int pAt;
+        int[] pOpen;
+        int pLine;
+
+        Work(String original, Scanner first, int errorLine) {
+            this.original = original;
+            this.first = first;
+            this.errorLine = errorLine;
+            this.budget = 64L * Math.max(original.length(), 4096);
+            use(original, first);
+        }
+
+        void use(String text, Scanner scanner) {
+            cur = text;
+            sc = scanner;
+            s = scanner.s;
+            n = scanner.n;
+        }
+
+        void run() {
+            long[] score = score(sc);
+            Set<Long> skipped = new HashSet<>();
+            int fixed = 0;
+            while (fixed < MAX_FIXES && budget > 0 && pick(skipped)) {
+                Cand best = null;
+                long[] bestScore = {score[0], score[1], -1};
+                for (Cand c : candidates()) {
+                    if (budget <= 0) break;
+                    String t = c.apply(cur);
+                    budget -= t.length();
+                    Scanner next = new Scanner(t).scan();
+                    long[] sc2 = c.kind == TRIPLE_QUOTE ? chained(c, t, next, 0) : score(next);
+                    if (less(sc2, bestScore)) {
+                        best = c;
+                        bestScore = sc2;
+                        c.text = t;
+                        c.scanner = next;
+                    }
+                }
+                if (best == null) {
+                    skipped.add(key(pKind, pPos));
+                    continue;
+                }
+                for (Cand c = best; c != null; c = c.then) accept(c);
+                score = bestScore;
+                skipped.clear();
+                fixed++;
+            }
+        }
+
+        /**
+         * Scores triple-quote candidate {@code c}, applied as {@code t} and scanned as {@code x}, together with
+         * the best conversions of the unterminated strings that open right after its closing quote on the same
+         * line: consecutive multi-line values such as {@code [{'a':'...'},{'b':'...'}]}. Links the chosen
+         * follow-up through {@code c.then}; the third score element counts the characters the strings take in.
+         */
+        long[] chained(Cand c, String t, Scanner x, int depth) {
+            long[] best = score(x);
+            best[2] = c.own;
+            int end = c.at[1] + 5;
+            int k = firstReported(x);
+            if (depth >= 4 || budget <= 0 || k < 0 || x.kind[k] != Scanner.UNTERMINATED_STRING || x.pos[k] < end
+                || x.lineOf(x.pos[k]) != x.lineOf(end - 1)) {
+                return best;
+            }
+            String saveCur = cur;
+            Scanner saveSc = sc;
+            int saveKind = pKind;
+            int savePos = pPos;
+            int saveAt = pAt;
+            List<Cand> follow = new ArrayList<>();
+            use(t, x);
+            pKind = x.kind[k];
+            pPos = x.pos[k];
+            pAt = x.at[k];
+            unterminated(follow);
+            use(saveCur, saveSc);
+            pKind = saveKind;
+            pPos = savePos;
+            pAt = saveAt;
+            int tried = 0;
+            for (Cand f : follow) {
+                if (f.kind != TRIPLE_QUOTE) continue;
+                if (tried++ == 3 || budget <= 0) break;
+                String t2 = f.apply(t);
+                budget -= t2.length();
+                Scanner x2 = new Scanner(t2).scan();
+                long[] s2 = chained(f, t2, x2, depth + 1);
+                s2[2] += c.own;
+                if (less(s2, best)) {
+                    best = s2;
+                    c.then = f;
+                    f.text = t2;
+                    f.scanner = x2;
+                }
+            }
+            return best;
+        }
+
+        /** The problem the tokenizer would report first: an unclosed opener only at the end of the text. */
+        static int firstReported(Scanner x) {
+            int best = -1;
+            for (int k = 0; k < x.count; k++) {
+                if (best < 0 || reported(x, k) < reported(x, best)) best = k;
+            }
+            return best;
+        }
+
+        static long reported(Scanner x, int k) {
+            return x.kind[k] == Scanner.UNCLOSED ? (long) x.n + x.pos[k] : x.pos[k];
+        }
+
+        static long[] score(Scanner x) {
+            long hard = 0;
+            for (int k = 0; k < x.count; k++) {
+                hard += x.kind[k] == Scanner.UNTERMINATED_TRIPLE ? 1 + (x.lines - x.lineOf(x.pos[k])) : 1;
+            }
+            return new long[] {hard, x.suspects, 0};
+        }
+
+        static boolean less(long[] a, long[] b) {
+            for (int i = 0; i < a.length; i++) {
+                if (a[i] != b[i]) return a[i] < b[i];
+            }
+            return false;
+        }
+
+        long key(int kind, int p) {
+            return ((long) toOriginal(p) << 8) | kind;
+        }
+
+        long reported(int k) {
+            return reported(sc, k);
+        }
+
+        boolean pick(Set<Long> skipped) {
+            int best = -1;
+            for (int k = 0; k < sc.count; k++) {
+                if (skipped.contains(key(sc.kind[k], sc.pos[k]))) continue;
+                if (best < 0 || reported(k) < reported(best)) best = k;
+            }
+            if (best >= 0) {
+                pKind = sc.kind[best];
+                pPos = sc.pos[best];
+                pAt = sc.at[best];
+                pOpen = sc.open[best];
+                pLine = -1;
+                return true;
+            }
+            if (first.count > 0) return false;
+            for (int k = 0; k < sc.suspects; k++) {
+                int l = sc.suspectLine[k];
+                int[] o = sc.suspectOpen[k];
+                if (skipped.contains(key(SUSPECT, sc.lineStart[l]))) continue;
+                if (!near(sc, l, o, errorLine)) continue;
+                pKind = SUSPECT;
+                pPos = sc.lineStart[l];
+                pAt = -1;
+                pOpen = o;
+                pLine = l;
+                return true;
+            }
+            return false;
+        }
+
+        List<Cand> candidates() {
+            List<Cand> out = new ArrayList<>();
+            switch (pKind) {
+                case Scanner.UNTERMINATED_STRING -> unterminated(out);
+                case Scanner.UNTERMINATED_TRIPLE -> unterminatedTriple(out);
+                case Scanner.UNCLOSED -> unclosed(out);
+                case Scanner.UNMATCHED -> out.add(new Cand(REMOVE_CLOSER, pPos, -1).edit(pPos, 1, ""));
+                case Scanner.MISMATCHED -> mismatched(out);
+                case Scanner.STRAY_BACKSLASH -> backslash(out);
+                case Scanner.TYPOGRAPHIC_QUOTE -> typographic(out);
+                case Scanner.SEMICOLON -> semicolon(out);
+                case Scanner.MARKER -> {
+                    int b = pPos;
+                    int e = pPos;
+                    while (e < n && (s[e] == '>' || s[e] == '\u00AB' || s[e] == '\u00BB')) e++;
+                    if (e < n && s[e] == ' ') e++;
+                    else if (b > 0 && s[b - 1] == ' ') b--;
+                    out.add(new Cand(REMOVE_MARKER, pPos, -1).edit(b, e - b, ""));
+                }
+                case Scanner.COMPOUND_AFTER_SEMICOLON -> {
+                    int e = pPos + 1;
+                    while (e < n && (s[e] == ' ' || s[e] == '\t')) e++;
+                    out.add(new Cand(SPLIT_STATEMENT, pPos, -1).edit(pPos, e - pPos, "\n" + indentOf(pPos)));
+                }
+                case Scanner.LOST_NEWLINE -> out.add(new Cand(RESTORE_NEWLINE, pPos, -1)
+                    .edit(pPos, 1, "\n" + indentOf(pPos)));
+                case Scanner.FSTRING_BRACE -> {
+                    out.add(new Cand(DOUBLE_BRACE, pPos, -1).edit(pPos, 0, "}"));
+                    out.add(new Cand(REMOVE_BRACE, pPos, -1).edit(pPos, 1, ""));
+                }
+                default -> {
+                    Cand c = moveClose(pLine, pOpen);
+                    if (c != null) out.add(c);
+                }
+            }
+            return out;
+        }
+
+        /**
+         * A string earlier on the line that lost its closing quote swallows the code up to the next quote,
+         * as in {@code ['a/b.clj], 'k':1}}; closes it before a bracket inside its text.
+         */
+        void earlierQuote(List<Cand> out, int qp) {
+            int l = sc.lineOf(qp);
+            if (sc.lineDepth[l] < 0) return;
+            int a1 = -1;
+            int e1 = -1;
+            int a2 = -1;
+            int e2 = -1;
+            for (int p = sc.lineStart[l]; p < qp; p++) {
+                char d = s[p];
+                if (d == '#') return;
+                if (d == '"' || d == '\'') {
+                    int e = skipString(p);
+                    if (e > qp || e - p < 2 || s[e - 1] != d) return;
+                    a2 = a1;
+                    e2 = e1;
+                    a1 = p;
+                    e1 = e;
+                    p = e - 1;
+                }
+            }
+            int made = swallowed(out, a1, e1, 0);
+            swallowed(out, a2, e2, made);
+        }
+
+        int swallowed(List<Cand> out, int a, int e, int made) {
+            if (a < 0 || (a + 2 < n && s[a + 1] == s[a] && s[a + 2] == s[a])) return made;
+            String qs = String.valueOf(s[a]);
+            for (int x = a + 2; x < e - 1 && made < 4; x++) {
+                if (")]}".indexOf(s[x]) >= 0 && s[x - 1] != ' ' && s[x - 1] != '\t') {
+                    out.add(new Cand(CLOSE_QUOTE, a, -1).edit(x, 0, qs));
+                    made++;
+                }
+            }
+            return made;
+        }
+        void unterminated(List<Cand> out) {
+            int qp = quoteAt(pPos);
+            char q = s[qp];
+            String qs = String.valueOf(q);
+            int end = trimEnd(qp + 1, pAt);
+            out.add(new Cand(CLOSE_QUOTE, pPos, -1).edit(end, 0, qs));
+            int k = end;
+            for (int made = 0; made < 4 && k > qp + 1 && ")]},;:".indexOf(s[k - 1]) >= 0; made++) {
+                k--;
+                while (k > qp + 1 && (s[k - 1] == ' ' || s[k - 1] == '\t')) k--;
+                out.add(new Cand(CLOSE_QUOTE, pPos, -1).edit(k, 0, qs));
+            }
+            earlierQuote(out, qp);
+            int ls = sc.lineStart[sc.lineOf(qp)];
+            for (int e = qp - 1, made = 0; e > ls && made < 3; e--) {
+                if (s[e] == q && Character.isLetter(s[e + 1]) && Character.isLetter(s[e - 1])) {
+                    out.add(new Cand(ESCAPE_QUOTE, pPos, e).edit(e, 0, "\\"));
+                    made++;
+                }
+            }
+            for (int e = pAt, found = 0; e < n && found < 8; e++) {
+                char c = s[e];
+                if (c == '\\') {
+                    e++;
+                    continue;
+                }
+                if (c != q) continue;
+                int r = 1;
+                while (e + r < n && s[e + r] == q) r++;
+                if (r == 1 && plausibleEnd(e + 1)) {
+                    char t = tripleQuote(qp + 1, e, q);
+                    if (t != 0) {
+                        String ttt = repeat(t, 3);
+                        Cand c3 = new Cand(TRIPLE_QUOTE, pPos, e).edit(qp, 1, ttt).edit(e, 1, ttt);
+                        c3.own = e - qp - 1;
+                        out.add(c3);
+                        found++;
+                    }
+                }
+                e += r - 1;
+            }
+        }
+
+        void unterminatedTriple(List<Cand> out) {
+            int qp = quoteAt(pPos);
+            char q = s[qp];
+            char o = q == '\'' ? '"' : '\'';
+            String qqq = repeat(q, 3);
+            // A partial closer is as likely the last quote run as the first: keep the first and the last four.
+            List<Cand> ends = new ArrayList<>();
+            for (int e = qp + 3; e < n; e++) {
+                char c = s[e];
+                if (c == '\\') {
+                    e++;
+                } else if (c == q) {
+                    int r = 1;
+                    while (e + r < n && s[e + r] == q) r++;
+                    if (r < 3 && plausibleEnd(e + r)) {
+                        ends.add(new Cand(EXTEND_TRIPLE, pPos, e).edit(e + r, 0, repeat(q, 3 - r)));
+                    }
+                    e += r - 1;
+                } else if (c == o && e + 2 < n && s[e + 1] == o && s[e + 2] == o) {
+                    if (plausibleEnd(e + 3)) {
+                        ends.add(new Cand(SWAP_TRIPLE, pPos, e).edit(e, 3, qqq));
+                    }
+                    e += 2;
+                }
+            }
+            int m = ends.size();
+            for (int i = 0; i < m; i++) {
+                if (i < 4 || i >= m - 4) out.add(ends.get(i));
+            }
+            int end = trimEnd(qp + 3, n);
+            out.add(new Cand(CLOSE_TRIPLE, pPos, -1).edit(end, 0, qqq));
+            int k = end;
+            for (int made = 0; made < 4 && k > qp + 3 && ")]},;:".indexOf(s[k - 1]) >= 0; made++) {
+                k--;
+                while (k > qp + 3 && (s[k - 1] == ' ' || s[k - 1] == '\t')) k--;
+                out.add(new Cand(CLOSE_TRIPLE, pPos, -1).edit(k, 0, qqq));
+            }
+        }
+
+        void unclosed(List<Cand> out) {
+            int m = 0;
+            int[] open = new int[sc.count];
+            for (int k = 0; k < sc.count; k++) {
+                if (sc.kind[k] == Scanner.UNCLOSED) open[m++] = sc.pos[k];
+            }
+            open = Arrays.copyOf(open, m);
+            for (int k = 0, made = 0; k < sc.suspects && made < 3; k++) {
+                if (contains(sc.suspectOpen[k], pPos)) {
+                    Cand c = moveClose(sc.suspectLine[k], sc.suspectOpen[k]);
+                    if (c != null) {
+                        out.add(c);
+                        made++;
+                    }
+                }
+            }
+            sibling(out, open[m - 1], n);
+            int ip = insertionBefore(sc.lines);
+            if (ip > open[m - 1]) out.add(new Cand(CLOSE_BRACKETS, open[0], -1).edit(ip, 0, closers(open, 0)));
+            int l = sc.lineOf(open[m - 1]);
+            int from = m - 1;
+            while (from > 0 && sc.lineOf(open[from - 1]) == l) from--;
+            int ip2 = insertionBefore(l + 1);
+            if (ip2 > open[m - 1] && ip2 != ip) {
+                out.add(new Cand(CLOSE_BRACKETS, open[from], -1).edit(ip2, 0, closers(open, from)));
+            }
+        }
+
+        /** A ';' inside brackets: close them before it, or where a later line starts a statement. */
+        void semicolon(List<Cand> out) {
+            int[] open = pOpen;
+            int m = open.length;
+            for (int k = 0, made = 0; k < sc.suspects && made < 2; k++) {
+                int l = sc.suspectLine[k];
+                if (sc.lineStart[l] < pPos && contains(sc.suspectOpen[k], open[m - 1])) {
+                    Cand c = moveClose(l, sc.suspectOpen[k]);
+                    if (c != null) {
+                        out.add(c);
+                        made++;
+                    }
+                }
+            }
+            sibling(out, open[m - 1], pPos);
+            int ip = trimEnd(open[m - 1] + 1, pPos);
+            out.add(new Cand(CLOSE_BRACKETS, open[0], -1).edit(ip, 0, closers(open, 0)));
+        }
+        void mismatched(List<Cand> out) {
+            char c = s[pPos];
+            int[] open = pOpen;
+            int j = open.length - 2;
+            while (j >= 0 && !Scanner.matches(s[open[j]], c)) j--;
+            stringCloser(out, c);
+            if (j >= 0 && c == '}') keyAfterComma(out, open, j + 1);
+            sibling(out, pAt, pPos);
+            if (j >= 0) out.add(new Cand(CLOSE_BRACKETS, open[j + 1], -1).edit(pPos, 0, closers(open, j + 1)));
+            out.add(new Cand(REPLACE_CLOSER, pPos, pAt).edit(pPos, 1, String.valueOf(Scanner.closerOf(s[pAt]))));
+            out.add(new Cand(REMOVE_CLOSER, pPos, -1).edit(pPos, 1, ""));
+            int la = sc.lineOf(pAt);
+            int lp = sc.lineOf(pPos);
+            for (int k = 0, made = 0; k < sc.suspects && made < 2; k++) {
+                int l = sc.suspectLine[k];
+                if (l > la && l <= lp && contains(sc.suspectOpen[k], pAt)) {
+                    Cand m = moveClose(l, sc.suspectOpen[k]);
+                    if (m != null) {
+                        out.add(m);
+                        made++;
+                    }
+                }
+            }
+        }
+
+        /**
+         * Drops a closer written right after a string whose own text leaves that bracket open, as in
+         * {@code ["tui ["], "x"]}: the closer balanced the string's content and ended the list early.
+         */
+        void stringCloser(List<Cand> out, char c) {
+            char o = c == ')' ? '(' : c == ']' ? '[' : '{';
+            int depth = 0;
+            for (int p = pAt + 1; p < pPos; p++) {
+                char d = s[p];
+                if (d == '"' || d == '\'') {
+                    int e = skipString(p);
+                    int q = e;
+                    while (q < pPos && (s[q] == ' ' || s[q] == '\t')) q++;
+                    if (depth == 1 && q < pPos && s[q] == c && e - 1 > p && s[e - 1] == d) {
+                        int balance = 0;
+                        for (int k = p + 1; k < e - 1; k++) {
+                            if (s[k] == o) balance++;
+                            else if (s[k] == c) balance--;
+                        }
+                        if (balance > 0) {
+                            out.add(new Cand(REMOVE_CLOSER, q, -1).edit(q, 1, ""));
+                            return;
+                        }
+                    }
+                    p = e - 1;
+                } else if (d == '#') {
+                    while (p + 1 < pPos && s[p + 1] != '\n') p++;
+                } else if (d == '(' || d == '[' || d == '{') {
+                    depth++;
+                } else if (d == ')' || d == ']' || d == '}') {
+                    if (--depth < 0) return;
+                }
+            }
+        }
+
+        /**
+         * Closes the brackets opened from {@code open[from]} before a {@code , 'key':} that belongs to the
+         * enclosing dict, as in {@code {'q': ['a', 'k': 1}}.
+         */
+        void keyAfterComma(List<Cand> out, int[] open, int from) {
+            int m = open.length;
+            int level = 0;
+            int nest = 0;
+            int comma = -1;
+            for (int p = open[from] + 1; p < pPos; p++) {
+                char d = s[p];
+                if (d == '"' || d == '\'') {
+                    int e = skipString(p);
+                    if (comma >= 0) {
+                        int q = e;
+                        while (q < pPos && (s[q] == ' ' || s[q] == '\t')) q++;
+                        if (q + 1 < pPos && s[q] == ':' && s[q + 1] != '=' && s[open[from + level]] != '{') {
+                            int ip = trimEnd(open[from] + 1, comma);
+                            StringBuilder b = new StringBuilder();
+                            for (int k = from + level; k >= from; k--) b.append(Scanner.closerOf(s[open[k]]));
+                            out.add(new Cand(CLOSE_BRACKETS, open[from], -1).edit(ip, 0, b.toString()));
+                            return;
+                        }
+                    }
+                    comma = -1;
+                    p = e - 1;
+                } else if (d == '#') {
+                    while (p + 1 < pPos && s[p + 1] != '\n') p++;
+                } else if (d == '(' || d == '[' || d == '{') {
+                    comma = -1;
+                    if (nest == 0 && from + level + 1 < m && open[from + level + 1] == p) level++;
+                    else nest++;
+                } else if (d == ')' || d == ']' || d == '}') {
+                    comma = -1;
+                    if (--nest < 0) return;
+                } else if (d == ',') {
+                    comma = nest == 0 ? p : -1;
+                } else if (d != ' ' && d != '\t' && d != '\n' && d != '\r') {
+                    comma = -1;
+                }
+            }
+        }
+        /**
+         * Closes the call opened at {@code o} before a later {@code , name(} that repeats its callee directly
+         * inside it: {@code [str(a, str(b)]} was meant as {@code [str(a), str(b)]}.
+         */
+        void sibling(List<Cand> out, int o, int limit) {
+            if (s[o] != '(') return;
+            int b = o;
+            while (b > 0 && (Scanner.identPart(s[b - 1]) || s[b - 1] == '.')) b--;
+            if (b == o || !Scanner.identStart(s[b])) return;
+            int depth = 0;
+            for (int p = o + 1; p < limit; p++) {
+                char c = s[p];
+                if (c == '"' || c == '\'') {
+                    p = skipString(p) - 1;
+                } else if (c == '#') {
+                    while (p + 1 < limit && s[p + 1] != '\n') p++;
+                } else if (c == '(' || c == '[' || c == '{') {
+                    depth++;
+                } else if (c == ')' || c == ']' || c == '}') {
+                    if (--depth < 0) return;
+                } else if (c == ',' && depth == 0) {
+                    int q = p + 1;
+                    while (q < limit && (s[q] == ' ' || s[q] == '\t' || s[q] == '\n')) q++;
+                    int k = 0;
+                    while (b + k < o && q + k < limit && s[q + k] == s[b + k]) k++;
+                    if (b + k == o && q + k < limit && s[q + k] == '(') {
+                        out.add(new Cand(CLOSE_BRACKETS, o, -1).edit(p, 0, ")"));
+                        return;
+                    }
+                }
+            }
+        }
+
+        /** End of the string literal whose quote is at {@code p}, or the end of its line when it is not closed. */
+        int skipString(int p) {
+            char q = s[p];
+            boolean triple = p + 2 < n && s[p + 1] == q && s[p + 2] == q;
+            for (int e = p + (triple ? 3 : 1); e < n; e++) {
+                char c = s[e];
+                if (c == '\\') {
+                    e++;
+                } else if (c == '\n' && !triple) {
+                    return e;
+                } else if (c == q && (!triple || (e + 2 < n && s[e + 1] == q && s[e + 2] == q))) {
+                    return e + (triple ? 3 : 1);
+                }
+            }
+            return n;
+        }
+
+        void backslash(List<Cand> out) {
+            int l = sc.lineOf(pPos);
+            int le = sc.lineEnd(l);
+            char x = pPos + 1 < n ? s[pPos + 1] : '\n';
+            if (x == '"' || x == '\'') {
+                Cand c = new Cand(UNESCAPE_QUOTES, pPos, -1);
+                for (int k = pPos; k + 1 < le; k++) {
+                    if (s[k] != '\\') continue;
+                    if (s[k + 1] == '"' || s[k + 1] == '\'') c.edit(k, 1, "");
+                    k++;
+                }
+                out.add(c);
+            }
+            if (x == 'n') {
+                Cand c = new Cand(NEWLINE_ESCAPES, pPos, -1);
+                for (int k = 0; k < sc.count; k++) {
+                    int p = sc.pos[k];
+                    if (sc.kind[k] == Scanner.STRAY_BACKSLASH && p + 1 < n && s[p + 1] == 'n' && sc.lineOf(p) == l) {
+                        c.edit(p, 2, "\n");
+                    }
+                }
+                out.add(c);
+            }
+            int k = pPos + 1;
+            while (k < n && (s[k] == ' ' || s[k] == '\t')) k++;
+            if (k > pPos + 1 && (k >= n || s[k] == '\n' || s[k] == '\r')) {
+                out.add(new Cand(TRIM_CONTINUATION, pPos, -1).edit(pPos + 1, k - pPos - 1, ""));
+            }
+            out.add(new Cand(REMOVE_BACKSLASH, pPos, -1).edit(pPos, 1, ""));
+        }
+
+        void typographic(List<Cand> out) {
+            char c = s[pPos];
+            boolean single = c == '\u2018' || c == '\u2019';
+            String a = single ? "'" : "\"";
+            int le = sc.lineEnd(sc.lineOf(pPos));
+            for (int k = pPos + 1; k < le; k++) {
+                char d = s[k];
+                if (single ? d == '\u2018' || d == '\u2019' : d == '\u201C' || d == '\u201D') {
+                    out.add(new Cand(STRAIGHT_QUOTES, pPos, -1).edit(pPos, 1, a).edit(k, 1, a));
+                    break;
+                }
+            }
+            out.add(new Cand(STRAIGHT_QUOTES, pPos, -1).edit(pPos, 1, a));
+        }
+
+        /** Closes every bracket open at the start of line {@code line} at the end of the code line
+         *  before it, then drops the closers further on that no longer have an opener. */
+        Cand moveClose(int line, int[] open) {
+            int ip = insertionBefore(line);
+            if (ip < 0 || ip <= open[open.length - 1]) return null;
+            String cl = closers(open, 0);
+            Cand c = new Cand(CLOSE_BRACKETS, open[0], -1).edit(ip, 0, cl);
+            String t = c.apply(cur);
+            for (int k = 0; k < open.length && budget > 0; k++) {
+                Scanner x = new Scanner(t).scan();
+                budget -= t.length();
+                int u = -1;
+                int from = ip + cl.length();
+                for (int j = 0; j < x.count; j++) {
+                    if (x.pos[j] >= from && (u < 0 || x.pos[j] < x.pos[u])) u = j;
+                }
+                if (u < 0 || x.kind[u] != Scanner.UNMATCHED) break;
+                c.edit(c.back(x.pos[u]), 1, "");
+                t = c.apply(cur);
+            }
+            return c;
+        }
+
+        /** Where to put closers for code that should end before line {@code line}: the end of the
+         *  last line before it that has code, ahead of any comment; -1 when there is none. */
+        int insertionBefore(int line) {
+            for (int l = line - 1; l >= 0; l--) {
+                boolean endInCode = l + 1 < sc.lines ? sc.lineDepth[l + 1] >= 0 : sc.endsInCode;
+                if (!endInCode) return -1;
+                int start = sc.lineStart[l];
+                int end = sc.lineComment[l] >= 0 ? sc.lineComment[l] : sc.lineEnd(l);
+                end = trimEnd(start, end);
+                if (l + 1 < sc.lines && sc.lineCont[l + 1] && end > start && s[end - 1] == '\\') {
+                    end = trimEnd(start, end - 1);
+                }
+                if (end > start) return end;
+            }
+            return -1;
+        }
+
+        boolean plausibleEnd(int k) {
+            while (k < n && (s[k] == ' ' || s[k] == '\t')) k++;
+            if (k >= n) return true;
+            char c = s[k];
+            if (",)]}:;.+%*=#\n\r<>!".indexOf(c) >= 0) return true;
+            if (!Scanner.identStart(c)) return false;
+            int j = k + 1;
+            while (j < n && Scanner.identPart(s[j])) j++;
+            return switch (cur.substring(k, j)) {
+                case "if", "else", "for", "in", "is", "and", "or", "not" -> true;
+                default -> false;
+            };
+        }
+
+        /** The quote character that can triple-quote the text {@code [from, to)}, or 0. */
+        char tripleQuote(int from, int to, char q) {
+            char o = q == '\'' ? '"' : '\'';
+            for (char t : new char[] {q, o}) {
+                if (to > from && s[to - 1] == t) continue;
+                int run = 0;
+                boolean bad = false;
+                for (int k = from; k < to && !bad; k++) {
+                    char c = s[k];
+                    if (c == '\\') {
+                        k++;
+                        run = 0;
+                    } else if (c == t) {
+                        bad = ++run >= 3;
+                    } else {
+                        run = 0;
+                    }
+                }
+                if (!bad) return t;
+            }
+            return 0;
+        }
+
+        int quoteAt(int p) {
+            while (s[p] != '\'' && s[p] != '"') p++;
+            return p;
+        }
+
+        /** The indentation of the line holding {@code p}. */
+        String indentOf(int p) {
+            int ls = sc.lineStart[sc.lineOf(p)];
+            int e = ls;
+            while (e < p && (s[e] == ' ' || s[e] == '\t')) e++;
+            return new String(s, ls, e - ls);
+        }
+
+        int trimEnd(int from, int to) {
+            while (to > from) {
+                char c = s[to - 1];
+                if (c != ' ' && c != '\t' && c != '\r' && c != '\f' && c != '\n') break;
+                to--;
+            }
+            return to;
+        }
+
+        String closers(int[] open, int from) {
+            StringBuilder b = new StringBuilder();
+            for (int k = open.length - 1; k >= from; k--) b.append(Scanner.closerOf(s[open[k]]));
+            return b.toString();
+        }
+
+        void accept(Cand c) {
+            fixes.add(describe(c));
+            int[] o = c.order();
+            for (int k = o.length - 1; k >= 0; k--) {
+                int e = o[k];
+                if (logSize == logAt.length) {
+                    logAt = Arrays.copyOf(logAt, logSize * 2);
+                    logDel = Arrays.copyOf(logDel, logSize * 2);
+                    logIns = Arrays.copyOf(logIns, logSize * 2);
+                }
+                logAt[logSize] = c.at[e];
+                logDel[logSize] = c.del[e];
+                logIns[logSize] = c.ins[e].length();
+                logSize++;
+            }
+            use(c.text, c.scanner);
+        }
+
+        int toOriginal(int p) {
+            for (int k = logSize - 1; k >= 0; k--) {
+                int a = logAt[k];
+                int m = logIns[k];
+                if (p >= a + m) p += logDel[k] - m;
+                else if (p > a) p = a;
+            }
+            return p;
+        }
+
+        int line(int p) {
+            return first.lineOf(toOriginal(p)) + 1;
+        }
+
+        int column(int p) {
+            int o = toOriginal(p);
+            return o - first.lineStart[first.lineOf(o)] + 1;
+        }
+
+        Fix describe(Cand c) {
+            int p = c.kind == ESCAPE_QUOTE || c.kind == EXTEND_TRIPLE || c.kind == SWAP_TRIPLE ? c.ref2 : c.at[0];
+            int line = line(p);
+            int col = column(p);
+            String where = "line " + line + ": ";
+            String msg = switch (c.kind) {
+                case TRIPLE_QUOTE -> where + "made the string at column " + col + " triple-quoted ("
+                    + c.ins[0] + ") because its text continues onto the next lines; it now ends on line "
+                    + line(c.ref2);
+                case CLOSE_QUOTE -> where + "added the missing closing " + c.ins[0] + " at column " + col;
+                case ESCAPE_QUOTE -> where + "escaped the " + s[c.ref2] + " at column " + col
+                    + " that ended the string early";
+                case EXTEND_TRIPLE -> where + "completed the closing " + repeat(s[c.ref2], 3) + " at column "
+                    + col + " of the triple-quoted string from line " + line(c.ref);
+                case SWAP_TRIPLE -> where + "changed the closing " + cur.substring(c.ref2, c.ref2 + 3)
+                    + " at column " + col + " to " + c.ins[0] + " to match the string from line " + line(c.ref);
+                case CLOSE_TRIPLE -> where + "added the missing closing " + c.ins[0] + " at column " + col
+                    + " for the triple-quoted string from line " + line(c.ref);
+                case CLOSE_BRACKETS -> closeMessage(c, where, col);
+                case REPLACE_CLOSER -> where + "replaced '" + s[p] + "' at column " + col + " with '" + c.ins[0]
+                    + "' to match '" + s[c.ref2] + "' from line " + line(c.ref2);
+                case REMOVE_CLOSER -> where + "removed the unmatched '" + s[p] + "' at column " + col;
+                case REMOVE_BACKSLASH -> where + "removed the stray backslash at column " + col;
+                case TRIM_CONTINUATION -> where + "removed the spaces after the line-continuation backslash at column "
+                    + (col - 1);
+                case NEWLINE_ESCAPES -> where + "turned the literal \\n outside strings into line breaks";
+                case UNESCAPE_QUOTES -> where + "removed the backslashes before quotes outside strings, from column "
+                    + col;
+                case STRAIGHT_QUOTES -> where + "replaced the typographic quotes at column " + col
+                    + " with straight quotes";
+                case DOUBLE_BRACE -> where + "doubled the single '}' at column " + col + " in the f-string";
+                case REMOVE_BRACE -> where + "removed the single '}' at column " + col + " in the f-string";
+                case REMOVE_MARKER -> where + "removed the quote marker " + s[c.ref] + " at column " + column(c.ref);
+                case SPLIT_STATEMENT -> where + "moved the statement after ';' at column " + col + " onto its own line";
+                default -> where + "turned the 'n' at column " + col + " back into the line break it stood for";
+            };
+            return new Fix(FIX_KINDS[c.kind], line, col, msg);
+        }
+
+        String closeMessage(Cand c, String where, int col) {
+            String cl = c.ins[0];
+            StringBuilder b = new StringBuilder(where).append("added '").append(cl).append("' at column ").append(col)
+                .append(" to close ").append(cl.length() == 1 ? "'" + s[c.ref] + "'" : "the brackets")
+                .append(" from line ").append(line(c.ref));
+            for (int k = 1; k < c.edits; k++) {
+                b.append(k == 1 ? ", and removed the extra '" : ", '").append(s[c.at[k]]).append("' on line ")
+                    .append(line(c.at[k]));
+            }
+            return b.toString();
+        }
+    }
+
+    static boolean near(Scanner sc, int line, int[] open, int errorLine) {
+        return errorLine <= 0 || (errorLine >= sc.lineOf(open[0]) + 1 && errorLine <= line + 1);
+    }
+
+    static boolean contains(int[] xs, int x) {
+        for (int v : xs) {
+            if (v == x) return true;
+        }
+        return false;
+    }
+
+    static String repeat(char c, int k) {
+        return String.valueOf(c).repeat(k);
+    }
+
+    static List<Problem> problems(Scanner sc, int errorLine) {
+        List<Problem> out = new ArrayList<>();
+        Integer[] order = new Integer[sc.count];
+        for (int k = 0; k < sc.count; k++) order[k] = k;
+        Arrays.sort(order, (a, b) -> Integer.compare(sc.pos[a], sc.pos[b]));
+        for (int k = 0; k < sc.count && out.size() < MAX_PROBLEMS; k++) out.add(problem(sc, order[k]));
+        if (sc.count > 0) return out;
+        for (int k = 0; k < sc.suspects && out.size() < 3; k++) {
+            int l = sc.suspectLine[k];
+            int[] o = sc.suspectOpen[k];
+            if (!near(sc, l, o, errorLine)) continue;
+            int ol = sc.lineOf(o[0]);
+            out.add(new Problem("open-bracket-at-statement", l + 1, 1, "line " + (l + 1)
+                + " starts a new statement while '" + sc.s[o[0]] + "' from line " + (ol + 1) + ", column "
+                + (o[0] - sc.lineStart[ol] + 1) + " is still open"));
+        }
+        return out;
+    }
+
+    static Problem problem(Scanner sc, int k) {
+        int p = sc.pos[k];
+        int l = sc.lineOf(p);
+        int col = p - sc.lineStart[l] + 1;
+        char[] s = sc.s;
+        String where = "line " + (l + 1) + ", column " + col + ": ";
+        String msg = switch (sc.kind[k]) {
+            case Scanner.UNTERMINATED_STRING -> {
+                int q = p;
+                boolean f = false;
+                while (s[q] != '\'' && s[q] != '"') {
+                    char c = Character.toLowerCase(s[q]);
+                    f |= c == 'f' || c == 't';
+                    q++;
+                }
+                yield where + "the " + (f ? "f-string" : "string") + " is not closed on its line; close it with "
+                    + s[q] + ", or use triple quotes (" + repeat(s[q], 3) + ") for text that spans lines";
+            }
+            case Scanner.UNTERMINATED_TRIPLE -> where + "the triple-quoted string is never closed";
+            case Scanner.UNCLOSED -> where + "'" + s[p] + "' is never closed";
+            case Scanner.UNMATCHED -> where + "'" + s[p] + "' has no opening bracket";
+            case Scanner.MISMATCHED -> {
+                int o = sc.at[k];
+                int ol = sc.lineOf(o);
+                yield where + "'" + s[p] + "' does not match '" + s[o] + "' from line " + (ol + 1) + ", column "
+                    + (o - sc.lineStart[ol] + 1);
+            }
+            case Scanner.STRAY_BACKSLASH -> where + "backslash outside a string; there it may only end a line";
+            case Scanner.TYPOGRAPHIC_QUOTE -> where + "typographic quote " + s[p]
+                + "; Python needs straight quotes (' or \")";
+            case Scanner.SEMICOLON -> {
+                int o = sc.at[k];
+                int ol = sc.lineOf(o);
+                yield where + "';' ends the statement while '" + s[o] + "' from line " + (ol + 1) + ", column "
+                    + (o - sc.lineStart[ol] + 1) + " is still open";
+            }
+            case Scanner.FSTRING_BRACE -> where + "single '}' in an f-string; write '}}' for a literal brace";
+            case Scanner.MARKER -> where + "'" + s[p] + "' is a quote marker, not Python; remove it";
+            case Scanner.COMPOUND_AFTER_SEMICOLON -> where
+                + "a compound statement cannot follow ';'; start it on its own line";
+            default -> where + "'n' right after '" + s[p - 1] + "' looks like a \\n that lost its backslash";
+        };
+        return new Problem(PROBLEM_KINDS[sc.kind[k]], l + 1, col, msg);
+    }
+}

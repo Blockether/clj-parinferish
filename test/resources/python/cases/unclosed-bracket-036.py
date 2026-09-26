@@ -1,0 +1,16 @@
+root = Path(session["workspace"]["root"])
+results = await gather(
+    read_session(),
+    grep({"query": ["Use Project", "use project", "useProject", "projects", "create session"], "paths": [root / "apps/vis-companion/src", root / "src/com/blockether/vis/internal/gateway"]})
+sess, hits = results
+print("SSH helper present:", "ssh_kate" in defs())
+print("Relevant code hits:\n" + str(hits)[:20000])
+# Retain only the previous turn's tool code/result snippets mentioning deployed scripts/status.
+for turn in sess.get("transcript", {}).get("turns", []):
+    if turn.get("position") != 10:
+        continue
+    for iteration in turn.get("iterations", []):
+        for block in iteration.get("blocks", []):
+            text = str(block.get("code", "")) + "\n" + str(block.get("result", ""))
+            if any(x in text for x in ["gateway-deploy", "vis-gateway-watch", "last-known-good", "run_script", "verify_cmd"]):
+                print("\nPREVIOUS TOOL SNIPPET:\n" + text[:16000])

@@ -1,0 +1,25 @@
+cpython: line 1, column 1: invalid syntax
+result: repaired
+fix: line 1: removed the quote marker > at column 1
+problem: line 1, column 1: '>' is a quote marker, not Python; remove it
+--- text after repair
+
+tok = re.compile(r'<(/?)([A-Za-z_][\w.]*)((?:\s+[\w:.-]+="[^"]*")*)\s*(/?)>')
+stack, first_text = [], None
+counts_stack = [collections.Counter()]
+for m in tok.finditer(s):
+    close, tag, attrs, selfc = m.group(1), m.group(2), m.group(3), m.group(4)
+    if tag in ("?xml",): continue
+    if close:
+        stack.pop(); counts_stack.pop()
+        continue
+    counts_stack[-1][tag] += 1
+    idx = counts_stack[-1][tag]
+    path = "/".join([f"{t}[{i}]" for t, i in stack] + [f"{tag}[{idx}]"])
+    a = dict(re.findall(r'([\w:.-]+)="([^"]*)"', attrs))
+    if first_text is None and tag.endswith("StaticText") and a.get("name"):
+        first_text = ("/" + path, tag, a.get("name"), a)
+    if not selfc:
+        stack.append((tag, idx)); counts_stack.append(collections.Counter())
+print(first_text[0])
+print(first_text[1], first_text[2], {k: first_text[3][k] for k in ("x","y","width","height","visible") if k in first_text[3]})

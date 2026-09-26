@@ -1,0 +1,30 @@
+root = Path(session["workspace"]["root"])
+dist = root / "apps/vis-companion/target/error-card-review/dist"
+index_path = dist / "index.html"
+index_text = index_path.read_text()
+script_match = re.search(r'<script type="module" crossorigin src="\.\/([^\"]+)"></script>', index_text)
+style_match = re.search(r'<link rel="stylesheet" crossorigin href="\.\/([^\"]+)">', index_text)
+if not script_match or not style_match:
+    raise RuntimeError("unexpected Vite output shape")
+js_text = (dist / script_match.group(1)).read_text()
+css_text = (dist / style_match.group(1)).read_text()
+js_inline = re.sub(r"</script", r"<\\/script", js_text, flags=re.IGNORECASE)
+css_inline = re.sub(r"</style", r"<\\/style", css_text, flags=re.IGNORECASE)
+self_contained = index_text.replace(script_match.group(0), f'<script type="module">\n{js_inline}\n</script>').replace(style_match.group(0), f'<style>\n{css_inline}\n</style>')
+out_dir = Path.home() / ".vis/tmp/error-label-review"
+out_dir.mkdir(parents=True, exist_ok=True)
+companion_html = out_dir / "provider-failure-companion.html"
+companion_html.write_text(self_contained)
+from bs4 import BeautifulSoup
+soup = BeautifulSoup(self_contained, "html.parser")nlinked = [(tag.name, tag.get("src"), tag.get("href")) for tag in soup.find_all(True) if tag.get("src") or tag.get("href")]
+css_urls = re.findall(r"url\(([^)]+)\)", css_text, flags=re.IGNORECASE)
+non_embedded_css_urls = [u[:160] for u in css_urls if not u.strip(" \"'").startswith("data:")]
+print(json.dumps({
+    "artifact": str(companion_html),
+    "bytes": companion_html.stat().st_size,
+    "linked_elements": linked,
+    "css_url_count": len(css_urls),
+    "non_embedded_css_urls": non_embedded_css_urls,
+    "escaped_script_closers": len(re.findall(r"<\\/script", js_inline, flags=re.IGNORECASE)),
+    "globals": [k for k in globals() if any(term in k.lower() for term in ("spel", "story", "light_png", "dark_png", "desktop_png", "repl"))]
+}, indent=2))

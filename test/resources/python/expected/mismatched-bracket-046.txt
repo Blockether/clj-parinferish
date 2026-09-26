@@ -1,0 +1,115 @@
+cpython: line 96, column 61: closing parenthesis ']' does not match opening parenthesis '{' on line 93
+result: not repaired
+fix: line 96: added '}' at column 61 to close '{' from line 93
+fix: line 98: removed the unmatched ')' at column 106
+fix: line 98: removed the unmatched ')' at column 107
+fix: line 98: removed the unmatched ')' at column 108
+fix: line 98: removed the unmatched ')' at column 109
+fix: line 100: added the missing closing ''' at column 29 for the triple-quoted string from line 98
+problem: line 96, column 61: ']' does not match '{' from line 93, column 2
+problem: line 98, column 106: ')' has no opening bracket
+problem: line 98, column 107: ')' has no opening bracket
+problem: line 98, column 108: ')' has no opening bracket
+problem: line 98, column 109: ')' has no opening bracket
+problem: line 98, column 110: the triple-quoted string is never closed
+--- text after repair
+edits = [
+ {"from":"810:f92","replace":'''(defn- extra-aliases
+  "The deps.edn aliases a run_tests call ADDS to the project's own `:test`:
+   [\\"bench\\" \\"dev\\"], \\"bench\\" and \\":bench\\" all read as alias NAMES. A leading
+   colon is accepted and dropped — an alias crosses the strings-only boundary as
+   a name, spliced into `clojure -M:test:<name>` exactly like `repl_start`'s own
+   `aliases`, and `:test` itself is never replaced."
+  [arg]
+  (->> (contract/->str-vec (get arg "aliases"))
+       (mapv (fn [a]
+               (str/replace a #"^:+" "")))
+       (filterv (complement str/blank?))))
+
+(defn- normalize-arg'''},
+ {"from":"825:885","to":"826:10f","replace":'''    and `path` is read alongside `paths`. `build` names ONE shadow-cljs build
+   when a ClojureScript run could pick from several, and `aliases` names EXTRA
+   deps.edn aliases for the clean-JVM command (`-M:test:<name>`)."'''},
+ {"from":"836:f59","replace":'''                 :build (not-empty (str/trim (str (get arg "build"))))
+                 :aliases (extra-aliases arg))'''},
+ {"from":"1042:e1f","to":"1043:1c6","replace":'''   `sel` is the resolved selector map {:nses :vars :include :exclude}.
+   `aliases` are the caller's EXTRA deps.edn aliases: APPENDED to the mandatory
+   `:test` (never replacing it) so the command reads `-M:test:bench`, and their
+   own `:jvm-opts` are inherited alongside `:test`'s. deps.edn only — `lein test`
+   and `bb test` take no such vocabulary, which `run-via-cli` refuses rather than
+   running the suite without the classpath the caller asked for."
+  [root sel aliases]'''},
+ {"from":"1051:05d","to":"1052:cd5","replace":'''        jflags
+        (mapv #(str "-J" %)
+              (repl-manager/inherited-jvm-opts (io/file root)
+                                               (into [:test] (map keyword) aliases)))
+
+        ;; `:test` first and ALWAYS: caller aliases add deps/paths to the run,
+        ;; they never replace the alias that mains the test runner.
+        main-flag
+        (str "-M:test" (apply str (map #(str ":" %) aliases)))]'''},
+ {"from":"1057:1a7","replace":'''             :cmd (into (into ["clojure"] jflags) (into [main-flag] (lazytest-selector-args sel)))'''},
+ {"from":"1059:479","replace":'''           {:tool :clj :cmd (into (into ["clojure"] jflags) [main-flag]) :selectors? false})'''},
+ {"from":"1072:e41","to":"1073:5fe","replace":'''   `norm` is the resolved selector map {:nses :vars :include :exclude}, plus the
+   :aliases the caller asked to add to `clojure -M:test`."
+  [root norm]'''},
+ {"from":"1078:9a6","replace":'''        (select-keys norm [:nses :vars :include :exclude])
+
+        aliases
+        (:aliases norm)]'''},
+ {"from":"1080:a4c","replace":'''    (if-let [{:keys [tool cmd]} (cli-command-for root sel aliases)]
+      (if (and (seq aliases) (not= :clj tool))
+        ;; deps.edn aliases mean nothing to `lein test` / `bb test`: shelling it
+        ;; anyway would answer green for a classpath the caller never got.
+        {"mode" "cli"
+         "ns" ns-str
+         "tool" (name tool)
+         "command" (str/join " " cmd)
+         "error" (str "aliases "
+                      (pr-str (vec aliases))
+                      " are deps.edn aliases, spliced into `clojure -M:test`, but "
+                      root
+                      " is a "
+                      (name tool)
+                      " project whose test command takes none — drop `aliases`, or point"
+                      " `cwd` at the deps.edn project that declares them.")}'''},
+ {"from":"1124:6bc","replace":'''                  " false green.")))))'''},
+ {"from":"1319:6c8","replace":'''(defn- note-unapplied-aliases
+  "run_tests `aliases` only reach the CLEAN-JVM path, where they are spliced into
+   `clojure -M:test`. A REUSED nREPL already booted with the aliases `repl_start`
+   gave it, and a shadow-cljs build reads shadow-cljs.edn — neither can pick them
+   up mid-run. Such a run SAYS the aliases did not apply instead of letting a
+   green result read as proof the alias was on the classpath."
+  [aliases result]
+  (if (or (empty? aliases) (= "cli" (get result "mode")))
+    result
+    (let [why
+          (case (str (get result "mode"))
+            "repl" (str "the run REUSED this session's nREPL, which carries only the aliases"
+                        " `repl_start` booted it with — repl_stop(\\"clojure\\") first for a clean"
+                        " JVM, or restart that REPL with these aliases")
+            "shadow" "a shadow-cljs build reads shadow-cljs.edn, not deps.edn aliases"
+            "this run did not shell `clojure -M:test`")
+
+          note
+          (str "aliases " (pr-str (vec aliases)) " did NOT apply: " why ".")]
+
+      (update result
+              "note"
+              (fn [n]
+                (if (str/blank? (str n)) note (str note " " n)))))))
+
+(defn clj-test-fn'''},
+ {"from":"1351:e55","to":"1352:139","replace":'''   `aliases` adds EXTRA deps.edn aliases to that clean-JVM command
+   (`clojure -M:test:<name>`, `:test` always kept); they cannot reach a REUSED
+   nREPL or a shadow-cljs build, and a run that took either path says so on :note.
+   The result :mode says which path ran; :language is always clojure so the result is self-describing
+   across the language / framework / tool / mode axes."'''},
+ {"from":"1498:dc9","replace":'''             (if (seq failures) (assoc result' "by-cwd" (group-faults-by-cwd failures)) result'))
+
+           result'''"'''+"'"+''' 
+           (note-unapplied-aliases (:aliases norm) result'')}]'''},
+ {"from":"1500:09c","to":"1501:2e4","replace":'''       (extension/success {:result (surface/check :test-fn
+                                                  (assoc result'''"'"+"''" + ''' "language" "clojure"))})'''},
+]
+print(patch(str(tr), edits))'''

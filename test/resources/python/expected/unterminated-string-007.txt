@@ -1,0 +1,20 @@
+cpython: line 1, column 63: unterminated string literal (detected at line 1)
+result: repaired
+fix: line 1: made the string at column 63 triple-quoted (''') because its text continues onto the next lines; it now ends on line 8
+problem: line 1, column 63: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 2, column 3: ';' ends the statement while '{' from line 1, column 35 is still open
+problem: line 3, column 3: '(' is never closed
+problem: line 3, column 7: '(' is never closed
+problem: line 4, column 10: '(' is never closed
+problem: line 5, column 3: '(' is never closed
+problem: line 5, column 7: '(' is never closed
+problem: line 6, column 10: '(' is never closed
+--- text after repair
+r=patch(str(t/'client_test.clj'),[{'from':'494:000','replace':'''(deftest saved-session-page-query-omits-absent-filters-test
+  ;; A nil cursor or filter must not become the literal string "nil" on the wire.
+  (is (= "/v1/sessions?limit=10&project_id=a&grouped=aside"
+         (#\'client/session-window-path {:limit 10 :project-id "a" :grouped :aside})))
+  (is (= "/v1/sessions?ids=saved"
+         (#\'client/session-window-path {:ids ["saved"]}))))
+
+'''}]); print(r)

@@ -1,0 +1,46 @@
+cpython: line 1, column 21: '(' was never closed
+result: repaired
+fix: line 40: added ')' at column 4 to close '(' from line 1
+problem: line 1, column 21: '(' is never closed
+--- text after repair
+edits = await gather(
+ patch(str(app/'src/com/blockether/vis/tui/client.clj'), [
+  {"from":"17:08a","to":"17:08a","replace":""},
+  {"from":"50:36a","to":"50:36a","replace":"(defn now-ms ^long [] (System/currentTimeMillis))"},
+  {"from":"2120:b1f","to":"2120:b1f","replace":"    (if (and cached (< (- now (long (:at cached))) (long router-cache-ttl-ms)))"}
+ ]),
+ patch(str(app/'src/com/blockether/vis/tui/composer_attachment_rail.clj'), [{"from":"9:845","to":"9:845","replace":""}]),
+ patch(str(app/'src/com/blockether/vis/tui/composer_attachments.clj'), [{"from":"8:845","to":"8:845","replace":""}]),
+ patch(str(app/'src/com/blockether/vis/tui/config.clj'), [
+  {"from":"7:450","to":"8:e0a","replace":"            [clojure.java.io :as io])"},
+  {"from":"12:6f8","to":"12:6f8","replace":"(def ^:private ^java.io.File config-file"},
+  {"from":"36:8aa","to":"37:dcc","replace":"          ^java.io.File parent\n          (.getParentFile config-file)"},
+  {"from":"39:3d4","to":"40:cbc","replace":"          ^java.io.File temp\n          (io/file parent (str \".config-\" (random-uuid) \".json\"))"}
+ ]),
+ patch(str(app/'src/com/blockether/vis/tui/dialogs.clj'), [{"from":"2568:f5b","to":"2568:f5b","replace":""}]),
+ patch(str(app/'src/com/blockether/vis/tui/presentation.clj'), [
+  {"from":"747:d55","to":"747:d55","replace":"                                doc (.parse ^Parser md-parser ^String prepared)"},
+  {"from":"1565:5e0","to":"1565:5e0","replace":""}
+ ]),
+ patch(str(app/'src/com/blockether/vis/tui/provider_error.clj'), [{"from":"7:e37","to":"7:e37","replace":"  "}]),
+ patch(str(app/'src/com/blockether/vis/tui/screen.clj'), [
+  {"from":"5071:b0e","to":"5072:d4e","replace":"     (let [c (vis/load-config)]\n       (state/dispatch [:set-config c]))"},
+  {"from":"5815:b0e","to":"5817:29c","replace":"                              (let [c (vis/load-config)]\n                                (state/dispatch [:set-config c])\n                                (state/dispatch [:force-provider-limits-refresh]))"}
+ ]),
+ patch(str(app/'src/com/blockether/vis/tui/primitives.clj'), [
+  {"from":"154:04c","to":"159:59c","replace":"        ^\"[Lcom.googlecode.lanterna.TextCharacter;\" cached\n        (.get ^java.util.Map line-cell-cache k)]\n\n    (if cached\n      (.putString g (int x) (int y) cached)\n      (let [^java.util.EnumSet effective-mods (if mempty? no-mods mods)\n            ^\"[Lcom.googlecode.lanterna.TextCharacter;\" arr\n            (TextCharacter/fromString line fg bg effective-mods)]"},
+  {"from":"163:047","to":"163:047","replace":"        (.put ^java.util.Map line-cell-cache (if mempty? k [line fg bg (java.util.EnumSet/copyOf mods)]) arr)"},
+  {"from":"669:1fb","to":"672:574","replace":"                    (TextCharacter/fromString seg code-fg code-bg ^java.util.EnumSet no-mods)\n                    (let [^java.util.EnumSet eff (java.util.EnumSet/copyOf inherited)]\n                      (.addAll eff inline)\n                      (TextCharacter/fromString seg (if (aget err? 0) err-fg base-fg) base-bg eff)))"},
+  {"from":"727:04c","to":"728:a1f","replace":"        ^\"[Lcom.googlecode.lanterna.TextCharacter;\" cached\n        (.get ^java.util.Map line-cell-cache k)]"},
+  {"from":"733:8f9","to":"733:8f9","replace":"        (.put ^java.util.Map line-cell-cache"}
+ ]),
+ patch(str(app/'src/com/blockether/vis/tui/virtual.clj'), [
+  {"from":"137:6b0","to":"140:fa6","replace":"    (or (.get ^IdentityHashMap message-fp-memo message)\n        (let [fp (hash (dissoc message :text :prewrapped-lines :line-meta :turn-separator?))]\n          (when (> (long (.size ^IdentityHashMap message-fp-memo)) 4096)\n            (.clear ^IdentityHashMap message-fp-memo))\n          (.put ^IdentityHashMap message-fp-memo message fp)"},
+  {"from":"200:f29","to":"200:f29","replace":"      (let [cached (.get ^IdentityHashMap height-key-memo message)]"},
+  {"from":"207:08d","to":"208:fa0","replace":"            (when (> (long (.size ^IdentityHashMap height-key-memo)) 4096)\n              (.clear ^IdentityHashMap height-key-memo))\n            (.put ^IdentityHashMap height-key-memo message k)"},
+  {"from":"215:3c1","to":"215:3c1","replace":"    (.get ^LinkedHashMap height-cache (height-key message bubble-w settings detail-expansions session-id))))"},
+  {"from":"222:b97","to":"222:b97","replace":"    (.put ^LinkedHashMap height-cache (height-key message bubble-w settings detail-expansions session-id) h))"},
+  {"from":"277:508","to":"277:508","replace":"  (locking height-cache (.clear ^LinkedHashMap height-cache))"},
+  {"from":"285:d67","to":"285:d67","replace":"  (locking height-cache (.size ^LinkedHashMap height-cache)))"}
+ ]))
+print('\n'.join(map(str,edits)))

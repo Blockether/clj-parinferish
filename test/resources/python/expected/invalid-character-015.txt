@@ -1,0 +1,43 @@
+cpython: line 1, column 1: invalid character '«' (U+00AB)
+result: repaired
+fix: line 1: removed the quote marker « at column 1
+fix: line 36: removed the quote marker » at column 1
+problem: line 1, column 1: '«' is a quote marker, not Python; remove it
+problem: line 36, column 1: '»' is a quote marker, not Python; remove it
+--- text after repair
+# total iteration wall time for codex iterations (provider-call -> iteration.completed)
+durs=[]
+for sid in set(r_['sid'] for r_ in cx):
+    p=evdir/f"{sid}.ndjson"
+    if not p.exists(): continue
+    E=[]
+    with p.open() as f:
+        for l in f:
+            try: E.append(json.loads(l))
+            except: pass
+    if sum(1 for e in E if e.get('type')=='turn.started')!=1: continue
+    byit={i['iteration']:i for i in usage[sid]['turns'][-1]['iterations']}
+    start={}
+    for e in E:
+        it=e.get('iteration')
+        if e.get('type')=='activity' and e.get('activity')=='provider-call': start.setdefault(it,e['ts'])
+        elif e.get('type')=='iteration.completed' and it in start:
+            i=byit.get(it)
+            if i and (i.get('llm_actual') or {}).get('provider')=='openai-codex':
+                durs.append((e['ts']-start.pop(it))/1000.0)
+print('codex iteration wall time s: n=%d median=%.1f mean=%.1f'%(len(durs),float(np.median(durs)),float(np.mean(durs))))
+# cost model
+import numpy as np
+A=[];b=[]
+for sid,uu in usage.items():
+    for t in uu['turns']:
+        for i in t.get('iterations',[]):
+            a=(i.get('llm_actual') or {})
+            if a.get('provider')!='openai-codex': continue
+            tk=i['tokens']; c=i.get('cost_usd')
+            if c is None: continue
+            A.append([tk['cached'],tk['input']-tk['cached'],tk['output']]); b.append(c)
+A=np.array(A,float); b=np.array(b,float)
+coef,*_=np.linalg.lstsq(A,b,rcond=None)
+print('codex $/Mtok  cached=%.2f uncached=%.2f output=%.2f  (n=%d, total $%.2f)'%(coef[0]*1e6,coef[1]*1e6,coef[2]*1e6,len(b),b.sum()))
+

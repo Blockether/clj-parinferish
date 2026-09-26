@@ -1,0 +1,12 @@
+cpython: line 4, column 7: unterminated f-string literal (detected at line 4)
+result: repaired
+fix: line 4: made the string at column 8 triple-quoted (""") because its text continues onto the next lines; it now ends on line 5
+problem: line 4, column 6: '(' is never closed
+problem: line 4, column 7: the f-string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 5, column 11: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+--- text after repair
+root = Path(session["workspace"]["root"])
+app = root / "apps/vis-tui"
+old = root / "extensions/channels/vis-channel-tui"
+print(f"""app={app.exists()} old={old.exists()} src={ (app/'src/com/blockether/vis/tui').exists()} test={ (app/'test/com/blockether/vis/tui').exists()}\nhandle={sh}
+wait={res}""")

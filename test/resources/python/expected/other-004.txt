@@ -1,0 +1,8 @@
+cpython: line 1, column 102: leading zeros in decimal integer literals are not permitted; use an 0o prefix for octal integers
+result: not repaired
+fix: line 1: added the missing closing ' at column 123
+problem: line 1, column 6: '(' is never closed
+problem: line 1, column 12: '(' is never closed
+problem: line 1, column 120: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+print(patch(project_root_path/'apps/vis-companion/src/components/SessionNavigator.tsx, [{'from': '61:07d', 'replace': ''}]'))

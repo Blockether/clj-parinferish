@@ -1,0 +1,1 @@
+print(patch(project_root_path/'apps/vis-companion/src/components/SessionNavigator.tsx, [{'from': '61:07d', 'replace': ''}]))

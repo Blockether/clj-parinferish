@@ -1,0 +1,2 @@
+cpython: line 2, column 192: f-string: valid expression required before '}'
+result: not repaired

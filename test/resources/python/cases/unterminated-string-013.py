@@ -1,0 +1,2 @@
+r3=await py.repl_eval(code='trial={"case":{"type":"choice","instructions":"Which category matches this request?","criteria":["billing","billing"]}}\nfor name,agent in (("fp32",original),("int8",quant)):\n    try: print(name,agent.predict("Refund a duplicate payment",trial)["answers"])
+    except Exception as e: print(type(e).__name__,str(e)[:200])',cwd=cwd,timeout_ms=120000); print(str(r3)[:1600])

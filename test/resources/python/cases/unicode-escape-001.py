@@ -1,0 +1,35 @@
+print(patch(project_root_path/'apps/vis-tui/test/com/blockether/vis/tui/projects_test.clj',[
+{'from':'280:dec','replace':'''          (is (str/includes? (.renderHtml html) "Projects")))))))
+
+(deftest project-sidebar-dispatch-test
+  (let [added (atom 0)]
+    (with-redefs [state/app-db (atom (fixture-db))
+                  vis/gateway-list-projects (constantly [project-a project-b])
+                  vis/worker-future (fn [_ f] (f))
+                  timg/images-protocol (constantly nil)]
+      (let [select! #(state/dispatch [:select-project (get % "id") [] "unused"])
+            add! #(swap! added inc)]
+        (is (true? (#'screen/project-sidebar-key! (cap/key-stroke :down) select! add!)))
+        (#'screen/project-sidebar-key! (cap/key-stroke :enter) select! add!)
+        (is (= "b" (:active-project-id @state/app-db)))
+        (is (= "background-turn" (:active-turn-id @state/app-db)))
+        (#'screen/project-sidebar-key! (cap/key-stroke \+) select! add!)
+        (is (= 1 @added))
+        (#'screen/project-sidebar-key! (cap/key-stroke :esc) select! add!)
+        (is (false? (get-in @state/app-db [:project-sidebar :focused?])))
+        (is (nil? (#'screen/project-sidebar-key! (cap/key-stroke \a) select! add!)))
+        (let [capture (cap/capture!
+                        {:keys [\w]
+                         :paint! (fn [{:keys [screen]}]
+                                   (#'screen/resolve-prefix! screen @state/app-db
+                                     (input/handle-key (KeyStroke. \x true false) (:input @state/app-db))))})]
+          (is (nil? (:error capture)))
+          (is (= :switch-project (get-in capture [:ret :action]))))
+        (#'screen/toggle-project-sidebar!)
+        (is (false? (get-in @state/app-db [:project-sidebar :open?])))
+        (#'screen/toggle-project-sidebar!)
+        (is (true? (get-in @state/app-db [:project-sidebar :open?])))
+        (is (= 0 (get-in @state/app-db [:project-sidebar :index])))
+        (is (= 3 (count (:tabs @state/app-db))))))))'''}]))
+print(await run_tests({'language':'clojure','cwd':str(project_root_path/'apps/vis-tui'),'path':'test/com/blockether/vis/tui/projects_test.clj'}))
+print(doc('lint_code'))

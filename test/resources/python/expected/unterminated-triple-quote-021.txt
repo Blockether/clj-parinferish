@@ -1,0 +1,9 @@
+cpython: line 1, column 21: unterminated triple-quoted string literal (detected at line 2)
+result: repaired
+fix: line 2: added the missing closing """ at column 51 for the triple-quoted string from line 1
+fix: line 2: added ')' at column 51 to close '(' from line 1
+problem: line 1, column 20: '(' is never closed
+problem: line 1, column 21: the triple-quoted string is never closed
+--- text after repair
+r = await shell_run("""
+echo '===== write-registry / secret ====='; grep -""")

@@ -1,0 +1,2 @@
+cpython: line 1, column 241: invalid syntax
+result: not repaired

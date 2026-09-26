@@ -1,0 +1,2 @@
+cpython: line 2, column 17: cannot use conditional expression as import target
+result: not repaired

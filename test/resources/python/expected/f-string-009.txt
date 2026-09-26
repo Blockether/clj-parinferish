@@ -1,0 +1,2 @@
+cpython: line 49, column 10: f-string: valid expression required before ':'
+result: not repaired

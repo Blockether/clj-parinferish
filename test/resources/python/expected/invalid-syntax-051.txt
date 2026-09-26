@@ -1,0 +1,7 @@
+cpython: line 1, column 1: invalid syntax
+result: repaired
+fix: line 1: removed the quote marker > at column 1
+problem: line 1, column 1: '>' is a quote marker, not Python; remove it
+--- text after repair
+# RUNTIME PROBE: zero tool calls in this block on purpose.
+print(sum(i*i for i in range(5)))

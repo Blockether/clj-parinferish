@@ -1,0 +1,8 @@
+cpython: line 1, column 239: invalid syntax
+result: repaired
+fix: line 1: added ')' at column 239 to close '(' from line 1
+fix: line 1: added ')' at column 418 to close '(' from line 1
+problem: line 1, column 239: ';' ends the statement while '(' from line 1, column 119 is still open
+problem: line 1, column 265: '(' is never closed
+--- text after repair
+print('len chars',len(log),'lines',len(log.splitlines())); lines=log.splitlines(); print('failure candidates:'); print('\n'.join(x for x in lines if ('(failed)' in x or 'failed ' in x.lower() and ('src/' in x or 'scripts/' in x))[-9000:])); print('markers:'); print('\n'.join(x for x in lines if any(v in x for v in ('Failed Suites', 'Failed Tests', 'Error:', 'Unhandled', 'Timed out', 'FAIL ', 'Test Files'))[-5000:]))

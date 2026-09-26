@@ -1,0 +1,7 @@
+cpython: line 1, column 117: closing parenthesis ']' does not match opening parenthesis '{'
+result: repaired
+fix: line 1: removed the unmatched ']' at column 86
+problem: line 1, column 117: ']' does not match '{' from line 1, column 18
+--- text after repair
+bind_hits = grep({"query": ["*workspace", "*filesystem-roots*", "binding [workspace/", "iteration-loop environment"], "paths": [str(root / "src/com/blockether/vis/internal/loop.clj")], "context": 6})
+print(bind_hits)

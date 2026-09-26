@@ -1,0 +1,6 @@
+cpython: line 1, column 6: '(' was never closed
+result: repaired
+fix: line 1: added ')' at column 155 to close '(' from line 1
+problem: line 1, column 6: '(' is never closed
+--- text after repair
+print(await grep({"query":["defn- transcript-turn","defn transcript-turn","user_request",":turn_id"],"paths":[str(state_p)],"context":6,"max_results":30}))

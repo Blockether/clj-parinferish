@@ -1,0 +1,5 @@
+root = Path(session["workspace"]["root"])
+search = grep({"query": ["cannot index", "class __VisShell__", ".logs()[-", ".logs()[", "logs()[\"out\"]", "logs(\"], "paths": [str(root / "resources/vis-python"), str(root / "src"), str(root / "test")]})
+history2 = await read_session()
+print(search)
+print("SESSION", history2.get("session_id") if isinstance(history2, dict) else type(history2).__name__)

@@ -1,0 +1,21 @@
+cpython: line 9, column 81: closing parenthesis ')' does not match opening parenthesis '{' on line 3
+result: not repaired
+fix: line 9: replaced ')' at column 81 with '}' to match '{' from line 3
+fix: line 11: added the missing closing ''' at column 31 for the triple-quoted string from line 9
+fix: line 11: added ']' at column 31 to close '[' from line 1
+problem: line 1, column 6: '[' is never closed
+problem: line 3, column 2: '{' is never closed
+problem: line 9, column 81: ')' does not match '{' from line 3, column 2
+problem: line 9, column 82: the triple-quoted string is never closed
+--- text after repair
+te = [
+ {"from": "5476:3b1", "replace": '        (expect (str/includes? text "─ 3 more lines ─")\n                "a clipped patch says how much it kept back, in the one rule both surfaces draw")'},
+ {"from": "5492:05b", "replace": '''        ;; Regression, user report ("every show-more must be a rule with the words in
+        ;; it, not a bigger chevron and `+2 more read files`"): the fold count wore a
+        ;; disclosure chevron and a `+N` it had invented for itself.
+        (expect (some #(str/includes? % "─ show 1 more file ─") lines)
+                "and the count says what it folded, as a rule with the words in it")
+        (expect (not-any? #(and (str/includes? % "more file") (str/includes? % "\\u25b8")) lines)
+                "a rule is not a disclosure: no chevron stands on the count")'''}'''.replace("')","")},
+]
+print(te[1]["replace"][-200:])''']

@@ -1,0 +1,16 @@
+cpython: line 3, column 78: unterminated triple-quoted string literal (detected at line 7)
+result: repaired
+fix: line 5: completed the closing """ at column 89 of the triple-quoted string from line 3
+problem: line 1, column 23: '(' is never closed
+problem: line 3, column 10: '(' is never closed
+problem: line 3, column 27: '[' is never closed
+problem: line 3, column 28: '{' is never closed
+problem: line 3, column 78: the triple-quoted string is never closed
+--- text after repair
+renames = await gather(
+    patch(str(loop_test_path), [{"from": "907:6f3", "to": "907:6f3", "replace": "  session-provider-kickoff-headers-test"}]),
+    patch(str(loop_path), [{"from": "6854:6ca", "to": "6856:8d4", "replace": """  \"Decorate one immutable router snapshot with session-scoped provider headers.
+   Configured and credential-derived headers are retained; a provider kickoff hook
+   owns any same-named key it contributes. The shared process router is never mutated.\""""}]),
+)
+print("\n".join(renames))

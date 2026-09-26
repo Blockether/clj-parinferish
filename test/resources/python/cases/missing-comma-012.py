@@ -1,0 +1,2 @@
+print([{'iteration': item['position'], 'status': item['status'], 'blocks': len(item['blocks']), 'code_type': type(item.get('code')).__name__, 'code_chars': len(str(item.get('code', '')))} for item in win51_cred_iters])
+print(ap ropos if False else apropos('^(web|fetch|http|council|repl_status|doc)$'))

@@ -1,0 +1,67 @@
+« # 1. loadMachine returns the failure
+edit(SP, """  // ONE machine's list. Machines load independently on purpose: a gateway that is
+  // asleep must not keep the machines next to it off the screen, and its failure
+  // degrades that machine's section instead of the whole list.
+  const loadMachine = useCallback(
+    async (conn: GatewayConn, signal?: AbortSignal) => {""",
+"""  // ONE machine's list. Machines load independently on purpose: a gateway that is
+  // asleep must not keep the machines next to it off the screen, and its failure
+  // drops that machine out of the fleet view instead of the whole list.
+  //
+  // It ANSWERS its failure as well as storing it: a retry the reader asked for has to
+  // say what came back, in the tile that was pressed, and reading that off the state
+  // this call is about to write would be reading it a paint too early.
+  const loadMachine = useCallback(
+    async (conn: GatewayConn, signal?: AbortSignal): Promise<string | null> => {""")
+edit(SP, """        if (signal?.aborted) return;
+        // Anchor EVERY reload""", """        if (signal?.aborted) return null;
+        // Anchor EVERY reload""")
+edit(SP, """          sessions: reconcileSessions(machine.sessions, next),
+          error: null,
+        }));
+      } catch (cause) {
+        if (signal?.aborted) return;
+        patchMachine(key, (machine) => ({ ...machine, error: (cause as Error).message }));
+      }
+    },
+    [patchMachine],
+  );""",
+"""          sessions: reconcileSessions(machine.sessions, next),
+          error: null,
+        }));
+        return null;
+      } catch (cause) {
+        if (signal?.aborted) return null;
+        const failure = (cause as Error).message;
+        patchMachine(key, (machine) => ({ ...machine, error: failure }));
+        return failure;
+      }
+    },
+    [patchMachine],
+  );
+
+  // WHAT A RETRY IS DOING, on the tile that asked for it.
+  //
+  // A machine that is not answering is drained out of the switch and out of `All`,
+  // and the one thing it can still do is come back — so its tile IS the retry (see
+  // `MachineTab`). The press has to answer: `reconnecting...` while the probe is in
+  // flight, `no answer` when it came back dead, and nothing at all before the first
+  // press, because a fleet's dead machines are quiet until they are asked. A machine
+  // that answers loses its note with its drained face.
+  const [retries, setRetries] = useState<ReadonlyMap<string, 'busy' | 'failed'>>(
+    () => new Map(),
+  );
+  const retryMachine = useCallback(
+    async (conn: GatewayConn) => {
+      const key = machineKey(conn);
+      setRetries((current) => new Map(current).set(key, 'busy'));
+      const failure = await loadMachine(conn);
+      setRetries((current) => {
+        const next = new Map(current);
+        if (failure) next.set(key, 'failed');
+        else next.delete(key);
+        return next;
+      });
+    },
+    [loadMachine],
+  );""") »

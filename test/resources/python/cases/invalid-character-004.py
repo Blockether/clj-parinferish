@@ -1,0 +1,61 @@
+root=Path(session["workspace"]["root"])
+src=root/"extensions/channels/vis-channel-tui/src/com/blockether/vis/ext/channel_tui"
+tst=root/"extensions/channels/vis-channel-tui/test/com/blockether/vis/ext/channel_tui"
+results=[]
+results.append(patch(str(src/"screen.clj"),[
+ {"from":"1867:b8f","to":"1869:a5d","replace":"  ;; The placements currently on the graphics layer. A prompt-attached band (such\n  ;; as C-x) has to re-place the images it does NOT cover, and it never runs a\n  ;; frame of its own, so the last painted set is remembered here instead of recomputed."},
+ {"from":"2026:890","to":"2027:256","replace":"   A band is not a modal. It is a strip glued to the prompt, with the transcript\n   still readable above it —"},
+ {"from":"5633:d66","replace":"              (fn [config seed-text]"},
+ {"from":"5649:f77","to":"5656:a85","replace":""},
+ {"from":"5660:587","to":"5662:6a8","replace":"                          (vis/notify! \"Opened session\""},
+ {"from":"5717:aad","replace":"                    (start-new-session! config (:seed-text choice)))"},
+]))
+results.append(patch(str(src/"dialogs.clj"),[
+ {"from":"5607:ee8","to":"5610:c74","replace":"   `pressed` is an action ALREADY chosen by the caller. The band paints itself\n   and goes straight to that action's question instead of waiting for a duplicate\n   keystroke."},
+]))
+results.append(patch(str(src/"state.clj"),[
+ {"from":"32:967","to":"38:8d2","replace":"   Every band on the session screen is anchored the SAME way: it may not climb\n   over the header (`[:layout :messages-top]`) and it sits ABOVE the prompt box\n   at its LIVE height (`[:layout :input-h]`, which grows with what is typed).\n   Spelling that pair out at each call site is how one band ended up glued to a\n   three-row prompt while the box under it had grown to five, so the anchor is\n   read HERE and handed to the dialog band renderer as one value."},
+ {"from":"416:d35","to":"419:04d","replace":"  \"Pending-assistant placeholder for a registered slash command (`/cd …`,\n   `/voice`, …). Slash dispatch runs LOCALLY with no provider round-trip, so the\n   bubble must never claim \\"Sending request to provider…\\". The engine flips it to\n   `Vis is running: /<name>` the instant it emits the slash-phase chunk.\""},
+ {"from":"458:4cd","replace":"   registered slash command (`/cd …`) runs LOCALLY with no provider round-trip,"},
+ {"from":"2014:092","to":"2015:7e3","replace":"              ;; Replace the session's current workspace record after a turn that may\n              ;; have changed it (`/cd`, or a future model-managed isolation action)."},
+ {"from":"5778:394","to":"5779:e87","replace":"                        ;; A turn may have changed the session's workspace (`/cd <path>`,\n                        ;; or a future model-managed isolation action)."},
+]))
+results.append(patch(str(src/"footer.clj"),[
+ {"from":"198:d3d","to":"205:91c","replace":""},
+ {"from":"208:e54","to":"223:4f2","replace":"  [{:strs [is_workspace] :as status}]\n  (cond"},
+ {"from":"575:466","to":"576:932","replace":"        isolated-workspace?\n        (some? (get ws \"fork_ms\"))"},
+ {"from":"588:0ae","to":"593:a81","replace":"        git-spans\n        (if isolated-workspace?\n          []\n          (git-footer-spans git-status))"},
+]))
+results.append(patch(str(tst/"dialogs_test.clj"),[
+ {"from":"5:c41","replace":""},
+ {"from":"1142:353","to":"1199:33f","replace":""},
+ {"from":"1218:025","to":"1223:f67","replace":"        (expect (every? ids\n                        [:search-open :show-sessions :pick-file :new-session :fork-session]))\n        (expect (not (some ids\n                           [:cycle-model :pick-model :cycle-reasoning :cycle-verbosity\n                            :new-session-in :open-drafts])))"},
+]))
+results.append(patch(str(tst/"input_test.clj"),[
+ {"from":"164:8d0","replace":"      ;; prefix C-x (C-x C-m/r/l/f/a/v/s/h), and the Ctrl letters they vacated"},
+ {"from":"184:9be","replace":"        (expect (= :continue (:action (input/handle-key (char-key (Character. \\d)) armed))))"},
+]))
+results.append(patch(str(tst/"keymap_test.clj"),[
+ {"from":"33:ceb","replace":"                 (expect (nil? (keymap/prefix-action-for \\d)))"},
+ {"from":"54:097","to":"55:269","replace":"                 ;; The C-x prefix's second-keys (m/r/v/s) live behind C-x — a different\n                 ;; keyspace — so they don't shadow the editing chords."},
+ {"from":"73:f7a","replace":"                 (expect (nil? (keymap/label-for :open-drafts)))"},
+]))
+results.append(patch(str(tst/"screen_test.clj"),[
+ {"from":"124:80d","to":"125:000","replace":""},
+ {"from":"681:ca8","to":"753:174","replace":""},
+ {"from":"2172:307","to":"2200:61d","replace":""},
+]))
+results.append(patch(str(tst/"transient/spec_test.clj"),[
+ {"from":"14:c41","replace":""},
+ {"from":"165:4e0","to":"172:564","replace":"                 (let [shipped\n                       {\"provider/provider-transient-spec\""},
+]))
+results.append(patch(str(tst/"render_test.clj"),[
+ {"from":"1259:4cf","replace":"      ;; A registered slash (for example `/cd`) runs LOCALLY via run-slash-turn! and"},
+ {"from":"1264:e1d","replace":"                                                                   :slash/label \"/cd /repo\"}]}"},
+ {"from":"1269:5ad","replace":"        (expect (str/includes? body \"/cd /repo\"))"},
+]))
+results.append(patch(str(tst/"state_test.clj"),[
+ {"from":"4863:22f","replace":"        ;; A registered slash dispatches LOCALLY (no provider call), so its"},
+ {"from":"4870:5e4","to":"4874:50c","replace":"                        [{:slash/name \"reload\" :slash/parent []}\n                         {:slash/name \"config\" :slash/parent []}\n                         {:slash/name \"show\" :slash/parent [\"config\"]}])]\n          (let [blank (pending-assistant-for \"/reload\")\n                sub (pending-assistant-for \"/config show\")"},
+]))
+print("\n".join(map(str,results)))

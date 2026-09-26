@@ -1,0 +1,23 @@
+cpython: line 11, column 42: unterminated string literal (detected at line 11)
+result: repaired
+fix: line 11: made the string at column 43 triple-quoted (''') because its text continues onto the next lines; it now ends on line 13
+problem: line 11, column 42: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 12, column 1: ']' does not match '(' from line 11, column 41
+problem: line 12, column 65: backslash outside a string; there it may only end a line
+problem: line 13, column 4: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+print(cat(tui_src / 'render.clj', 6060, 6395))
+print(grep({'query': ['defn.*detail-(node-id|expanded)', 'toggle-details', 'defn.*activity'], 'paths': [tui_src / 'state.clj', tui_src / 'render.clj'], 'is_regex': True, 'context': 2, 'limit': 60}))
+print(grep({'query': ['operation-group', 'argument-group', 'group.*(click|toggle|expand|disclosure)', 'disclosure.*(independent|group)'], 'paths': [tui_test / 'render_test.clj', tui_test / 'screen_test.clj', tui_test / 'state_test.clj'], 'is_regex': True, 'context': 2, 'limit': 55}))
+history_snippets = []
+for tr in activity_history['transcript']['turns']:
+    for it in tr.get('iterations', []):
+        for b in it.get('blocks', []):
+            for key in ['stdout', 'code']:
+                text = b.get(key)
+                if isinstance(text, str):
+                    for m in re.finditer(r'''(?:[^
+]*(?:detail-expansions|activity-operation-rows|activity-expanded\?|group.*toggle|toggle.*group)[^
+]*)''', text, re.I):
+                        history_snippets.append((tr['position'], it['position'], key, m.group(0)[:400]))
+print('Related saved evidence:', history_snippets[-15:])

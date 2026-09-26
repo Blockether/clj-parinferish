@@ -1,0 +1,10 @@
+cpython: line 2, column 17: '(' was never closed
+result: repaired
+fix: line 4: added ')' at column 213 to close '(' from line 2
+problem: line 2, column 17: '(' is never closed
+--- text after repair
+root = Path(session["workspace"]["root"])
+r = await gather(
+    read_session(),
+    grep({"query": ["server switcher", "machine switcher", "live", "idle", "active", "inactive", "health"], "paths": [str(root / "apps/vis-companion/src"), str(root / "src/com/blockether/vis/internal/gateway")]}))
+print(r[1])

@@ -1,0 +1,13 @@
+cpython: line 3, column 65: unterminated string literal (detected at line 3)
+result: repaired
+fix: line 3: added the missing closing ' at column 190
+fix: line 3: added '}]))' at column 190 to close the brackets from line 3
+problem: line 3, column 6: '(' is never closed
+problem: line 3, column 18: '(' is never closed
+problem: line 3, column 21: '[' is never closed
+problem: line 3, column 22: '{' is never closed
+problem: line 3, column 65: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+root=Path(session['workspace']['root'])
+p=root/'extensions/channels/vis-channel-tui/test/com/blockether/vis/ext/channel_tui/chat_test.clj'
+print(await patch(p,[{'from':'541:59a','to':'541:59a','replace':'                                       "text" "ponder"\n                                       "cumulative" "pondering"})]))'}]));

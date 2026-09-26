@@ -1,0 +1,6 @@
+print(patch(project_root_path / 'src/com/blockether/vis/internal/extension/native_preload.clj',[{'from':'20:15f','to':'21:6c4','replace':'   compiled namespace tree. Formatter and analyzer dependencies are required here:
+   JVM registration defers them, but the native image must retain their code.'},{'from':'24:a54','replace':'            [clj-kondo.core]
+            [cljfmt.config]'}]))
+print(patch(project_root_path / 'test/com/blockether/vis/native_reachability_test.clj',[{'from':'292:af5','replace':"        (doseq [backend '[clj-kondo.core cljfmt.config cljfmt.core zprint.config zprint.core]]"}]))
+print(await format_code({'language':'clojure','paths':['src/com/blockether/vis/internal/extension/native_preload.clj','test/com/blockether/vis/native_reachability_test.clj','test-native/com/blockether/vis/native_format_test.clj']}))
+build_kondo = await shell('eval "$(bin/require-graalvm --export)" && export JAVA_CMD="$JAVA_HOME/bin/java" && clojure -T:build native'); print(await build_kondo.wait(1))

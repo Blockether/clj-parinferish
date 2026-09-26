@@ -1,0 +1,6 @@
+cpython: line 1, column 6: '(' was never closed
+result: repaired
+fix: line 1: added ')' at column 134 to close '(' from line 1
+problem: line 1, column 6: '(' is never closed
+--- text after repair
+print(await grep({"query": ["<LiveView", "useLiveViews"], "paths": [str(root / "apps/vis-companion/src/screens/SessionScreen.tsx")]}))

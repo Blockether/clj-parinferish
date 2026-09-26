@@ -1,0 +1,9 @@
+cpython: line 1, column 28: unterminated string literal (detected at line 1)
+result: repaired
+fix: line 1: made the string at column 28 triple-quoted (''') because its text continues onto the next lines; it now ends on line 2
+problem: line 1, column 22: '(' is never closed
+problem: line 1, column 28: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 2, column 64: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+r3=await py.repl_eval(code='''trial={"case":{"type":"choice","instructions":"Which category matches this request?","criteria":["billing","billing"]}}\nfor name,agent in (("fp32",original),("int8",quant)):\n    try: print(name,agent.predict("Refund a duplicate payment",trial)["answers"])
+    except Exception as e: print(type(e).__name__,str(e)[:200])''',cwd=cwd,timeout_ms=120000); print(str(r3)[:1600])

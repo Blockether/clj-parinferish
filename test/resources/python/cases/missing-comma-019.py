@@ -1,0 +1,1 @@
+r='/home/user/vis-python-runtime'; sh=await shell(f'cd {sh Bewohner if False else shlex.quote(r)} && gh run cancel 33613087753', timeout=30); print(await sh.wait(30))

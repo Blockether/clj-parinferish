@@ -1,0 +1,5 @@
+print(cat(project_root_path / 'e2e/run.py', 345, 415))
+print(cat(project_root_path / 'src/com/blockether/vis/internal/context/prompt.clj', 301, 395))
+print(cat(project_root_path / 'packages/vis-agent/src/blockether/vis/extension.py', 1008, 1100))
+print(cat(project_root_path / 'packages/vis-agent/tests/test_symbol_contract.py', 430, 525))
+print(ap ropos)

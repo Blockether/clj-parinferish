@@ -1,0 +1,10 @@
+cpython: line 1, column 95: unterminated string literal (detected at line 1)
+result: repaired
+fix: line 1: added the missing closing " at column 96
+problem: line 1, column 6: '(' is never closed
+problem: line 1, column 17: '(' is never closed
+problem: line 1, column 95: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+--- text after repair
+print(edit_lines(R+"src/com/blockether/vis/internal/python_extensions.clj", 805, 822, [], "", ""))
+sh = await shell("cd /home/user/vis && git status --porcelain")
+print((await sh.wait(30)).get("logs") or sh.logs())

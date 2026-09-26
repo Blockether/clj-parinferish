@@ -1,0 +1,11 @@
+cpython: line 1, column 606: unterminated string literal (detected at line 1)
+result: not repaired
+fix: line 1: added the missing closing ' at column 610
+fix: line 1: added '}]' at column 610 to close the brackets from line 1
+problem: line 1, column 6: '(' is never closed
+problem: line 1, column 12: '(' is never closed
+problem: line 1, column 32: '[' is never closed
+problem: line 1, column 163: '{' is never closed
+problem: line 1, column 606: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+print(patch(p/'components.clj',[{'from':'652:1fb','replace':'      [(keymap/label-for :session-metrics) "Session metrics — context health, totals and cache"]]}'},{'from':'664:046','replace':'           ["Mouse" "Click a session in Projects · ↓ latest jumps down"]]}]) ); print(cat(p/'screen.clj',7303,7318)); print(cat(p/'screen.clj',7616,7629)); print(cat(p/'screen.clj',7773,7788)); print(grep({'query':[':select-tab-index',':close-tab','header-new-session','tab-cell!','nav-arrow!','tab-divider!','tab-group-divider!'], 'paths':[t/'screen_test.clj',t/'components_test.clj',p/'components.clj'], 'context':1}'}]))

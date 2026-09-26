@@ -1,0 +1,69 @@
+cpython: line 54, column 48: unterminated triple-quoted string literal (detected at line 60)
+result: repaired
+fix: line 57: completed the closing """ at column 97 of the triple-quoted string from line 54
+problem: line 53, column 6: '(' is never closed
+problem: line 53, column 12: '(' is never closed
+problem: line 53, column 68: '[' is never closed
+problem: line 54, column 2: '{' is never closed
+problem: line 54, column 48: the triple-quoted string is never closed
+--- text after repair
+print(patch(project_root_path / 'apps' / 'vis-docs' / 'build.mjs', [
+ {'from': '83:3bd', 'replace': "// Every site icon uses Companion's transparent artwork, including Safari's touch icon."},
+ {'from': '87:6da', 'replace': 'for (const size of [16, 32, 48, 180, 192, 512]) {'},
+ {'from': '91:274', 'replace': '    .toFile(fileURLToPath(new URL(`vis-icon-${size}.png`, dist)));'},
+ {'from': '94:c42', 'replace': '// Only link previews use opaque, full-resolution artwork.'},
+ {'from': '99:922', 'to': '109:07d', 'replace': ''},
+ {'from': '117:d3b', 'replace': "const favicon = await readFile(new URL('vis-icon-32.png', dist));"},
+ {'from': '127:79e', 'to': '129:6ba', 'replace': "await writeFile(new URL('vis-icon.ico', dist), Buffer.concat([ico, favicon]));\n// Keep the standard fallback for browsers that request it without a link declaration.\nawait cp(new URL('vis-icon.ico', dist), new URL('favicon.ico', dist));\nawait writeFile(\n  new URL('vis.webmanifest', dist),"},
+ {'from': '136:d71', 'replace': '      src: `/vis-icon-${size}.png`,'}
+]))
+print(patch(project_root_path / 'apps' / 'vis-docs' / 'web' / 'discovery.js', [
+ {'from': '41:989', 'to': '46:c64', 'replace': """    // New filenames avoid cached white-backed icons, including Safari's touch-icon cache.
+    '<link data-discovery rel="icon" type="image/x-icon" sizes="32x32" href="/vis-icon.ico">' +
+    '<link data-discovery rel="icon" type="image/png" sizes="48x48" href="/vis-icon-48.png">' +
+    '<link data-discovery rel="icon" type="image/png" sizes="32x32" href="/vis-icon-32.png">' +
+    '<link data-discovery rel="icon" type="image/png" sizes="16x16" href="/vis-icon-16.png">' +
+    '<link data-discovery rel="apple-touch-icon" sizes="180x180" href="/vis-icon-180.png">' +
+    '<link data-discovery rel="manifest" href="/vis.webmanifest">' +"""}
+]))
+print(patch(project_root_path / 'apps' / 'vis-docs' / 'deploy.mjs', [
+ {'from': '64:6f7', 'replace': '        [\'/vis.webmanifest\', \'"icons"\'],'},
+ {'from': '79:df8', 'to': '82:362', 'replace': """        '/favicon.ico',
+        '/vis-icon.ico',
+        '/vis-icon-16.png',
+        '/vis-icon-32.png',
+        '/vis-icon-48.png',
+        '/vis-icon-180.png',
+        '/vis-icon-192.png',
+        '/vis-icon-512.png',"""}
+]))
+print(patch(project_root_path / 'apps' / 'vis-docs' / 'deploy.test.js', [
+ {'from': '57:229', 'to': '61:362', 'replace': """  '/vis.webmanifest',
+  '/favicon.ico',
+  '/vis-icon.ico',
+  '/vis-icon-16.png',
+  '/vis-icon-32.png',
+  '/vis-icon-48.png',
+  '/vis-icon-180.png',
+  '/vis-icon-192.png',
+  '/vis-icon-512.png',"""}
+]))
+print(patch(project_root_path / 'apps' / 'vis-docs' / 'site.test.js', [
+ {'from': '312:df8', 'to': '316:229', 'replace': """      '/favicon.ico',
+      '/vis-icon.ico',
+      '/vis-icon-16.png',
+      '/vis-icon-32.png',
+      '/vis-icon-48.png',
+      '/vis-icon-180.png',
+      '/vis-icon-192.png',
+      '/vis-icon-512.png',
+      '/vis.webmanifest',"""}
+]))
+print(patch(project_root_path / 'apps' / 'vis-docs' / 'README.md', [
+ {'from': '72:b68', 'to': '74:056', 'replace': """  Browser, touch and manifest icons reuse the app's `apps/vis-companion/public/vis-logo.png`,
+  preserving transparency and proportions without a white background. The `vis-icon-*` PNGs,
+  `vis-icon.ico` and `vis.webmanifest` use new URLs to replace cached white-backed icons.
+  `/favicon.ico` serves the same transparent artwork for browsers that request the default path."""}
+]))
+print(cat(project_root_path / 'apps' / 'vis-docs' / 'discovery.test.js', 28, 145))
+print(cat(project_root_path / 'apps' / 'vis-docs' / 'discovery.test.js', 199, 219))

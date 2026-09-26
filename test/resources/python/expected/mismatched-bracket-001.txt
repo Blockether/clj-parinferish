@@ -1,0 +1,6 @@
+cpython: line 1, column 81: closing parenthesis ')' does not match opening parenthesis '['
+result: repaired
+fix: line 1: added ']' at column 81 to close '[' from line 1
+problem: line 1, column 81: ')' does not match '[' from line 1, column 29
+--- text after repair
+print('css/stories exact:', [(p,scoped[p]==live[p]) for p in [paths[0],paths[3]]]); print('candidate added lines missing from live:', [(p,[x[1:] for x in unified_diff(baselines[p].splitlines(),scoped[p].splitlines()) if x.startswith('+') and not x.startswith('+++') and x[1:] not in live[p].splitlines()]) for p in paths]); print('staged:',(await (await shell('git diff --cached --name-only')).wait(5))['out'])

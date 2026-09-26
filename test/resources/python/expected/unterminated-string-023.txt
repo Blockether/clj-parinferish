@@ -1,0 +1,11 @@
+cpython: line 1, column 411: unterminated string literal (detected at line 1)
+result: not repaired
+fix: line 1: added the missing closing ' at column 413
+fix: line 1: added ']}))' at column 413 to close the brackets from line 1
+problem: line 1, column 227: '(' is never closed
+problem: line 1, column 232: '(' is never closed
+problem: line 1, column 233: '{' is never closed
+problem: line 1, column 323: '[' is never closed
+problem: line 1, column 411: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+print(grep({'query':['"screenshot"','annotated-screenshot',':annotate'], 'paths':[spel_path/'src/com/blockether/spel/daemon.clj'], 'context':2})[:6000]); print(cat(spel_path/'src/com/blockether/spel/cli.clj',2482,2509)); print(grep({'query':['annotated-screenshot','save-annotated-screenshot!',':full-page true'], 'paths':[spel_path/'src/com/blockether/spel], 'context':1,'is_files_only':True}) if False else '')']}));

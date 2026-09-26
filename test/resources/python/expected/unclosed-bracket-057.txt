@@ -1,0 +1,10 @@
+cpython: line 2, column 24: '(' was never closed
+result: repaired
+fix: line 4: added ')' at column 192 to close '(' from line 2
+problem: line 2, column 24: '(' is never closed
+--- text after repair
+root = Path(session["workspace"]["root"])
+rs, hits = await gather(
+    read_session(),
+    grep({"query": ["cancelled", "canceled", "conclusion", "while True", "def watch", "superseded"], "paths": [str(root / ".vis/extensions/gh.py"), str(root / ".vis/extensions/test_gh.py")]}))
+print(hits)

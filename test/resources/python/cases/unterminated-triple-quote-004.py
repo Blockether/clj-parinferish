@@ -1,0 +1,2 @@
+print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.stories.tsx,[{'from':'757:f0c','to':'758:d55','replace':'''    await expect(style(groups.firstElementChild!).fontSize).toBe('11px');
+    await expect(style(sessions.firstElementChild!).fontSize).toBe('11px');'''}]))

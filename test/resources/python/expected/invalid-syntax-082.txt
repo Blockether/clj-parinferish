@@ -1,0 +1,27 @@
+cpython: line 1, column 1: invalid syntax
+result: repaired
+fix: line 1: removed the quote marker > at column 1
+problem: line 1, column 1: '>' is a quote marker, not Python; remove it
+--- text after repair
+
+# A) stale cache with a GAP (session grew by 99 while app slept)
+c=Client(); c.cache=ids[100:124]; c.win={"offset":100,"total":124}
+c.transcript()
+print("A gap-case rows:",len(c.cache),"window",c.win,
+      "contiguous:", c.cache==ids[c.win["offset"]:c.win["offset"]+len(c.cache)])
+r=c.earlier(); print("  earlier -> rows",len(r),"window",c.win,"contiguous:", r==ids[c.win["offset"]:c.win["offset"]+len(r)])
+
+# B) stale cache that OVERLAPS the new page (normal growth)
+c=Client(); c.cache=ids[230:247]; c.win={"offset":230,"total":247}
+c.transcript()
+print("B overlap-case rows:",len(c.cache),"window",c.win,
+      "contiguous:", c.cache==ids[c.win["offset"]:c.win["offset"]+len(c.cache)], "dupes:", len(c.cache)!=len(set(c.cache)))
+
+# C) cache holding EVERYTHING already, refresh
+c=Client(); c.cache=list(ids); c.win={"offset":0,"total":247}
+c.transcript(); print("C full-cache refresh rows:",len(c.cache),"window",c.win,"equal:",c.cache==ids,"earlier:",c.earlier())
+
+# D) tiny limit walk (limit=1) from scratch — 247 requests? just 5 steps
+c=Client(); c.transcript(1)
+for _ in range(5): c.earlier(1)
+print("D limit=1 rows:",len(c.cache),"window",c.win,"contiguous:",c.cache==ids[c.win["offset"]:c.win["offset"]+len(c.cache)])

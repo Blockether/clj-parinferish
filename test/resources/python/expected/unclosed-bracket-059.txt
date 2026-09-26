@@ -1,0 +1,6 @@
+cpython: line 1, column 96: '(' was never closed
+result: repaired
+fix: line 1: added ')' at column 204 to close '(' from line 1
+problem: line 1, column 96: '(' is never closed
+--- text after repair
+root=Path(session['workspace']['root']); print(ls(root/'packages/vis-contract',depth=3)); print(await grep({'query':['run_shape','"rows"'], 'paths':[root/'.vis/extensions/test_gh.py'], 'max_results':20}))

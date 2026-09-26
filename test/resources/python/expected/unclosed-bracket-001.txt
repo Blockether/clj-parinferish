@@ -1,0 +1,6 @@
+cpython: line 1, column 6: '(' was never closed
+result: repaired
+fix: line 1: added ')' at column 220 to close '(' from line 1
+problem: line 1, column 6: '(' is never closed
+--- text after repair
+print(''.join(f'\n--- {a}-{b} ---\n{s}' for (a,b),s in zip([(570,579),(650,664),(825,853),(928,943),(1409,1422)],await gather(*(cat(p,a,b) for a,b in [(570,579),(650,664),(825,853),(928,943),(1409,1422)]),strict=True))))

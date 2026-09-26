@@ -1,0 +1,6 @@
+cpython: line 1, column 47: '(' was never closed
+result: repaired
+fix: line 1: added ')' at column 188 to close '(' from line 1
+problem: line 1, column 47: '(' is never closed
+--- text after repair
+root=Path(session['workspace']['root']); print(await grep({'query':['defn- call-py','call-py '], 'paths':[str(root/'src/com/blockether/vis/internal/python_extensions.clj')], 'context':8}))

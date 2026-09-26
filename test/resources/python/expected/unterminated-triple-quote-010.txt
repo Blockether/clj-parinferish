@@ -1,0 +1,20 @@
+cpython: line 7, column 20: unterminated triple-quoted string literal (detected at line 12)
+result: repaired
+fix: line 9: completed the closing """ at column 91 of the triple-quoted string from line 7
+problem: line 2, column 21: '(' is never closed
+problem: line 4, column 5: '[' is never closed
+problem: line 4, column 6: '{' is never closed
+problem: line 7, column 20: the triple-quoted string is never closed
+--- text after repair
+prompt_path = root / "src" / "com" / "blockether" / "vis" / "internal" / "prompt.clj"
+prompt_patch = patch(
+    prompt_path,
+    [{
+        "from": "336:1f9",
+        "to": "337:2e3",
+        "replace": """    \"- Code: `grep` locates unknown code: `grep({\\\"query\\\": [needles], \\\"paths\\\": [scopes], \\\"context\\\": 4})`.\\n\"
+    \"  It ORs terms and answers anchored TEXT, never a map. `context` counts surrounding lines on EACH side of a match\\n\"
+    \"  (`1` means one before and one after; default 4). A hit IS a `patch` argument.\\n\"""" 
+    }],
+)
+print(prompt_patch)

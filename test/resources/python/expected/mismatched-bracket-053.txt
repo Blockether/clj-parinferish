@@ -1,0 +1,31 @@
+cpython: line 12, column 46: closing parenthesis ')' does not match opening parenthesis '{' on line 2
+result: not repaired
+fix: line 6: added ')}])' at column 81 to close the brackets from line 1
+fix: line 12: removed the unmatched ')' at column 45
+fix: line 12: removed the unmatched ')' at column 46
+fix: line 12: removed the unmatched ')' at column 47
+fix: line 12: removed the unmatched ')' at column 48
+fix: line 12: removed the unmatched ')' at column 49
+fix: line 14: added the missing closing """ at column 27 for the triple-quoted string from line 12
+problem: line 7, column 19: ';' ends the statement while '(' from line 6, column 18 is still open
+problem: line 12, column 45: ')' has no opening bracket
+problem: line 12, column 46: ')' has no opening bracket
+problem: line 12, column 47: ')' has no opening bracket
+problem: line 12, column 48: ')' has no opening bracket
+problem: line 12, column 49: ')' has no opening bracket
+problem: line 12, column 50: the triple-quoted string is never closed
+--- text after repair
+r = await patch(edits=[
+ {"path":PT,"from_anchor":A[915],"to_anchor":A[916],"replace":
+"""   Returns the provider row WITHOUT the key on success (the daemon holds the
+   credential), nil on cancel or failure (dialog already shown)."\""".replace('"\\""','"')},
+ {"path":PT,"from_anchor":A[959],"to_anchor":A[960],"replace":
+"""              (do (vis/gateway-provider-auth-submit-key! pid flow-id api-key))}])
+                  ;; The DAEMON persisted it. Hand the row back WITHOUT the key:
+                  ;; a TUI attached to a REMOTE gateway must never write provider
+                  ;; credentials into the config of the machine it happens to run
+                  ;; on, and every later fleet write merges onto the persisted
+                  ;; entry anyway.
+                  (dissoc provider :api-key)"""},
+])
+print(json.dumps(r)[:600])"""

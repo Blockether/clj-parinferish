@@ -1,0 +1,34 @@
+import urllib.request, json
+
+def http_get(url, timeout=25):
+    req = urllib.request.Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        "Accept": "application/json",
+    })
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return r.read().decode("utf-8", "replace")
+
+targets = {
+    "bradgoh_root": "https://api.fxtwitter.com/Bradgohtrades/status/2100198886078075300",
+    "atif_root": "https://api.fxtwitter.com/AtifHussainOG/status/2099951387048321198",
+    "atif_profile": "https://api.fxtwitter.com/AtifHussainOG",
+    "bradgoh_profile": "https://api.fxtwitter.com/Bradgohtrades",
+}
+for name, url in targets.items():
+    print("=" * 60)
+    print("FETCH", name)
+    try:
+        d = json.loads(http_get(url))
+        tw = d.get("tweet") or d
+        if name.endswith("_profile"):
+            acc = d.get("account") or {}
+            print("PROFILE name=", acc.get("name"), "followers=", acc.get("followers"), "bio=", str(acc.get("bio"))[:200])
+        else:
+            print("AUTHOR", (tw.get("author") or {}).get("name"), "created=", tw.get("created_at"))
+            print("TEXT:", tw.get("text"))
+            med = tw.get("media) or {}) if False else (tw.get("media") or {})
+            print("PHOTOS", [p.get("url") for p in (med.get("photos") or [])][:4])
+            print("LINKS", med.get("links"))
+            print("REPLIES", tw.get("replies"), "RTS", tw.get("retweets"), "LIKES", tw.get("likes"), "VIEWS", tw.get("views"))
+    except Exception as e:
+        print("ERR", type(e).__name__, str(e)[:120])

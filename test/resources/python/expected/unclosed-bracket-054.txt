@@ -1,0 +1,6 @@
+cpython: line 1, column 6: '(' was never closed
+result: repaired
+fix: line 1: added ')' at column 132 to close '(' from line 1
+problem: line 1, column 6: '(' is never closed
+--- text after repair
+print(await grep({"query": ["vis.live", "Interrupted", "is_interrupted", "live("], "paths": [str(root / ".vis/extensions/gh.py")]}))

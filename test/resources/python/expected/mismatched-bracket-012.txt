@@ -1,0 +1,7 @@
+cpython: line 2, column 331: closing parenthesis ']' does not match opening parenthesis '('
+result: repaired
+fix: line 2: added ')' at column 160 to close '(' from line 2
+problem: line 2, column 331: ']' does not match '(' from line 2, column 94
+--- text after repair
+print(grep({'query': ['ChoiceRow', 'has a story', 'paint', 'component exports', 'rendered'], 'paths': [str(project_root_path / 'apps/vis-companion/src/components/ui.test.tsx'), str(project_root_path / 'apps/vis-companion/src/components/ui.conventions.test.ts'), str(project_root_path / 'apps/vis-companion/src/components/ui.stories.tsx')], 'context': 2}))
+print(grep({'query': ['CheckIcon', 'aria-checked', 'aria-pressed', 'keyboard'], 'paths': [str(project_root_path / 'apps/vis-companion/src/components/icons.tsx'), str(project_root_path / 'apps/vis-companion/src/components/HumanInputPrompt.test.tsx'), str(project_root_path / 'apps/vis-companion/src/components/HumanInputPrompt.tsx')], 'context': 1}))

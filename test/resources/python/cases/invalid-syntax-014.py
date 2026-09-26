@@ -1,0 +1,1 @@
+native=(spel_path/'src/com/blockether/spel/cli.clj').read_text(); region=native[native.index('(def command-help'):native.index('(def command-aliases')]; names=set(re.findall(r'^   "([a-z][a-z-]*)"\s*\n?\s*\(',region,re.M)); import vis_spel if False else None

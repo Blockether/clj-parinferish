@@ -1,0 +1,91 @@
+> </dev/null
+old = '''        @property
+        def is_redirect(self):
+            return self.status_code in (301, 302, 303, 307, 308)
+'''
+new = '''        @property
+        def has_redirect_location(self):
+            return self.status_code in (301, 302, 303, 307, 308) and (
+                "location" in self.headers
+            )
+
+        @property
+        def is_redirect(self):
+            # httpx only calls it a redirect when a Location actually came back.
+            return self.has_redirect_location
+
+        @property
+        def charset_encoding(self):
+            return self.encoding
+'''
+h = sub(h, old, new, "is_redirect")
+
+old = '''        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise HTTPStatusError(
+                    "Client error "
+                    + str(self.status_code)
+                    + " for url "
+                    + str(self.url),
+                    request=None,
+                    response=self,
+                )
+            return self
+'''
+new = '''        def read(self):
+            return self.content
+
+        def close(self):
+            return None
+
+        @property
+        def num_bytes_downloaded(self):
+            return len(self.content or b"")
+
+        def iter_bytes(self, chunk_size=None):
+            data = self.content or b""
+            step = len(data) if not chunk_size else int(chunk_size)
+            for i in range(0, len(data), max(1, step or 1)):
+                yield data[i : i + max(1, step or 1)]
+
+        iter_raw = iter_bytes
+
+        def iter_text(self, chunk_size=None):
+            data = self.text or ""
+            step = len(data) if not chunk_size else int(chunk_size)
+            for i in range(0, len(data), max(1, step or 1)):
+                yield data[i : i + max(1, step or 1)]
+
+        def iter_lines(self):
+            # httpx yields decoded text lines here (requests yields bytes).
+            for line in (self.text or "").splitlines():
+                yield line
+
+        def raise_for_status(self):
+            if self.is_success:
+                return self
+            # httpx raises for EVERY non-2xx, and names the class of failure --
+            # a 500 reported as "Client error" sent people hunting the wrong bug.
+            error_types = {
+                1: "Informational response",
+                3: "Redirect response",
+                4: "Client error",
+                5: "Server error",
+            }
+            error_type = error_types.get(
+                self.status_code // 100, "Invalid status code"
+            )
+            message = (
+                error_type
+                + " '"
+                + str(self.status_code)
+                + " "
+                + str(self.reason_phrase or "")
+                + "' for url '"
+                + str(self.url)
+                + "'"
+            )
+            raise HTTPStatusError(message, request=self.request, response=self)
+'''
+h = sub(h, old, new, "raise_for_status")
+print("ok")

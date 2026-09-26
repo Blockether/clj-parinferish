@@ -1,0 +1,13 @@
+cpython: line 3, column 24: '(' was never closed
+result: repaired
+fix: line 6: added ')' at column 35 to close '(' from line 3
+problem: line 3, column 24: '(' is never closed
+--- text after repair
+root = Path(session["workspace"]["root"])
+app = root / "apps" / "vis-companion"
+rs, hits = await gather(
+    read_session(),
+    grep({"query": ["Engine default", "Pocket TTS", "favorite", "favourite", "idle", "Star", "star"],
+          "paths": [app / "src"]}))
+print("session", rs.get("id") if isinstance(rs, dict) else type(rs).__name__)
+print(hits[:24000] if isinstance(hits, str) else hits)

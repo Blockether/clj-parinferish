@@ -1,0 +1,83 @@
+cpython: line 66, column 29: unterminated string literal (detected at line 66)
+result: not repaired
+fix: line 58: added '}]))' at column 49 to close the brackets from line 2
+fix: line 66: added the missing closing ' at column 86
+fix: line 74: added the missing closing ''' at column 23 for the triple-quoted string from line 71
+problem: line 58, column 59: ';' ends the statement while '{' from line 52, column 3 is still open
+problem: line 66, column 29: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 71, column 101: the triple-quoted string is never closed
+--- text after repair
+root=Path(session['workspace']['root']); base=root/'extensions/channels/vis-channel-tui/src/com/blockether/vis/ext/channel_tui'; renderp=base/'render.clj'; virtual=base/'virtual.clj'; chat=base/'chat.clj'
+res=await gather(
+ patch(renderp,[
+  {"from":"3575:fdf","to":"3594:952","replace":'''(defn- form-fingerprint
+  "Content-derived fingerprint of one form map. Captures every field
+   the iteration renderer reads."
+  [{:keys [code comment display-code display-language render-segments result stdout result-summary
+            result-kind result-detail error success? silent? runs activity]}]
+  [(text-fingerprint code) (text-fingerprint comment) render-segments
+   result (text-fingerprint stdout) (text-fingerprint result-summary) result-kind
+   ;; result-detail is a small op-metadata map; compared structurally.
+   result-detail error success? silent?
+   ;; A settled live view joins this exact form after it closes, and reopening
+   ;; changes its chevron. Both transitions must invalidate the iteration cache.
+   (mapv #(select-keys % [:view-id :title :reason :lines :elapsed-ms :is-reopened]) runs)
+   ;; The form OWNS its Activity: every published revision replaces the snapshot in
+   ;; place, so the iteration cache has to invalidate on the value itself.
+   activity
+   ;; What a RUNNING block paints before its result lands: the formatted code band
+   ;; (`:display-code`/`:display-language`). `:code` alone can't stand in for it —
+   ;; the block renders differently once the formatted display lands, and without
+   ;; these the live bubble keeps the pre-display body forever.
+   (text-fingerprint display-code) display-language])'''},
+  {"from":"5867:b10","to":"5871:cd5","replace":'''                card
+                (vis/result-card display-form)'''},
+  {"from":"5878:8dd","to":"5895:bb7","replace":'''                result-text
+                (some-> (:body card) str/trimr not-empty)'''},
+  {"from":"5968:b4a","to":"5972:583","replace":'''                        (cond
+                          ;; The value's own headline rides on a neutral row; its locally
+                          ;; derived body nests under it. A headline-only result renders a
+                          ;; plain row with no expand triangle because there is no body.''' }
+ ]),
+ patch(virtual,[
+  {"from":"52:2d7","to":"55:d06","replace":'''  (:require [clojure.string :as str]
+            [com.blockether.vis.core :as vis]
+            [com.blockether.vis.ext.channel-tui.render :as render]
+            [com.blockether.vis.ext.channel-tui.markdown-layout :as layout]
+            [com.blockether.vis.internal.render :as ast])'''},
+  {"from":"413:b48","to":"413:b48","replace":'''(defn- form-result-body
+  "Locally derive one form's presentation body from its canonical facts."
+  [form]
+  (:body (vis/result-card form)))
+
+(defn- image-rows-est'''},
+  {"from":"431:de7","to":"433:7df","replace":'''  (let [form-strings
+        (fn [f]
+          (list (form-result-body f) (:comment f)))'''},
+  {"from":"559:e40","to":"560:83e","replace":'''                                        rr
+                                        (long (section-rows (form-result-body f)))'''}
+ ]),
+ patch(chat,[
+  {"from":"131:4d4","to":"138:037","replace":'''   The display metadata is projected through `vis/form->display` — the ONE
+   canonical display-key projection (`internal/form.clj`) the live wire and the
+   gateway also use. Canonical `:stdout` / `:result` facts remain on the record;
+   every channel derives presentation locally. On top of the shared projection we
+   layer only bounded output/error, duration/channel, computed op metadata, and
+   restore-only status flags."''},
+  {"from":"146:1f5","to":"153:8af","replace":'''}]))          ;; Canonical result facts; the renderer derives its body locally.
+          :stdout (:stdout block)
+          :result (:result block)
+          ;; Op metadata computed from the persisted block.
+          :result-kind (form-result-kind block)'''},
+  {"from":"721:418","to":"731:995","replace":'''                  ;; A slash turn persists ONE synthetic iteration whose envelope is
+                  ;; tagged `:user-slash`. Live slash turns stream no iterations, so
+                  ;; suppress it on resume as well. A `user-shell` form is the bang
+                  ;; command's one visible stdout owner and must remain in the trace.'
+                  slash-turn? (some (fn [it]
+                                      (some #(= "user-slash" (str (get % "tag")))
+                                            (get it "forms")))
+                                    turn-iterations)
+                  trace (if slash-turn? [] (iteration-rows->trace turn-iterations produced-answer?))'''}
+ ])
+)
+for x in res: print(x)'''

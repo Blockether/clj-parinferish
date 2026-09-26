@@ -1,0 +1,6 @@
+cpython: line 1, column 275: unmatched ')'
+result: repaired
+fix: line 1: removed the unmatched ')' at column 275
+problem: line 1, column 275: ')' has no opening bracket
+--- text after repair
+print('\n'.join(line for line in o.splitlines() if line.startswith('@@') or line.startswith('+  ;;') or line.startswith('-;;') or line.startswith('+                                   (json-body') or line.startswith('-                                   (json-body')))[:10000]

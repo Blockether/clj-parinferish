@@ -1,0 +1,8 @@
+cpython: line 1, column 118: closing parenthesis ')' does not match opening parenthesis '['
+result: repaired
+fix: line 1: replaced ')' at column 118 with ']' to match '[' from line 1
+problem: line 1, column 118: ')' does not match '[' from line 1, column 74
+problem: line 1, column 122: ']' does not match '(' from line 1, column 6
+problem: line 1, column 124: ')' has no opening bracket
+--- text after repair
+print(await patch(str(root/'.github/workflows/native-release.yml'),[edits[root/'.github/workflows/native-release.yml'][2]]))

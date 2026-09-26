@@ -1,0 +1,10 @@
+cpython: line 1, column 101: closing parenthesis ')' does not match opening parenthesis '['
+result: repaired
+fix: line 1: removed the unmatched ')' at column 101
+problem: line 1, column 101: ')' does not match '[' from line 1, column 27
+problem: line 1, column 102: ']' has no opening bracket
+problem: line 1, column 188: '}' has no opening bracket
+problem: line 1, column 189: ')' has no opening bracket
+--- text after repair
+patterns = grep({"query": ["All machines", "name: \"All\"", "name: 'All'", "getByText(\"machine-2\""], "paths": [str(app / "src" / "screens" / "SessionsScreen.*.test.tsx")], "context": 4})
+print(str(patterns)[:20000])

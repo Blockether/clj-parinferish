@@ -1,0 +1,26 @@
+root=Path(session["workspace"]["root"])
+results=await gather(
+ patch(root/"src/com/blockether/vis/internal/provider_error.clj", [{"from":"1152:300","replace":"    [(cond-> (assoc (content/error (str \"provider_\" (str/replace (name (or kind :failure)) \"-\" \"_\"))"}]),
+ patch(root/"packages/vis-contract/resources/vis-contract/schema/content.json", [
+  {"from":"177:98b","replace":"              \"$ref\": \"common.json#/$defs/snake_case_id\""},
+  {"from":"232:98b","replace":"              \"$ref\": \"common.json#/$defs/snake_case_id\""}
+ ]),
+ patch(root/"apps/vis-companion/src/dev/story-data.ts", [{"from":"1196:b1d","replace":"    code: `provider_${kind.replace(/-/g, \"_\")}`,"}]),
+ patch(root/"apps/vis-companion/src/components/ChatContent.test.tsx", [
+  {"from":"77:797","replace":"          code: \"provider_rate_limit\",""},
+  {"from":"111:16e","replace":"      expect(card.textContent).not.toContain(\"provider_rate_limit\");"},
+  {"from":"115:cc9","replace":"      expect(card.textContent).toContain(\"provider_rate_limit\");"},
+  {"from":"117:04b","replace":"        card.textContent?.indexOf(\"provider_rate_limit\") ?? -1,"}
+ ]),
+ patch(root/"apps/vis-companion/src/components/ErrorBlockCard.stories.tsx", [{"from":"69:aab","replace":"    await expect(canvas.getByText(\"provider_rate_limit\")).toBeVisible();"}]),
+ patch(root/"apps/vis-tui/test/com/blockether/vis/tui/chat_test.clj", [
+  {"from":"480:bbb","replace":"                                    \"code\" \"provider_rate_limit\""},
+  {"from":"501:0c4","replace":"                               (str/index-of rendered \"provider_rate_limit\")))"}
+ ]),
+ patch(root/"apps/vis-tui/test/com/blockether/vis/tui/render_test.clj", [
+  {"from":"4772:bbb","replace":"          \"code\" \"provider_rate_limit\""},
+  {"from":"4820:4c8","replace":"        (expect (str/includes? text \"provider_rate_limit\"))"},
+  {"from":"4823:f4c","replace":"                    (str/index-of text \"provider_rate_limit\")))"}
+ ])
+)
+print("\n".join(map(str,results)))

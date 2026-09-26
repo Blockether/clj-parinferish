@@ -1,0 +1,1 @@
+print(cat(p,635,653)); print(cat(tp,1345,1388)); print(cat(tp,1838,1862)); print(grep({'query':['sidebar-width',':width 80','assoc-in [:project-sidebar :width'], 'set-sidebar-width'], 'paths':[str(tp)], 'context':2}))

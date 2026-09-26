@@ -1,0 +1,18 @@
+cpython: line 1, column 225: invalid syntax. Perhaps you forgot a comma?
+result: not repaired
+fix: line 1: turned the literal \n outside strings into line breaks
+fix: line 1: removed the stray backslash at column 376
+fix: line 1: added ')' at column 790 to close '(' from line 1
+problem: line 1, column 24: '(' is never closed
+problem: line 1, column 243: backslash outside a string; there it may only end a line
+problem: line 1, column 258: backslash outside a string; there it may only end a line
+problem: line 1, column 269: backslash outside a string; there it may only end a line
+problem: line 1, column 320: backslash outside a string; there it may only end a line
+problem: line 1, column 376: backslash outside a string; there it may only end a line
+--- text after repair
+probe_org = await shell("osascript <<'APPLESCRIPT'\ntell application \"System Events\"\n  tell process \"Xcode\"\n    tell window \"Archives\"\n      set output to {}\n      try\n        set end of output to \"toolbars=" & (count of toolbars)
+      end try
+      try
+        repeat with e in UI elements of toolbar 1
+          set end of output to ((role of e as text) & "|\" & (name of e as text) & \"|\" & (description of e as text))\n        end repeat\n      end try\n      try\n        repeat with e in UI elements\n          set end of output to (\"top:\" & (role of e as text) & \"|\" & (name of e as text) & \"|\" & (description of e as text))\n        end repeat\n      end try\n      return output\n    end tell\n  end tell\nend tell\nAPPLESCRIPT", cwd=str(app), timeout=30))
+print(await probe_org.wait(30))

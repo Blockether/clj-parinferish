@@ -1,0 +1,46 @@
+edits = [
+ # 1 · navigator-session-row docstring + arglist
+ {"from": "5081:d3e", "to": "5082:889",
+  "replace": "   owns the hierarchy; project names stay metadata and never split a directory.\n"
+             "\n"
+             "   `groups` indexes the machine's session GROUPS by id. A row names its group by\n"
+             "   id and nothing else - the name and the palette token are the group's own - so\n"
+             "   a filed row is banded and inked from this index, never from a copy."},
+ # 2 · bind the group the row names
+ {"from": "5106:cd3", "to": "5107:324",
+  "replace": "        live?\n"
+             "        (true? (get session \"live\"))\n"
+             "\n"
+             "        gid\n"
+             "        (not-empty (str (get session \"group_id\")))\n"
+             "\n"
+             "        group\n"
+             "        (get groups gid)]"},
+ # 3 · the row wears its group's name and ink, resolved from the group
+ {"from": "5115:28e", "to": "5116:7fe",
+  "replace": "     :session-group-id gid\n"
+             "     :session-group (not-empty (str (get group \"name\")))\n"
+             "     :session-group-color (not-empty (str (get group \"color\")))"},
+ # 4/5 · band by the group's IDENTITY, not by the name it wears
+ {"from": "5155:27c", "to": "5156:1df",
+  "replace": "                      (->> (concat (map :session-group-id (filter :focused? dir-rows))\n"
+             "                                   (map :session-group-id dir-rows))"},
+ {"from": "5161:a26",
+  "replace": "                            (let [group-rows (filter #(= group (:session-group-id %)) dir-rows)]"},
+ # 6 · navigator-all-rows takes the index
+ {"from": "5170:3ba", "to": "5171:7d2",
+  "replace": "   default, but the focused session always survives and its project is first.\n"
+             "   `:groups` indexes the session groups by id: the ONE place a band's name and\n"
+             "   colour come from."\n"
+             "  [{:keys [sessions active-session-id show-empty-untitled? groups]}]"},
+ {"from": "5186:086",
+  "replace": "    (group-rows-by-dir (mapv #(navigator-session-row active-session-id groups %) focused-first))))"},
+ {"from": "5336:cc8",
+  "replace": "                 (partition-by (juxt :dir :session-group-id) matched)))))"},
+ # 9 · which SET a band is reads off the filing, not off a name the row may not know
+ {"from": "5511:d67",
+  "replace": "  [{:keys [dir work-dir group-count session-group session-group-id]}]"},
+ {"from": "5519:cfa",
+  "replace": "        (if (seq session-group-id) \"Groups\" \"Sessions\")]"},
+]
+print(patch("/home/user/vis/apps/vis-tui/src/com/blockether/vis/tui/dialogs.clj", edits))

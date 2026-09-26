@@ -1,0 +1,8 @@
+cpython: line 3, column 196: unmatched ')'
+result: repaired
+fix: line 3: removed the unmatched ')' at column 196
+problem: line 3, column 196: ')' has no opening bracket
+--- text after repair
+fr = focused_story.wait(10)
+print(fr['status'], fr['exit'])
+print('\n'.join(line for line in fr['out'].splitlines() if 'Test Files' in line or 'Tests ' in line or 'FAIL ' in line or ' ui.stories.tsx (' in line or 'humanInput.stories.tsx (' in line)[-30:])

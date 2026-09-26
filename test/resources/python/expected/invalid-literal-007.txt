@@ -1,0 +1,52 @@
+cpython: line 15, column 92: invalid decimal literal
+result: not repaired
+fix: line 14: added '}])' at column 19 to close the brackets from line 3
+fix: line 19: removed the backslashes before quotes outside strings, from column 16
+fix: line 20: removed the backslashes before quotes outside strings, from column 16
+fix: line 21: removed the backslashes before quotes outside strings, from column 16
+fix: line 22: removed the stray backslash at column 16
+fix: line 22: added the missing closing " at column 108
+fix: line 23: removed the backslashes before quotes outside strings, from column 16
+fix: line 24: removed the backslashes before quotes outside strings, from column 16
+fix: line 25: removed the backslashes before quotes outside strings, from column 16
+fix: line 26: removed the stray backslash at column 16
+fix: line 26: removed the unmatched '}' at column 91
+fix: line 26: removed the unmatched ']' at column 92
+fix: line 26: removed the unmatched ')' at column 93
+problem: line 14, column 34: ';' ends the statement while '{' from line 3, column 35 is still open
+problem: line 19, column 16: backslash outside a string; there it may only end a line
+problem: line 19, column 17: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 20, column 16: backslash outside a string; there it may only end a line
+problem: line 20, column 17: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 21, column 16: backslash outside a string; there it may only end a line
+problem: line 21, column 17: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 22, column 16: backslash outside a string; there it may only end a line
+--- text after repair
+prompt_path = root / "src/com/blockether/vis/internal/prompt.clj"
+test_path = root / "test/com/blockether/vis/internal/prompt_test.clj"
+prompt_edit = patch(prompt_path, [{
+    "from": "365:8da",
+    "to": "368:a8d",
+    "replace": """    \"- At a research-to-implementation boundary, pressure is material when `last_request_tokens` is roughly 25% of\\n\"
+    \"  `auto_compress_above` OR the sweep filled at least two clipped/max-sized tool results.\\n\"
+    \"  If pressure is material and at least two requests remain, next iteration calls only\\n\"
+    \"  `fold_session(\\\"-tN/iK\\\", gist)` before editing; `tN/iK` is the last completed research step,\\n\"
+    \"  so the oldest settled prefix folds and the live step stays out.\\n\"""}])
+test_edit = patch(test_path, [{
+    "from": "237:c9c",
+    "to": "247:03c",
+    "replace": """}])               ;; Regression, user report: the benchmark said folding worked only because the task
+               ;; ordered it. A real Z.ai GLM-5.3 Flash A/B run then showed that folding a 4k
+               ;; settled prefix doubled cost, while the autonomous pressure run skipped its fold
+               ;; after six clipped research results. Trigger on measured OR visible pressure plus
+               ;; future requests, use one canonical oldest-prefix rewrite, and preserve small-task hits.
+               "research-to-implementation boundary" "`last_request_tokens` is roughly 25%"
+               "`auto_compress_above` OR" "at least two clipped/max-sized tool results"
+               "pressure is material and at least two requests remain" "next iteration calls only"
+               "`fold_session(\\\"-tN/iK\\\", gist)`\" \"before editing\" \"last completed research step\""
+               "oldest settled prefix folds" "live step stays out" "one cache discontinuity"
+               "one broad fold" "skip small or near-final work" "continue append-only"
+               "gist must stand alone" "exact paths/symbols" "decisions,"
+               "verification, edit/test state and dirty files\" \"confirm reduction\"]"""
+print(prompt_edit)
+print(test_edit)

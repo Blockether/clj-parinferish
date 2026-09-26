@@ -1,0 +1,7 @@
+cpython: line 1, column 87: f-string: single '}' is not allowed
+result: repaired
+fix: line 1: doubled the single '}' at column 87 in the f-string
+problem: line 1, column 87: single '}' in an f-string; write '}}' for a literal brace
+--- text after repair
+h = await shell(f"cd {APP} && git show HEAD:src/components/ui.tsx | grep -n 'pageCount}}' | head -20")
+print(out(h,60))

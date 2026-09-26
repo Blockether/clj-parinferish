@@ -1,0 +1,15 @@
+import glob, re
+app = project_root_path / "apps/vis-companion/src"
+rows = []
+for f in glob.glob(str(app / "**/*.test.tsx"), recursive=True):
+    src = open(f).read()
+    pins = src.count("renderToStaticMarkup")
+    raws = len(re.findall(r"\?raw", src))
+    contains = src.count("toContain")
+    if pins >= 3 or raws >= 2:
+        rows.append((pins, raws, contains, len(src.splitlines()), f.replace(str(project_root_path) + "/", "")))
+rows.sort(reverse=True)
+print(f"{'pins':>5} {'?raw':>4} {'toContain':>9} {'lines':>6}  file")
+for p, r, c, l, f in rows:
+    print(f"{p:>5} {r:>4} {c:>9} {l:>6}  {f")" if False else f"{p:>5} {r:>4} {c:>9} {l:>6}  {f}")
+print("TOTAL lines:", sum(r[3] for r in rows))

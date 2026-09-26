@@ -1,0 +1,1 @@
+r=await uplink.run("systemd-run --quiet --wait --collect --pipe -p MemoryMax=512M -p CPUQuota=100% /bin/sh -c 'CG=$(cut -d: -f3 /proc/self/cgroup); printf "path=%s max=" "$CG"; cat "/sys/fs/cgroup$CG/memory.max"'",timeout_s=20); print(r.exit_code,r.stdout,r.stderr)

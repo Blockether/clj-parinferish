@@ -1,0 +1,11 @@
+cpython: line 6, column 324: unmatched '}'
+result: repaired
+fix: line 6: removed the unmatched '}' at column 324
+problem: line 6, column 324: '}' has no opening bracket
+--- text after repair
+print(patch(project_root_path / "apps/vis-tui/test/com/blockether/vis/tui/live_view_test.clj", [{"from": "719:691", "replace": "(deftest live-view-short-heading-test"}]))
+snap = await tui_browser("snapshot -i -c")
+print({"exit": snap.get("exit"), "headings": [line for line in snap.get("out", "").splitlines() if any(s in line for s in ["CI ·", 'span "▾"', 'minimized', "Title:"])]})
+js = "(() => {const t=document.querySelector('#terminal'); const s=[...t.querySelectorAll('span')]; const e=s.find(x=>x.textContent.includes('CI · run 42')); return {terminal:t.getBoundingClientRect().toJSON(), heading:e?.outerHTML, background:getComputedStyle(t).backgroundColor, font:getComputedStyle(t).fontFamily};})()"
+print(await tui_browser("eval-sci " + shlex.quote('(spel/evaluate ' + json.dumps(js) + ')')))
+print(await tui_browser("eval-sci " + shlex.quote('(do (spel/click "#terminal span:text-is(\\\"▾\\\")") (spel/wait-for-function "() => document.querySelector(\\\"#terminal\\\").textContent.includes(\\\"minimized\\\")") (spel/evaluate "document.querySelector(\\\"#terminal\\\").textContent.includes(\\\"minimized\\\")"))')))

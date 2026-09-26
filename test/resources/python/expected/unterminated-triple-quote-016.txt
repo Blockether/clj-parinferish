@@ -1,0 +1,10 @@
+cpython: line 1, column 77: unterminated triple-quoted string literal (detected at line 2)
+result: repaired
+fix: line 2: completed the closing """ at column 99 of the triple-quoted string from line 1
+problem: line 1, column 16: '(' is never closed
+problem: line 1, column 33: '[' is never closed
+problem: line 1, column 34: '{' is never closed
+problem: line 1, column 77: the triple-quoted string is never closed
+--- text after repair
+res=await patch(paths['prompt'],[{"from":"313:55a","to":"314:0cf","replace":"""    \"- `prompt_cache.token_read_percent` and `request_hit_percent` are Svar's fresh provider-cache metrics;\\n\"
+    \"  WebSocket delta continuation is separate transport telemetry, not a prompt-cache hit.\\n\""""}]); print(res)

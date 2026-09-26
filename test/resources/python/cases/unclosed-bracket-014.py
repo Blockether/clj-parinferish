@@ -1,0 +1,1 @@
+root=Path(session['workspace']['root']); print(await grep({'query':['defn- call-py','call-py '], 'paths':[str(root/'src/com/blockether/vis/internal/python_extensions.clj')], 'context':8})

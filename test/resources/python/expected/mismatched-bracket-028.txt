@@ -1,0 +1,8 @@
+cpython: line 2, column 115: closing parenthesis ']' does not match opening parenthesis '{'
+result: repaired
+fix: line 2: removed the unmatched ']' at column 99
+problem: line 2, column 115: ']' does not match '{' from line 2, column 16
+--- text after repair
+root = Path(session["workspace"]["root"])
+h = await grep({"query": [":channel/owns-tty? false", ":channel/owns-tty? true", ":ext/channels [", "channel/cmd"], "paths": [str(root / "extensions/channels"), str(root / "src")], "context": 3, "limit": 160})
+print(h)

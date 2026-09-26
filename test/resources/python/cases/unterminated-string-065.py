@@ -1,0 +1,49 @@
+root='/home/user/.vis/worktrees/python-runtime-migration'
+edits={
+root+'/deps.edn':[{"from":"197:ed0","to":"200:a0d","replace":'''   ;; No network hook: its only socket is the loopback provider stub it serves itself,
+   ;; and the binary under test is a separate process the hook cannot see. Its PTY is
+   ;; owned by the adjacent libvisjail runtime, so this run needs the same native-access
+   ;; grants every other Vis JVM gets.'''}],
+root+'/resources/vis-docs/jail.md':[{"from":"192:8e3","to":"207:412","replace":'''| host | enforcer | requirement |
+|---|---|---|
+| macOS | Seatbelt through bundled `libvisjail.dylib` | included with the Vis Python runtime |
+| Linux and WSL2 | embedded bubblewrap through bundled `libvisjail.so` | included with the Vis Python runtime |
+| WSL1 and other systems | no supported OS process jail | use a supported host for kernel confinement |
+
+No system package, helper executable, `PATH` entry, or operator install is required. Vis
+loads the platform library adjacent to `libvispython`; the library applies Seatbelt or
+bubblewrap before the child command starts. On Linux, a filtered proxy policy currently
+uses a private network namespace with no route, so it fails closed rather than exposing
+direct egress.''},{"from":"248:e92","to":"250:d1f","replace":'''4. If startup reports a missing enforcer, verify that the selected Python runtime
+   contains the matching `libvisjail` platform library.
+5. An enabled jail that cannot be enforced refuses to start the child.'''}],
+root+'/src/com/blockether/vis/internal/paths.clj':[{"from":"120:2b8","to":"124:824","replace":'''(def ^:private log-roles
+  "Every vis writer whose diagnostics land in `~/.vis/logs`."
+  process-roles)'''}],
+root+'/src/com/blockether/vis/internal/foundation/pty_bridge.clj':[{"from":"1:fee","to":"9:835","replace":'''(ns com.blockether.vis.internal.foundation.pty-bridge
+  "Passthrough bridge on top of the libvisjail pseudo-terminal adapter.
+
+   The problem it solves: a background `shell` child owns a native PTY whose master
+   descriptor is managed by Vis. That is convenient for the agent (shell send/logs),
+   but a human cannot jump into the live terminal to finish a browser authorization or
+   answer an interactive prompt. tmux gets that from a separate server; libvisjail does
+   not expose such a user-facing attachment endpoint."'''}],
+root+'/test/com/blockether/vis/internal/foundation/pty_bridge_test.clj':[{"from":"16:b5c","to":"18:2da","replace":'''(defn- cat-binary
+  "The native spawn ABI takes an absolute executable path."'''}],
+root+'/test/com/blockether/vis/internal/foundation/pty_test.clj':[{"from":"1:637","to":"10:171","replace":'''(ns com.blockether.vis.internal.foundation.pty-test
+  "What a libvisjail PTY child is allowed to inherit.
+
+   The native spawn boundary must close every descriptor except its stdio and explicit
+   control pipes. A child once inherited the gateway's listening socket; if that child
+   outlived the gateway, the next start could not bind a port that nothing served."'''},{"from":"16:83b","to":"18:713","replace":'''(defn- sleep-binary
+  "The native spawn ABI takes an absolute executable path."'''},{"from":"50:c75","to":"52:713","replace":'''(defn- sh-binary
+  "The native spawn ABI takes an absolute executable path."'''}],
+root+'/test/com/blockether/vis/internal/process_jail_test.clj':[{"from":"468:f60","to":"470:017","replace":'''  ;; WSL2 runs a real kernel with namespaces, so it is treated as ordinary Linux.
+  ;; WSL1 has no real namespaces and must be reported unenforceable, never silently
+  ;; passed through. The kernel osrelease is the discriminator.'''}],
+root+'/test/com/blockether/vis/internal/python_extensions_test.clj':[{"from":"1571:416","to":"1575:e3b","replace":'''          ;; What this test is about is the policy snapshot read by each spawn, not
+          ;; platform-specific enforcer diagnostics.'''}]
+}
+results=[]
+for p,es in edits.items(): results.append(await patch(p,es))
+print('\n'.join(map(str,results)))

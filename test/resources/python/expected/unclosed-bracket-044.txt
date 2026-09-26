@@ -1,0 +1,20 @@
+cpython: line 13, column 6: '(' was never closed
+result: repaired
+fix: line 13: added ')' at column 127 to close '(' from line 13
+problem: line 13, column 6: '(' is never closed
+--- text after repair
+sid='00000000-0000-4000-8000-000000000023'; journal=Path('/home/user/.vis/gateway/events')/f'{sid}.ndjson'
+counts=Counter(); retries=[]; last_seq=None
+with open(journal,'r',encoding='utf-8') as f:
+  for line in f:
+    try:e=json.loads(line)
+    except:continue
+    counts[e.get('type')]+=1; last_seq=e.get('seq',last_seq)
+    if e.get('type')=='provider.retry': retries.append(e)
+print('retry_count_now',len(retries),'by_iteration',dict(Counter(e.get('iteration') for e in retries)))
+print('terminal_counts',{k:counts[k] for k in ['turn.completed','turn.failed','turn.cancelled']},'last_seq',last_seq)
+print('retry_reasons',dict(Counter((e.get('event') or {}).get('reason') for e in retries)))
+print('statuses',dict(Counter((e.get('event') or {}).get('status') for e in retries)))
+print('stream_restart_retries',sum(1 for e in retries if ((e.get('event') or {}).get('type')=='llm.session/stream-restarted')))
+if retries:
+ print('last_retry',json.dumps({k:retries[-1].get(k) for k in ['ts','iteration','attempt','delay_ms']},ensure_ascii=False),json.dumps(retries[-1].get('event'),ensure_ascii=False))

@@ -1,0 +1,1 @@
+print(await grep({"query": ["vis.live", "Interrupted", "is_interrupted", "live("], "paths": [str(root / ".vis/extensions/gh.py")]})

@@ -1,0 +1,26 @@
+> 
+# Offline arithmetic only. Costs quoted from peer artefacts 77 (t5) and 82 (t54).
+rt = {"SOL (Jupiter)": 4.1634, "JUP (Jup)": 16.10, "BONK (Jupiter)": 17.02,
+      "RAY (Jup)": 21.82, "WIF (Jup)": 48.24, "ORCA (Jup)": 54.36, "BONK (Raydium)": 99.52}
+spread_max = 41.2492          # bps, BONK jupiter vs raydium, UPPER observed
+bridge_rt = 56.41             # bps @100 USDC
+cap = 100.0
+
+# 1) cross-venue BONK arb: one leg each venue (RT halved per leg, symmetric approximation)
+leg_jup = rt["BONK (Jupiter)"]/2
+leg_ray = rt["BONK (Raydium)"]/2
+arb_cost = leg_jup + leg_ray
+print(f"BONK arb legs: jup {leg_jup:.2f} + ray {leg_ray:.2f} = {arb_cost:.2f} bps vs spread {spread_max:.2f} bps -> net {spread_max-arb_cost:+.2f} bps ({cap*(spread_max-arb_cost)/1e4:+.4f} USDC)")
+print(f"bridge route needs {bridge_rt:.2f} bps -> net {spread_max-bridge_rt:+.2f} bps")
+
+# 2) how big must a spread be, per venue pair, to clear cost
+print("\nminimum spread to break even (both legs), and USDC per RT at the max observed 41.25 bps spread:")
+for name, c in rt.items():
+    need = c  # buy+sell pair of same cost class
+    print(f"  {name:<16} RT {c:7.2f} bps | need >{need:6.2f} bps | at 41.25 bps: {cap*(spread_max-need)/1e4:+.4f} USDC/RT")
+
+# 3) frequency required to earn something on SOL-class cost, if a spread of s bps were capturable
+print("\nSOL-class cost 4.16 bps -> RT needed to earn 10 USDC (10% of stake):")
+for s in (10, 20, 41.25, 100):
+    net = (s - rt["SOL (Jupiter)"])/1e4*cap
+    print(f"  spread {s:6.2f} bps -> {net:+.4f} USDC/RT -> {10/net:8.1f} RT" if net>0 else f"  spread {s:6.2f} bps -> negative")

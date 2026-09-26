@@ -1,0 +1,2 @@
+patterns = grep({"query": ["All machines", "name: \"All\"", "name: 'All'", "getByText(\"machine-2\"")], "paths": [str(app / "src" / "screens" / "SessionsScreen.*.test.tsx")], "context": 4})
+print(str(patterns)[:20000])

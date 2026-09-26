@@ -1,0 +1,5 @@
+print(cat(project_root_path / 'src/com/blockether/vis/internal/python/runtime.clj',269,301))
+print(cat(project_root_path / 'src/com/blockether/vis/internal/python/runtime.clj',382,408))
+print(grep({'query':['diagnostic','timeout','bundled','private-index','stale-lock'], 'paths':[project_root_path / 'test/com/blockether/vis/internal/python/runtime_test.clj], 'context':1}))
+sh = await shell('git log -6 --oneline -- src/com/blockether/vis/internal/python/runtime.clj')
+print(await sh.wait(10))

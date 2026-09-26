@@ -1,0 +1,1 @@
+print(cat(project_root_path/'src/com/blockether/vis/internal/gateway/state.clj',6482,6546)); print(grep({'query':['defn delete-project!','defn project-session-ids','defn delete-session!'], 'paths':[project_root_path/'src/com/blockether/vis/internal/loop.clj'], 'context':3})[:6000]; print(cat(p/'screen.clj',5933,5945))

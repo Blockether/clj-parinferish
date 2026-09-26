@@ -1,0 +1,7 @@
+print(cat(project_root_path / 'src/com/blockether/vis/internal/python/worker.clj', 182, 194))
+print(await repl_stop('nrepl:~/vis'))
+print(await repl_threads_shell.logs(-4))
+worker_red_cli_result = await worker_red_cli.logs(-40)
+print('Entrypoint regression:', {key: worker_red_cli_result.get(key) for key in ('status', 'exit')})
+print('\n'.join(line for line in worker_red_cli_result['out'].splitlines() if re.search(r'failure|test cases|worker_test.clj|either a JVM|expected|actual', line, re.I)))
+print(await council.publish('JVM/SDK dogfooding resource warning: the unchanged shared native gateway PID 49393 now has 2,424 direct Python children (ps snapshot t1/i156), versus 276 seen initially; machine swap is ~37,955 MiB. Cause of every child is not proven, but I reproduced/fixed MCP setup-failure child leakage and stdout FD leakage in internal/foundation/mcp/client.clj, with JVM regressions passing. I have not killed shared children or restarted the gateway (not authorized). A focused run_tests just stalled for 600s; explicit CLI with -J-Xmx2g eventually reproduced the new worker entrypoint regression. Avoid competing large native builds for now. My fixed-JAR ABBA is complete; target/vis.jar remains unchanged. Next local change: prefer a selected packaged runtime worker on JVM, retaining Java when none exists; measured ~164 vs52 MiB RSS and ~0.82 vs0.45 s worker CPU using existing confined-worker test fixture.', kind='informational', thread_id=1798)))

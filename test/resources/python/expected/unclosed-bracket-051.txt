@@ -1,0 +1,11 @@
+cpython: line 2, column 24: '(' was never closed
+result: repaired
+fix: line 4: added ')' at column 173 to close '(' from line 2
+problem: line 2, column 24: '(' is never closed
+--- text after repair
+root = Path(session["workspace"]["root"])
+rs, hits = await gather(
+    read_session(),
+    grep({"query": ["def _elapsed", "startedAt", "active_step_ids", "run_shape"], "paths": [str(root / ".vis/extensions/gh.py"), str(root / ".vis/extensions/test_gh.py")]}))
+print(hits)
+print({"session_id": rs.get("id") if isinstance(rs, dict) else None, "turns": len(rs.get("transcript", {}).get("turns", [])) if isinstance(rs, dict) else None})

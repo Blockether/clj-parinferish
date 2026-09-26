@@ -1,0 +1,15 @@
+> 
+# rail text bands: rows of ink inside the rail column
+def hbands(lo, hi, y0=60, y1=790, tol=26):
+    base = Counter(px[x,y] for y in range(y0,y1) for x in range(lo,hi)).most_common(1)[0][0]
+    ys=[]
+    for y in range(y0,y1):
+        d = max(max(abs(px[x,y][i]-base[i]) for i in range(3)) for x in range(lo,hi))
+        ys.append(d>tol)
+    out=[];cur=None
+    for i,c in enumerate(ys):
+        if c and cur is None: cur=i
+        elif not c and cur is not None: out.append((y0+cur, y0+i-1)); cur=None
+    if cur is not None: out.append((y0+cur, y1-1))
+    return base,out
+print("rail bands:", hbands(30, 215)[1][:10])

@@ -1,0 +1,6 @@
+root = Path(session["workspace"]["root"])
+rs, hits = await gather(
+    read_session(),
+    grep({"query": ["Complete the task autonomously", "Act autonomously", "When the user asks a question", "Do not start coding", "SYSTEM-PROMPT"], "paths": [str(root / "src"), str(root / "resources"), str(root / "test"), str(root / "AGENTS.md")]})
+print(hits)
+print({"session_id": rs.get("id") or rs.get("session_id"), "turns": len(rs.get("transcript", {}).get("turns", []))})

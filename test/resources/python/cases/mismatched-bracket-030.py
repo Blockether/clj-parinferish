@@ -1,0 +1,2 @@
+bind_hits = grep({"query": ["*workspace", "*filesystem-roots*", "binding [workspace/"], "iteration-loop environment"], "paths": [str(root / "src/com/blockether/vis/internal/loop.clj")], "context": 6})
+print(bind_hits)

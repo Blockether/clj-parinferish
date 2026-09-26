@@ -1,0 +1,7 @@
+cpython: line 1, column 7: unterminated triple-quoted string literal (detected at line 2)
+result: repaired
+fix: line 2: added the missing closing """ at column 79 for the triple-quoted string from line 1
+problem: line 1, column 7: the triple-quoted string is never closed
+--- text after repair
+cmd = """
+echo '===== registry-dir ====='; grep -n -A8 'defn registry-dir' src/com/block"""

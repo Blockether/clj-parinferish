@@ -1,0 +1,1 @@
+print(grep({"paths": [project_root_path / "README.md"], "query": ["(COMPARISON-PUBLIC-v1)"]})))

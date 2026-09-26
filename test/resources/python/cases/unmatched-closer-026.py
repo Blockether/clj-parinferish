@@ -1,0 +1,1 @@
+print({k:s.get(k) for k in ('id','session_id','uuid') if isinstance(s,dict) and s.get(k)}) if 's' in globals() else 'no-session-var')

@@ -1,0 +1,1 @@
+root=Path(session['workspace']['root']); print(await cat(root/'src/com/blockether/vis/internal/human_input.clj',1,45)); print(await grep({'query':['json-str','write-str','generate-string'], 'paths':[str(root/'src/com/blockether/vis/internal/human_input.clj')]})

@@ -1,0 +1,7 @@
+cpython: line 1, column 71: invalid syntax
+result: repaired
+fix: line 1: moved the statement after ';' at column 69 onto its own line
+problem: line 1, column 69: a compound statement cannot follow ';'; start it on its own line
+--- text after repair
+root=Path(session['workspace']['root']); c=root/'apps/vis-companion'
+async def shwait(cmd,cwd,secs=180): h=await shell(cmd,cwd=str(cwd)); return await h.wait(secs); a,b=await gather(shwait('npm test -- --run src/lib/artifacts.test.ts',c),run_tests({'language':'clojure','paths':[str(root/'test/com/blockether/vis/internal/gateway/state_test.clj')+'::session-artifacts-test']})); print(a); print(b)

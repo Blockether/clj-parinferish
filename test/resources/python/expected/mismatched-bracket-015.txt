@@ -1,0 +1,6 @@
+cpython: line 1, column 151: closing parenthesis '}' does not match opening parenthesis '['
+result: repaired
+fix: line 1: added ']' at column 118 to close '[' from line 1
+problem: line 1, column 151: '}' does not match '[' from line 1, column 69
+--- text after repair
+print(grep({'query':['site.edn','python-sdk.md','docs.edn'],'paths':[str(project_root_path/'test/com/blockether/vis')],'context':1,'is_files_only':True})[:2200]); print('worker2',worker2.logs(-2),'bytes',(real_tmp/'inference2.zip').stat().st_size)

@@ -1,0 +1,98 @@
+fix_tts = [{"from":"261:b78","to":"261:b78","replace":"""   cannot act on." """.rstrip()}]
+
+edits_core_test = [
+ {"from":"36:bb6","to":"42:c54","replace":
+"""  (it "downloads every family it may fetch, whether or not one was named"
+      ;; A bare `download` that skipped pocket-tts left the engine registered and
+      ;; silent; its size was never a reason to make the user ask a second time.
+      (expect (= [:parakeet :piper :pocket-tts] (#'voice/download-families {})))
+      (expect (= [:parakeet :piper :pocket-tts] (#'voice/download-families {"all" true})))
+      (expect (= [:pocket-tts] (#'voice/download-families {"pocket-tts" true})))
+      (expect (= [:parakeet :piper] (#'voice/download-families {"parakeet" true "piper" true}))))"""},
+ {"from":"48:f8e","to":"48:f8e","replace":
+"""                      :speech {:piper {:state :ready} :pocket-tts {:state :ready}}})"""},
+ {"from":"60:f38","to":"61:af3","replace":
+"""          (expect (= [::voice/runtime ::voice/ffmpeg ::voice/parakeet ::voice/espeak
+                      ::voice/speech ::voice/pocket-speech]
+                     (mapv :check-id msgs)))"""},
+ {"from":"63:ec8","to":"65:f52","replace":
+"""  (it "warns about every speech family that is not on the machine"
+      ;; `models download` fetches both families, so an absent pocket-tts is a state
+      ;; to act on and its warning carries the flag that installs it."""},
+ {"from":"84:c9e","to":"86:b8f","replace":
+"""          (expect (= :warn (:level (::voice/speech by-id))))
+          (expect (re-find #"--piper" (:remediation (::voice/speech by-id))))
+          (expect (= :warn (:level (::voice/pocket-speech by-id))))
+          (expect (re-find #"--pocket-tts" (:remediation (::voice/pocket-speech by-id))))
+          (expect (= 6 (count by-id))))))"""},
+ {"from":"109:ba2","to":"109:ba2","replace":
+"""        ;; a merely absent model has no reason to give and must not grow a blank line"""},
+]
+
+edits_tts_test = [
+ {"from":"127:2a9","to":"149:5d6","replace":
+"""  (it "refuses a licence-gated VOICE by name instead of reporting absent forever"
+      ;; `:absent` with nothing downloading is the one answer a user cannot act
+      ;; on, so the refusal carries the command that installs it.
+      ;; The phoneme tables are a PRECONDITION of this refusal, not its subject:
+      ;; a machine without espeak-ng is refused for THAT first, which is how this
+      ;; passed on a developer machine and failed on CI.
+      (with-redefs
+        [tts/espeak-data-dir
+         (constantly "/espeak-ng-data")
+
+         assets/installed?
+         (constantly false)]
+
+        (let [state (tts/start-download! :piper "ryan")]
+          (expect (= :failed (:state state)))
+          (expect (re-find #"piper-en_US-ryan-high" (:error state)))
+          ;; the family alone would install the DEFAULT voice, so the refusal names the
+          ;; voice that was actually asked for
+          (expect (re-find #"--piper --voice ryan" (:error state))))))"""},
+ {"from":"150:b4c","to":"150:b4c","replace":
+"""  (it "starts the download of every family Vis fetches by itself"""" + '"'},
+ {"from":"164:897","to":"170:db7","replace":
+"""          (let [state (tts/start-download! :piper)]
+            (expect (contains? #{:downloading :ready} (:state state))))
+          ;; pocket-tts is Vis' own export, so it starts here too instead of refusing
+          (let [state (tts/start-download! :pocket-tts)]
+            (expect (contains? #{:downloading :ready} (:state state))))
+          ;; Settle those installs INSIDE the redefs: a future outliving them would call
+          ;; the REAL installer and reach the network.
+          (loop [n 0]
+            (when (and (< (count @started) 2) (< n 300)) (Thread/sleep 10) (recur (inc n))))
+          (expect (= #{"piper-en_US-kristin-medium" "pocket-tts-int8"} (set @started)))))))"""},
+ {"from":"173:b63","to":"175:c81","replace":
+"""             (it "installs everything the named family needs, in one blocking call"
+                 ;; The CLI download path is the blocking one: it installs what the family
+                 ;; needs and reports the directory it wrote for each asset."""},
+]
+
+edits_assets_test = [
+ {"from":"89:131","to":"91:ae3","replace":
+"""          (when-not (:is-commercial-ok entry)
+            (expect (true? (:is-opt-in entry)))
+            (expect (seq (:notice entry))))
+          ;; Opt-in is a LICENCE gate and nothing else: size never earns one, or
+          ;; `download` would leave a model installed nowhere and an engine silent.
+          (when (:is-opt-in entry)
+            (expect (false? (boolean (:is-commercial-ok entry))) (:id entry))))))"""},
+ {"from":"214:33f","to":"220:c51","replace":
+"""             (it "refuses to accept an opt-in asset's terms on the user's behalf"
+                 (with-redefs [assets/installed? (constantly false)]
+                   (let [data (ex-data-of #(assets/ensure! (assets/entry "piper-en_US-ryan-high")))]
+                     (expect (= :voice-assets/opt-in-required (:type data)))
+                     (expect (= "piper-en_US-ryan-high" (:id data)))
+                     (expect (seq (:notice data)))
+                     (expect (seq (:source-url data))))))
+             (it "never asks twice for a model Vis may host itself"
+                 ;; pocket-tts is our own CC BY 4.0 export, so the AUTOMATIC path installs
+                 ;; it like any other asset instead of demanding that it be named.
+                 (with-redefs [assets/installed? (constantly true)]
+                   (expect (str/ends-with? (assets/ensure! (assets/entry "pocket-tts-int8"))
+                                           "sherpa-onnx-pocket-tts-int8"))))"""},
+]
+res = await gather(patch(tts, fix_tts), patch(core_test, edits_core_test),
+                   patch(tts_test, edits_tts_test), patch(assets_test, edits_assets_test))
+for r in res: print(r); print("-"*60)

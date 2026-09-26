@@ -1,0 +1,9 @@
+cpython: line 1, column 1: invalid character '«' (U+00AB)
+result: not repaired
+fix: line 1: removed the quote marker « at column 1
+problem: line 1, column 1: '«' is a quote marker, not Python; remove it
+--- text after repair
+= None
+out = await sp("eval-js " + shlex.quote("(() => { history.back(); return 'back'; })()"))
+import asyncio; await asyncio.sleep(1.5)
+print((await probe("(() => JSON.stringify({title: document.title, url: location.href, rows: document.querySelectorAll('[data-session-id]').length, btns: document.querySelectorAll('button').length}))()")))

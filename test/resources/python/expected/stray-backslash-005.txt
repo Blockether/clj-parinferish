@@ -1,0 +1,25 @@
+cpython: line 8, column 75: unexpected character after line continuation character
+result: repaired
+fix: line 8: removed the backslashes before quotes outside strings, from column 74
+problem: line 4, column 25: '(' is never closed
+problem: line 4, column 26: '[' is never closed
+problem: line 8, column 5: the f-string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 8, column 74: backslash outside a string; there it may only end a line
+problem: line 11, column 1: ']' does not match '(' from line 8, column 73
+--- text after repair
+desktop_light = preview_root / "desktop-light.png"
+phone_dark = preview_root / "phone-dark.png"
+style_js = "JSON.stringify((()=>{const e=document.querySelector('button[aria-label=\\\"Close chart.png\\\"] span');const s=getComputedStyle(e);return {color:s.color,borderColor:s.borderColor,background:s.backgroundColor,borderRadius:s.borderRadius,width:s.width,height:s.height}})())"
+review_cmd = " && ".join([
+    f"spel --session {shlex.quote(browser_session)} eval-js {shlex.quote(style_js)}",
+    f"spel --session {shlex.quote(browser_session)} set viewport 1280 800",
+    f"spel --session {shlex.quote(browser_session)} screenshot {shlex.quote(str(desktop_light))}",
+    f"spel --session {shlex.quote(browser_session)} eval-js {shlex.quote("document.documentElement.dataset.theme='blockether-dark'")}",
+    f"spel --session {shlex.quote(browser_session)} set viewport 393 852",
+    f"spel --session {shlex.quote(browser_session)} screenshot {shlex.quote(str(phone_dark))}",
+])
+review_shell = await shell(review_cmd, cwd=str(root))
+review_result = await review_shell.wait(90)
+print(review_shell.logs(-120))
+print(show_attachment(attach(desktop_light, audience="model")))
+print(show_attachment(attach(phone_dark, audience="model")))

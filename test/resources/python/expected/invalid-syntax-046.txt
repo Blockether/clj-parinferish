@@ -1,0 +1,7 @@
+cpython: line 1, column 306: invalid syntax
+result: repaired
+fix: line 1: moved the statement after ';' at column 304 onto its own line
+problem: line 1, column 304: a compound statement cannot follow ';'; start it on its own line
+--- text after repair
+root=Path(session['workspace']['root']); c=root/'apps/vis-companion'; print(await ls(c/'src/screens',depth=1)); h=await shell('git diff --check && git diff -- apps/vis-companion/src/screens/SessionScreen.tsx apps/vis-companion/src/screens/SessionScreen.follow.test.tsx',cwd=str(root)); print(h.wait(30))
+with open(c/'package.json') as f: pkg=json.load(f); print({k:v for k,v in pkg['scripts'].items() if k in ['lint','build','test','format']})

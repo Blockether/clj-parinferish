@@ -1,0 +1,3 @@
+cpython: line 1, column 25: unterminated triple-quoted string literal (detected at line 16)
+result: not repaired
+problem: line 1, column 25: the triple-quoted string is never closed

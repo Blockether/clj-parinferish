@@ -1,0 +1,131 @@
+root=Path(session['workspace']['root'])
+state=root/'src/com/blockether/vis/internal/gateway/state.clj'
+progress=root/'src/com/blockether/vis/internal/progress.clj'
+ctx=root/'src/com/blockether/vis/internal/ctx_engine.clj'
+trans=root/'src/com/blockether/vis/internal/foundation/transcript.clj'
+intro=root/'src/com/blockether/vis/internal/foundation/introspection.clj'
+protocol=root/'src/com/blockether/vis/internal/gateway/protocol.clj'
+shellp=root/'src/com/blockether/vis/internal/foundation/shell.clj'
+results=await gather(
+ patch(state,[{"from":"1483:8cc","to":"1499:45c","replace":''':form-result
+            (let [stdout (form/clip-to-wire (:stdout chunk))
+                  duration-ms (let [{:keys [started-at-ms finished-at-ms]} (:envelope chunk)]
+                                (when (and (nat-int? started-at-ms) (nat-int? finished-at-ms))
+                                  (max 0 (- (long finished-at-ms) (long started-at-ms)))))]
+              (merge
+                ;; Canonical facts and authored metadata only. Presentation is derived by
+                ;; each channel; no rendered copy rides beside `:stdout` / `:result`.
+                (form/->display chunk)
+                (cond-> {:form_index position
+                         :code code
+                         :silent (boolean
+                                   (or silent?
+                                       (and (nil? error) (contains? #{"vis_silent"} result))))}
+                  stdout
+                  (assoc :stdout stdout)
+
+                  (some? error)
+                  (assoc :error (wire/bounded-str (error->wire-text error) ERROR_PR_LIMIT))
+
+                  (some? duration-ms)
+                  (assoc :duration_ms duration-ms))))'''}]),
+ patch(progress,[{"from":"217:72c","to":"252:bde","replace":'''(defn- chunk->form-result
+  "Build the completed `:forms` entry for a `:form-result` chunk. Canonical
+   `:stdout` / structured `:result` facts survive verbatim; renderers derive
+   their local card body instead of consuming a stored presentation copy."
+  [prev-form chunk]
+  (let [errored? (some? (:error chunk))]
+    (merge
+      (form/->display chunk)
+      {:code (:code chunk)
+       :comment (:comment chunk)
+       :render-segments (:render-segments chunk)
+       :scope (or (:scope chunk) (:scope prev-form))
+       :started-at-ms (or (:started-at-ms chunk) (:started-at-ms prev-form))
+       :duration-ms (or (form/envelope-duration-ms (:envelope chunk)) 0)
+       :stdout (:stdout chunk)
+       :result-kind (form-result-kind chunk)
+       :result-detail (form-result-detail chunk)
+       :error (:error chunk)
+       ;; Activity has its own lifecycle frame. Preserve the latest replacement
+       ;; when the execution output fills in the rest of this form.
+       :activity (:activity prev-form)
+       :success? (not errored?)
+       :silent? (and (not errored?) (silent-chunk? chunk))})))'''}]),
+ patch(ctx,[{"from":"1088:8fc","to":"1096:7c0","replace":'''      ;; Presentation is a pure local projection of the canonical result facts;
+      ;; never persist a second rendered copy.
+      form-envelope)))'''}]),
+ patch(trans,[{"from":"103:d27","to":"146:26d","replace":'''(defn- form-envelope->block
+  "Project one per-form envelope from `:forms` into the transcript's
+   `:blocks` shape. Each envelope carries canonical result facts — structured
+   `:result` for host/native output, `:stdout` for what Python printed, and an
+   optional `:error` — plus a 0-based `:position` derived from its index."
+  [position raw-envelope]
+  (let [envelope raw-envelope]
+    (cond-> {:position position :code (or (:src envelope) "")}
+      (:scope envelope)
+      (assoc :scope (:scope envelope))
+
+      (:tag envelope)
+      (assoc :tag (:tag envelope))
+
+      (contains? envelope :result)
+      (assoc :result (:result envelope))
+
+      ;; Printed output is the primary content of a `python_execution` block and
+      ;; can coexist with an error when the block printed before it threw.
+      (some? (:stdout envelope))
+      (assoc :stdout (:stdout envelope))
+
+      (contains? envelope :error)
+      (assoc :error (:error envelope))
+
+      (some? (:op envelope))
+      (assoc :op (:op envelope))
+
+      (some? (:result-summary envelope))
+      (assoc :result-summary (:result-summary envelope)))))'''}]),
+ patch(intro,[{"from":"1197:e40","to":"1202:3e8","replace":'''(def ^:private painted-block-keys
+  "Presentation metadata excluded from model introspection. Canonical
+   `:stdout` / `:result` facts remain; only the card label and headline go."
+  [:op :result-summary])'''}]),
+ patch(protocol,[{"from":"38:684","to":"46:710","replace":'''   10 — `block.output` carries canonical execution facts only. The duplicated
+   `result_render` presentation field is gone, and `!cmd` writes its output once
+   as `stdout`.
+
+   9 — Activity owns one event type for its whole lifecycle: running revisions are
+   transient/materialized `block.activity`; the settled revision is durable
+   `block.activity`. `block.output` carries execution output only.
+
+   8 — One turn id survives submission, execution, persistence, replay, and trace
+   lookup. Coarse ticker frames are `turn.progress`; form frames route by the
+   truthful numeric `form_index`. The split-id reconciliation contract and the
+   overloaded `activity` event name are gone."
+  10)"},{"from":"48:31c","to":"56:710","replace":'''(def min-client-protocol
+  "Oldest client protocol this gateway serves. Protocol 10 removes the rendered
+   result duplicate from `block.output`; clients derive presentation from facts."
+  10)
+
+(def min-gateway-protocol
+  "Oldest gateway protocol this client accepts: the mirror of
+   [[min-client-protocol]]."
+  10)'''}]),
+ patch(shellp,[{"from":"113:01c","to":"115:d16","replace":'''   "Invalid control character" EVERY time. The loop's wire projection clips
+   separately, so capturing a parseable stream costs context nothing."''},{"from":"2767:936","to":"2775:4ae","replace":''';; Compact shell labels used by the live process ticker.
+
+(def ^:private shell-chip-max
+  "Display-width-ish budget for one command in a live shell label."
+  72)''},{"from":"2784:d7c","to":"2790:633","replace":'''(defn- shell-one-line
+  "Collapse whitespace to one trimmed line for a shell ticker preview."
+  [s]
+  (some-> (present-str s)
+          (str/replace #"\\s+" " ")
+          str/trim
+          not-empty))''},{"from":"2792:2a5","to":"2802:04c","replace":'''(defn- clip-chip
+  "Clip a single-line shell label with an ellipsis."
+  [s n]
+  (let [s (str s)
+        n (long n)]
+    (if (> (count s) n) (str (subs s 0 (max 0 (dec n))) "…") s)))''},{"from":"2804:551","to":"3016:383","replace":""}])
+)
+for x in results: print(x)

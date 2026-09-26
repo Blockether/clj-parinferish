@@ -1,0 +1,12 @@
+cpython: line 5, column 39: invalid syntax
+result: not repaired
+fix: line 5: removed the stray backslash at column 59
+fix: line 5: removed the backslashes before quotes outside strings, from column 60
+problem: line 5, column 59: backslash outside a string; there it may only end a line
+problem: line 5, column 60: backslash outside a string; there it may only end a line
+--- text after repair
+root = Path(session["workspace"]["root"])
+path = root / "resources/examples/python-extensions/remote_sandboxed_server.py"
+src = path.read_text()
+fixed = src.replace('" \\"$(cut -d\' \' -f1 /proc/uptime)\\""', ' \'$(cut -d" " -f1 /proc/uptime)\'')
+fixed = fixed.replace(' "\\"$(awk \\'/^MemTotal/{print $2}' /proc/meminfo)\\""', " '$(awk \\'/^MemTotal/{print $2}\\' /proc/meminfo)'")

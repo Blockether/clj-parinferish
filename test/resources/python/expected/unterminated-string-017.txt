@@ -1,0 +1,28 @@
+cpython: line 1, column 121: unterminated string literal (detected at line 1)
+result: repaired
+fix: line 1: made the string at column 121 triple-quoted (''') because its text continues onto the next lines; it now ends on line 4
+fix: line 4: made the string at column 82 triple-quoted (''') because its text continues onto the next lines; it now ends on line 20
+problem: line 1, column 121: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 4, column 35: ')' does not match '{' from line 1, column 80
+problem: line 20, column 188: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+patch(project_root_path/'src/com/blockether/vis/internal/decisions/cache.clj',[{'from':'75:0b3','to':'81:942','replace':'''      (let [idle (sort-by (comp :used second)
+                          (for [[k v] @entries
+                                :when (and (= :ready (:status v)) (zero? (:users v)))]
+                            [k v]))'''},{'from':'127:565','to':'144:543','replace':'''    (if-let [loaded (:load selection)]
+      (try (doseq [entry (:evicted selection)]
+             (close! entry))
+           (let [value (loader)]
+             (locking lock
+               (swap! entries assoc
+                 key
+                 (-> (get @entries key)
+                     (assoc :status :ready :value value)))
+               (deliver loaded {:ok true}))
+             (try (operation value) (finally (release! key))))
+           (catch Throwable e
+             (locking lock
+               (when (= :loading (:status (get @entries key)))
+                 (swap! entries dissoc key)
+                 (deliver loaded {:error e})))
+             (throw e)))'''},{'from':'163:944','replace':'                                          (and (= :ready (:status entry)) (zero? (long (:users entry)))))'}]); print('cache patched')

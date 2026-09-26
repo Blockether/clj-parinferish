@@ -1,0 +1,2 @@
+vis=Path('/home/user/.vis/worktrees/python-runtime-migration')
+print(await patch(str(vis/'scripts/gen-audit.bb'),[{'from':'99:404','to':'100:0df','replace':'   ;; These git dependencies have no Maven POM to carry their repository license.\n   "com.blockether/vis-python-runtime" "MIT"\n   "io.github.clj-holmes/clj-watson" "EPL-2.0"})]))

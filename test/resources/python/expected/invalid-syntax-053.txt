@@ -1,0 +1,6 @@
+cpython: line 1, column 166: invalid syntax
+result: repaired
+fix: line 1: added ')' at column 166 to close '(' from line 1
+problem: line 1, column 166: ';' ends the statement while '(' from line 1, column 41 is still open
+--- text after repair
+print(await cat(str(fl),365,410)); print(await grep({"query":["tally.live","project.tally","group.tally","sessions`"," sessions"],"paths":[str(p)],"max_results":80})); print(await cat(str(p),3820,3965))

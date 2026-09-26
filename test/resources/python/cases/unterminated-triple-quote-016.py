@@ -1,0 +1,2 @@
+res=await patch(paths['prompt'],[{"from":"313:55a","to":"314:0cf","replace":"""    \"- `prompt_cache.token_read_percent` and `request_hit_percent` are Svar's fresh provider-cache metrics;\\n\"
+    \"  WebSocket delta continuation is separate transport telemetry, not a prompt-cache hit.\\n\"""}]); print(res)

@@ -1,0 +1,10 @@
+cpython: line 1, column 62: unterminated string literal (detected at line 1)
+result: repaired
+fix: line 1: added the missing closing " at column 36
+problem: line 1, column 9: '(' is never closed
+problem: line 1, column 30: '[' is never closed
+problem: line 1, column 62: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+--- text after repair
+app=Path(session["workspace"]["root"])/"apps/vis-companion/src"
+print(grep({"query":[".queuedTurns(","queuedTurns("],"paths":[str(app)],"context":3})[:20000])
+print(grep({"query":["status=queued"],"paths":[str(app/"lib/gateway.test.ts")],"context":8})[:12000])

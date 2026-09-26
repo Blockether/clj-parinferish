@@ -1,0 +1,2 @@
+print(await cat(str(root / "packages/vis-agent/src/vis/__init__.py"), 1020, 1345))
+print(await grep({"query": ["LiveView", "is_interrupted", "already closed", "interrupt"], "paths": [str(root / "packages/vis-agent/tests"), str(root / "test/com/blockether/vis/internal/python")]})

@@ -1,0 +1,99 @@
+cpython: line 12, column 10: unterminated string literal (detected at line 12)
+result: not repaired
+fix: line 12: added the missing closing ' at column 52
+fix: line 13: added the missing closing ' at column 58
+fix: line 14: added the missing closing ' at column 58
+fix: line 15: added the missing closing ' at column 54
+fix: line 38: added ']' at column 45 to close '[' from line 16
+fix: line 40: added the missing closing ' at column 32
+fix: line 41: added the missing closing ' at column 52
+fix: line 42: added the missing closing ' at column 58
+problem: line 11, column 13: '(' is never closed
+problem: line 12, column 10: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 13, column 10: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 14, column 10: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 15, column 10: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 38, column 45: ')' does not match '[' from line 16, column 6
+problem: line 39, column 13: '(' is never closed
+problem: line 40, column 10: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+root = Path(session["workspace"]["root"])
+wt = root / "target" / "cache_semantics_analysis_bb413a"
+cmd = r'''python3 - <<'PY'
+import json, pathlib, shutil, subprocess, tempfile
+repo = pathlib.Path.cwd()
+tmp = pathlib.Path(tempfile.mkdtemp(prefix="vis_cross_jvm_prefix_"))
+db = tmp / "vis.mdb"
+sid_file = tmp / "sid.edn"
+stable_file = tmp / "stable.edn"
+q = json.dumps
+form1 = f'''(do
+(require '[com.blockether.vis.internal.loop :as lp]'
+         '[com.blockether.vis.internal.prompt :as prompt]'
+         '[com.blockether.vis.internal.persistance :as p]'
+         '[com.blockether.vis.internal.util :as util]')
+(let [env (lp/create-environment ::router {{:db {q(str(db))} :channel :cli}})
+      standing {{:block "<context>exact</context>" :baseline {{"session_id" "s1"}}}}
+  (try
+    (reset! (:standing-ctx-atom env) standing)
+    (let [stable (prompt/assemble-stable-prompt-messages
+                   env {{:active-extensions (prompt/active-extensions env)
+                        :session-context (:block standing)}})
+          request (conj stable {{:role "user" :content "turn one"}})
+          entry {{:messages request
+                 :weights (vec (repeat (count request) 1))
+                 :input-tokens 5000
+                 :at-ms (util/now-ms)
+                 :prompt-cache-context {{:id "ctx" :fixed-prefix-weight 0}}
+                 :completed-turn {{:turn-position 1
+                                   :summaries nil
+                                   :stable-message-count (count stable)
+                                   :assistant-message {{:role "assistant" :content "done"}}}}}}]
+      (p/db-set-session-prompt-cache-state!
+        (:db-info env) (:session/state-id env)
+        {{:route [:zai-coding-plan "model"] :entry entry :standing-ctx standing}})
+      (spit {q(str(sid_file))} (pr-str (:session-id env)))
+      (spit {q(str(stable_file))} (pr-str stable)))
+    (finally (lp/dispose-environment! env)))]))'''
+form2 = f'''(do
+(require '[clojure.edn :as edn]'
+         '[com.blockether.vis.internal.loop :as lp]'
+         '[com.blockether.vis.internal.prompt :as prompt]')
+(let [sid (edn/read-string (slurp {q(str(sid_file))}))
+      first-stable (edn/read-string (slurp {q(str(stable_file))}))
+      env (lp/create-environment ::router {{:db {q(str(db))} :session sid}})]
+  (try
+    (let [standing @(:standing-ctx-atom env)
+          stable (prompt/assemble-stable-prompt-messages
+                   env {{:active-extensions (prompt/active-extensions env)
+                        :session-context (:block standing)}})
+          base (#'lp/resumable-prompt-message-base
+                (:prompt-cache-history-atom env)
+                :zai-coding-plan "model" {{:id "ctx" :fixed-prefix-weight 0}}
+                2 nil stable [{{:role "user" :content "turn two"}}])
+          first-diff (first (keep-indexed (fn [i pair] (when (not= (first pair) (second pair)) i))
+                                          (map vector first-stable stable)))
+          signature (fn [messages]
+                      (mapv (fn [m] [(:role m) (count (str (:content m))) (hash (:content m))]) messages))]
+      (println (pr-str {{:stable-equal (= first-stable stable)
+                         :first-count (count first-stable)
+                         :second-count (count stable)
+                         :first-diff first-diff
+                         :first-signature (signature first-stable)
+                         :second-signature (signature stable)
+                         :checkpoint-loaded (boolean (seq @(:prompt-cache-history-atom env)))
+                         :resumed (boolean (:resumed? base))}})))
+    (finally (lp/dispose-environment! env)))))'''
+try:
+    one = subprocess.run(["clojure", "-M", "-e", form1], cwd=repo, capture_output=True, text=True, timeout=180)
+    if one.returncode:
+        raise SystemExit("first JVM failed: " + (one.stderr.strip().splitlines()[-1] if one.stderr.strip() else str(one.returncode)))
+    two = subprocess.run(["clojure", "-M", "-e", form2], cwd=repo, capture_output=True, text=True, timeout=180)
+    if two.returncode:
+        raise SystemExit("second JVM failed: " + (two.stderr.strip().splitlines()[-1] if two.stderr.strip() else str(two.returncode)))
+    print(two.stdout.strip().splitlines()[-1])
+finally:
+    shutil.rmtree(tmp, ignore_errors=True)
+PY'''
+h = await shell(cmd, cwd=str(wt), timeout=420)
+print(h)

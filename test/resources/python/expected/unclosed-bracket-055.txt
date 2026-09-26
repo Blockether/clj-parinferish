@@ -1,0 +1,7 @@
+cpython: line 2, column 6: '(' was never closed
+result: repaired
+fix: line 2: added ')' at column 197 to close '(' from line 2
+problem: line 2, column 6: '(' is never closed
+--- text after repair
+print(await cat(str(root / "packages/vis-agent/src/vis/__init__.py"), 1020, 1345))
+print(await grep({"query": ["LiveView", "is_interrupted", "already closed", "interrupt"], "paths": [str(root / "packages/vis-agent/tests"), str(root / "test/com/blockether/vis/internal/python")]}))

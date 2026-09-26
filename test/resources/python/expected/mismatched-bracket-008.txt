@@ -1,0 +1,6 @@
+cpython: line 1, column 597: closing parenthesis ']' does not match opening parenthesis '{'
+result: repaired
+fix: line 1: added '}' at column 597 to close '{' from line 1
+problem: line 1, column 597: ']' does not match '{' from line 1, column 469
+--- text after repair
+print(patch(p/'screen.clj',[{'from':'3850:ba4','replace':'  #{:copy-id :header-help :header-agents :footer-goal :header-tasks :header-search})'},{'from':'2421:327','to':'2476:000','replace':''},{'from':'7310:de3','to':'7313:000','replace':''},{'from':'7621:de3','to':'7624:000','replace':''},{'from':'7778:de3','to':'7781:000','replace':''},{'from':'8020:7b8','replace':'                          {:keys [action state character]}'}])); print(patch(p/'components.clj',[{'from':'652:afb','replace':'      [(keymap/label-for :session-metrics) "Session metrics — context health, totals and cache"]]}'}]))

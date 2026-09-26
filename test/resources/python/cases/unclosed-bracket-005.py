@@ -1,0 +1,2 @@
+print(grep({'query':['defn frame-evaluate','evaluate expression'], 'paths':[spel_path/'src/com/blockether/spel/frame.clj'],'context':7,'max_results':3}))
+await spel_action('--content-boundaries eval-sci '+shlex.quote(frame_inspect_sci.replace(')))',' nil)))'))

@@ -1,0 +1,5 @@
+print(cat(str(root / 'src/com/blockether/vis/internal/gateway/state.clj'), 3060, 3125))
+print(grep({'query': ['keywordize-keys', 'normalize-extra-body', 'sanitize-caller-extra-body'], 'paths': [str(root / 'src/com/blockether/vis/internal/loop.clj'), str(root / 'src/com/blockether/vis/internal/gateway/runtime.clj'), str(svar_root / 'src/clj/com/blockether/svar/internal/llm.clj')], 'context': 3}))
+print(grep({'query': ['extra-body', 'extra_body'], 'paths': [str(root / 'src/com/blockether/vis/internal/python')], 'context': 2}))
+print(ls(str(companion_root / 'src/dev'), depth=1))
+print(cat(str(companion_root / 'src/components/ComposerResponseControls.stories.tsx'))

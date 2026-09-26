@@ -1,0 +1,10 @@
+cpython: line 5, column 185: unmatched ')'
+result: repaired
+fix: line 5: removed the unmatched ')' at column 185
+problem: line 5, column 185: ')' has no opening bracket
+--- text after repair
+print('Kernel32 console imports:', {hex(address): value for address, value in winjail_kernel32_imports35.items() if 'Console' in value[1] or 'AppPolicy' in value[1]})
+print('KernelBase console imports:', {hex(address): value for address, value in winjail_kernelbase_imports35.items() if 'Console' in value[1] or 'AppPolicy' in value[1]})
+print('Kernel32 disassembly lines:', len(winjail_kernel32_disasm_lines35))
+print('\n'.join(winjail_kernel32_disasm_lines35[:8]))
+print('KernelBase delayed console imports:', {hex(address): value for address, value in winjail_kernelbase_delay_imports35.items() if 'Console' in value[1] or 'AppPolicy' in value[1]})

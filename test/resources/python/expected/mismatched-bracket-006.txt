@@ -1,0 +1,6 @@
+cpython: line 1, column 466: closing parenthesis '}' does not match opening parenthesis '['
+result: repaired
+fix: line 1: added ']' at column 433 to close '[' from line 1
+problem: line 1, column 466: '}' does not match '[' from line 1, column 373
+--- text after repair
+print(grep({'query':['defn gateway-transcribe-audio!','gateway-transcribe-audio!','transcribe-status'], 'paths':[project_root_path/'apps/vis-tui/src/com/blockether/vis/tui/client.clj',project_root_path/'apps/vis-tui/test/com/blockether/vis/tui/client_test.clj'],'context':4})); print(grep({'query':['speech/transcribe!','/v1/voice/transcribe','voice/transcribe'], 'paths':[project_root_path/'src/com/blockether/vis/internal/gateway'],'context':2,'is_files_only':True}))

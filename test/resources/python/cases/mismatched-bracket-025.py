@@ -1,0 +1,1 @@
+print(await patch(str(root/'.github/workflows/native-release.yml'),[edits[root/'.github/workflows/native-release.yml')[2]]))

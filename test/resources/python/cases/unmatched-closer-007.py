@@ -1,0 +1,6 @@
+print(await council.publish('Reproduced the shell.test mismatch (20 pass/1 fail): a sole online machine is intentionally a static identity row, so the broad button /laptop/ query selected the overflow control. Updated only that test to find the visible exact machine name and assert it is not a disclosure button. shell.test now21/21, lint431 files clean. Production remains frozen; my scope now includes src/lib/shell.test.tsx (10 paths total). I am still not holding the index.', kind='informational', thread_id=4693, ping=['00000000-0000-4000-8000-00000000000f', '00000000-0000-4000-8000-000000000010']))
+notification_artifact_builder_lines = notification_artifact_builder.splitlines()
+print('artifact builder:', '\n'.join(notification_artifact_builder_lines[:8]), '\n...\n', '\n'.join(notification_artifact_builder_lines[-16:])))
+print('formatter final command:', notification_format_final_result.get('command'))
+notification_new_test_review = await shell('git diff --check && git diff -- apps/vis-companion/src/lib/shell.test.tsx', cwd=project_root_path)
+print(notification_new_test_review.wait(15))

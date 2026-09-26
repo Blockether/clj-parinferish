@@ -1,0 +1,32 @@
+add = """
+
+**Follow-up, shipped: the ranker is its own namespace and is fast.** `internal/bm25.clj` —
+`index` / `cached-index` / `rank` / `search` over `{:name :gist :body :value}`, zero corpus
+knowledge, so a second consumer (session search, TUI picker) needs no second engine.
+`doc_corpus/search` is now four lines that map the corpus onto those fields.
+
+Optimizations, measured in the REPL against the live corpus:
+
+| | before | after |
+|---|---|---|
+| `search` on an unchanged corpus | 447 us | **22 us** |
+| index build (only when the corpus changes) | 14 ms | 14 ms |
+| `ranked-docs` (`gist` per document) | 1 629 us | **8 us** — `indexOf`, not `split-lines` on 70 KB |
+| typo query (`pathc`) | 710 us | **40 us** — length-bucketed vocabulary + stop at distance 1 |
+| real query, warm index | 613 us | **3-17 us** |
+
+- Postings, not a corpus walk: a term touches only the documents that carry it; `k1*norm` is
+  precomputed per document and field at index time; scores accumulate into a `double-array`.
+- Index cache: `ConcurrentHashMap`, `computeIfAbsent`, keyed by a `[count hash]` FINGERPRINT —
+  keying by the vector itself cost a 430 us byte-for-byte `.equals` because the rebuilt corpus
+  carries fresh Strings.
+- Parallel: an index is an immutable value over arrays, `rank` allocates only its own
+  accumulator; pinned by a 16-thread test (identical answers, one build under concurrent misses).
+
+Still open (not a search cost): `dc/entries` itself is **6.9 ms** — it re-reads every registered
+source on every `apropos` call. Cache the corpus at the source layer next.
+"""
+p = root/"TODO.md"
+p.write_text(t.rstrip()+add)
+sh = await shell(f"cd {root} && git add -A src test && git status --short && git commit -q -F - <<'EOF'\nbm25: extract the ranker and make it fast and shareable\n\n`search` lived inside `doc_corpus` and rebuilt its whole index on every\nquery, so `apropos` paid 447 us to answer a query it had already indexed\nand no second consumer could reach the ranker at all.\n\n`internal/bm25.clj` now owns it over `{:name :gist :body :value}` documents\nand knows nothing about corpora: postings instead of a corpus walk, `k1*norm`\nprecomputed per document and field, scores accumulated into a double-array,\nthe typo rescue restricted to length-bucketed candidates and stopped at the\nfirst distance-1 hit. An index is an immutable value over arrays and is\nmemoized in a ConcurrentHashMap keyed by a [count hash] fingerprint, so any\nnumber of threads rank against one shared index and an unchanged corpus is\nnever re-indexed.\n\n`gist` scanned with indexOf instead of splitting a 70 KB body into lines.\n\nsearch on an unchanged corpus 447 us -> 22 us; gist pass 1629 us -> 8 us;\ntypo query 710 us -> 40 us.\nEOF\ngit log -1 --oneline", id="commit")
+print(sh.wait(90).logs(-20))

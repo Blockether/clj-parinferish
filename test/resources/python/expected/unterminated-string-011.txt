@@ -1,0 +1,8 @@
+cpython: line 1, column 117: unterminated string literal (detected at line 1)
+result: not repaired
+fix: line 1: added the missing closing ' at column 120
+problem: line 1, column 6: '(' is never closed
+problem: line 1, column 12: '(' is never closed
+problem: line 1, column 117: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+--- text after repair
+print(patch(project_root_path/'apps/vis-companion/src/components/SessionNavigator.tsx,[{'from':'348:aa1','replace':''}]'))

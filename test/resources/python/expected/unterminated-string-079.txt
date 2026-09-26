@@ -1,0 +1,25 @@
+cpython: line 1, column 22: unterminated string literal (detected at line 1); perhaps you escaped the end quote?
+result: repaired
+fix: line 1: made the string at column 22 triple-quoted (""") because its text continues onto the next lines; it now ends on line 11
+problem: line 1, column 21: '(' is never closed
+problem: line 1, column 22: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 4, column 35: backslash outside a string; there it may only end a line
+problem: line 4, column 36: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 6, column 28: backslash outside a string; there it may only end a line
+problem: line 6, column 29: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 11, column 9: backslash outside a string; there it may only end a line
+problem: line 11, column 22: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+--- text after repair
+iomenu = await shell("""osascript <<'APPLESCRIPT'\ntell application \"System Events\"\n tell process \"Simulator\"\n  set rows to {}\n  tell menu 1 of menu bar item \"I/O\" of menu bar 1\n   repeat with mi in menu items\n    set n to name of mi
+    set m to missing value
+    try
+      set m to value of attribute \"AXMenuItemMarkChar\" of mi
+    end try
+    set end of rows to n & \"|\" & (m as text)
+   end repeat
+  end tell
+  return rows
+ end tell
+end tell\nAPPLESCRIPT""")
+io_out = await iomenu.wait(10)
+print(io_out.get("out", ""))

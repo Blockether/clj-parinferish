@@ -1,0 +1,1 @@
+print('\n'.join(line for line in o.splitlines() if line.startswith('@@') or line.startswith('+  ;;') or line.startswith('-;;') or line.startswith('+                                   (json-body') or line.startswith('-                                   (json-body')))[:10000])
