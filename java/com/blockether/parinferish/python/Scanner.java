@@ -13,6 +13,12 @@ import java.util.Arrays;
  * line, whether the line starts inside open brackets and whether it starts a
  * statement there, which is how the repair finds a bracket that should have
  * closed on an earlier line.
+ *
+ * <p>After a small edit it can rescan: it resumes where it last stood in code
+ * before the edit and, at the first line start or string end after the edit
+ * where it is back in step with the scan of the text before the edit, takes the
+ * rest from that scan, so a candidate repair costs about the lines it changes,
+ * not the whole text.
  */
 final class Scanner {
     static final int UNTERMINATED_STRING = 0;
@@ -35,11 +41,14 @@ final class Scanner {
      *  copying or searching whole stacks for it would make the scan quadratic. */
     private static final int WINDOW = 32;
 
+    /** How many open brackets a line may start under and still be a line a rescan resumes at or
+     *  rejoins; lines deeper than that are scanned again. */
+    private static final int LOGGED = 32;
+
     private static final int F_STRING = 0;
     private static final int F_FIELD = 1;
     private static final int F_SPEC = 2;
 
-    final String text;
     final char[] s;
     final int n;
 
@@ -50,6 +59,32 @@ final class Scanner {
     final int[] lineDepth;
     final boolean[] lineCont;
     final int[] lineComment;
+
+    /** Checkpoints, in text order and CP ints each: where the scan stood at the start of each line
+     *  that starts in code and right after each string that ran over lines, places the scan so far
+     *  never looked past. Each holds the position, the line, the kind, the depth, the statement
+     *  indent, how many problems and suspects came before, and where {@code stackLog} keeps the open
+     *  brackets (-1 when there were more than {@link #LOGGED}). A rescan resumes at one before the
+     *  edit and rejoins at one after it. */
+    private static final int CP = 8;
+    private static final int AT = 0;
+    private static final int LINE = 1;
+    private static final int KIND = 2;
+    private static final int DEPTH = 3;
+    private static final int INDENT = 4;
+    private static final int PROBLEMS = 5;
+    private static final int SUSPECTS = 6;
+    private static final int STACK = 7;
+    private static final int LINE_START = 0;
+    private static final int CONTINUATION = 1;
+    private static final int STRING_END = 2;
+    private int[] cp;
+    private int cps;
+    private int[] stackLog = new int[16];
+    private int logged;
+
+    /** The first character that is not whitespace, the only place a quote marker counts. */
+    private int lead;
 
     /** Problems in the order found; the UNCLOSED ones come last, found at the end of the text.
      *  {@code at} is the newline that ended an unterminated string, or the opener a mismatched
@@ -82,32 +117,153 @@ final class Scanner {
     private int cursor;
     private int stmtIndent;
 
+    /** While rescanning: the scan of the text before the edit, the edit as {@code [from, to)} of that
+     *  text, how far it moved what follows, how many lines it added, and the next checkpoint of
+     *  {@code base} to rejoin at. {@code done} once the rest came from {@code base}. */
+    private Scanner base;
+    private int from;
+    private int to;
+    private int shift;
+    private int lineShift;
+    private int next;
+    private boolean done;
+
+    /** Set by a triple-quoted string that closed on a later line than it opened. */
+    private boolean crossed;
+
     Scanner(String text) {
-        this.text = text;
-        this.s = text.toCharArray();
+        this(text.toCharArray());
+    }
+
+    Scanner(char[] s) {
+        this(s, starts(s));
+    }
+
+    private Scanner(char[] s, int[] lineStart) {
+        this.s = s;
         this.n = s.length;
-        int c = 1;
-        for (int i = 0; i < n; i++) {
-            if (s[i] == '\n') c++;
-        }
-        lines = c;
-        lineStart = new int[c];
-        for (int i = 0, l = 1; i < n; i++) {
-            if (s[i] == '\n') lineStart[l++] = i + 1;
-        }
-        lineDepth = new int[c];
+        this.lines = lineStart.length;
+        this.lineStart = lineStart;
+        lineDepth = new int[lines];
         Arrays.fill(lineDepth, -1);
-        lineCont = new boolean[c];
-        lineComment = new int[c];
+        lineCont = new boolean[lines];
+        lineComment = new int[lines];
         Arrays.fill(lineComment, -1);
     }
 
+    private static int[] starts(char[] s) {
+        int c = 1;
+        for (char ch : s) {
+            if (ch == '\n') c++;
+        }
+        int[] starts = new int[c];
+        for (int i = 0, l = 1; l < c; i++) {
+            if (s[i] == '\n') starts[l++] = i + 1;
+        }
+        return starts;
+    }
+
     Scanner scan() {
+        cp = new int[CP * (lines + 8)];
         line(0, false);
         int i = 0;
         while (i < n && Character.isWhitespace(s[i])) i++;
+        lead = i;
         if (i < n && s[i] == '>') add(MARKER, i, -1, null);
-        i = 0;
+        return run(0);
+    }
+
+    /**
+     * Scans {@code t}: the text of {@code base} with its {@code [from, to)} replaced by
+     * {@code t[from, to + t.length - base.n)}. Answers exactly what {@code new Scanner(t).scan()}
+     * answers, but resumes at the last checkpoint of {@code base} before the edit and, at the first
+     * checkpoint after it where the scan stands where the scan of {@code base} stood, takes the rest
+     * from {@code base}.
+     */
+    static Scanner rescan(Scanner base, char[] t, int from, int to) {
+        int shift = t.length - base.n;
+        int end = to + shift;
+        int keep = base.lineOf(from) + 1;
+        int tail = base.lineOf(to) + 1;
+        int added = 0;
+        for (int i = from; i < end; i++) {
+            if (t[i] == '\n') added++;
+        }
+        int[] starts = new int[keep + added + base.lines - tail];
+        System.arraycopy(base.lineStart, 0, starts, 0, keep);
+        int l = keep;
+        for (int i = from; i < end; i++) {
+            if (t[i] == '\n') starts[l++] = i + 1;
+        }
+        for (int k = tail; k < base.lines; k++) starts[l++] = base.lineStart[k] + shift;
+        Scanner x = new Scanner(t, starts);
+        x.base = base;
+        x.from = from;
+        x.to = to;
+        x.shift = shift;
+        x.lineShift = keep + added - tail;
+        x.next = base.checkpointAfter(to);
+        int c = base.checkpointAfter(from) - 1;
+        while (c > 0 && base.cp[c * CP + STACK] < 0) c--;
+        return c > 0 && from > base.lead ? x.resume(c) : x.scan();
+    }
+
+    /** The first checkpoint after position {@code p}. */
+    private int checkpointAfter(int p) {
+        int lo = 0;
+        int hi = cps;
+        while (lo < hi) {
+            int mid = (lo + hi) >>> 1;
+            if (cp[mid * CP + AT] <= p) lo = mid + 1;
+            else hi = mid;
+        }
+        return lo;
+    }
+
+    /** Continues from checkpoint {@code c} of {@code base}, which lies before the edit. */
+    private Scanner resume(int c) {
+        Scanner b = base;
+        int[] q = b.cp;
+        int o = c * CP;
+        int p = q[o + AT];
+        int l = q[o + LINE];
+        int k = q[o + KIND];
+        lead = b.lead;
+        System.arraycopy(b.lineDepth, 0, lineDepth, 0, l);
+        System.arraycopy(b.lineCont, 0, lineCont, 0, l);
+        System.arraycopy(b.lineComment, 0, lineComment, 0, l);
+        cps = k == STRING_END ? c + 1 : c;
+        cp = new int[Math.max(q.length, CP * (cps + 16))];
+        System.arraycopy(q, 0, cp, 0, cps * CP);
+        depth = q[o + DEPTH];
+        int so = q[o + STACK];
+        logged = k == STRING_END ? so + depth : so;
+        stackLog = new int[logged + depth + 16];
+        System.arraycopy(b.stackLog, 0, stackLog, 0, logged);
+        count = q[o + PROBLEMS];
+        int m = Math.max(8, count * 2);
+        kind = Arrays.copyOf(b.kind, m);
+        pos = Arrays.copyOf(b.pos, m);
+        at = Arrays.copyOf(b.at, m);
+        open = Arrays.copyOf(b.open, m);
+        suspects = q[o + SUSPECTS];
+        suspectLine = Arrays.copyOf(b.suspectLine, Math.max(4, suspects * 2));
+        suspectOpen = Arrays.copyOf(b.suspectOpen, Math.max(4, suspects * 2));
+        if (depth > stPos.length) {
+            stPos = new int[depth * 2];
+            stCh = new char[depth * 2];
+        }
+        for (int d = 0; d < depth; d++) {
+            stPos[d] = b.stackLog[so + d];
+            stCh[d] = s[stPos[d]];
+        }
+        stmtIndent = q[o + INDENT];
+        cursor = l;
+        if (k != STRING_END) line(p, k == CONTINUATION);
+        return run(p);
+    }
+
+    private Scanner run(int i) {
         while (i < n) {
             if (frames == 0) {
                 i = code(i, 0);
@@ -116,6 +272,8 @@ final class Scanner {
                 i = t == F_STRING ? literal(i) : t == F_FIELD ? code(i, fBase[frames - 1]) : spec(i);
             }
         }
+        base = null;
+        if (done) return this;
         if (frames > 0) {
             add(fTriple[0] ? UNTERMINATED_TRIPLE : UNTERMINATED_STRING, fStart[0], n, null);
             depth = fBase[0];
@@ -152,7 +310,10 @@ final class Scanner {
         return switch (c) {
             case ' ', '\t', '\f', '\r' -> i + 1;
             case '\n' -> {
-                if (frames == 0) line(i + 1, false);
+                if (frames == 0) {
+                    line(i + 1, false);
+                    if (done) yield n;
+                }
                 yield i + 1;
             }
             case '#' -> {
@@ -165,13 +326,16 @@ final class Scanner {
                 int j = i + 1;
                 if (j < n && s[j] == '\r') j++;
                 if (j < n && s[j] == '\n') {
-                    if (frames == 0) line(j + 1, true);
+                    if (frames == 0) {
+                        line(j + 1, true);
+                        if (done) yield n;
+                    }
                     yield j + 1;
                 }
                 add(STRAY_BACKSLASH, i, -1, null);
                 yield i + 1;
             }
-            case '\'', '"' -> string(i, i, false);
+            case '\'', '"' -> ended(string(i, i, false));
             case '(', '[', '{' -> {
                 push(i, c);
                 yield i + 1;
@@ -208,7 +372,7 @@ final class Scanner {
                     }
                     if (j < n && j - i <= 2 && (s[j] == '\'' || s[j] == '"')) {
                         int p = prefix(i, j);
-                        if (p >= 0) yield string(i, j, p == 1);
+                        if (p >= 0) yield ended(string(i, j, p == 1));
                     }
                     yield j;
                 }
@@ -227,9 +391,16 @@ final class Scanner {
         while (p < n && (s[p] == ' ' || s[p] == '\t')) p++;
         for (String k : COMPOUND) {
             int e = p + k.length();
-            if (e < n && text.startsWith(k, p) && !identPart(s[e])) return true;
+            if (e < n && startsWith(k, p) && !identPart(s[e])) return true;
         }
         return false;
+    }
+
+    private boolean startsWith(String k, int p) {
+        for (int j = 0; j < k.length(); j++) {
+            if (s[p + j] != k.charAt(j)) return false;
+        }
+        return true;
     }
 
     /** -1 when {@code [i, j)} is no string prefix, 1 for an f- or t-string, 0 otherwise. */
@@ -274,6 +445,7 @@ final class Scanner {
             fTriple[frames - 1] = triple;
             return j;
         }
+        boolean spans = false;
         while (j < n) {
             char c = s[j];
             if (c == '\\') {
@@ -282,10 +454,16 @@ final class Scanner {
             }
             if (c == q) {
                 if (!triple) return j + 1;
-                if (j + 2 < n && s[j + 1] == q && s[j + 2] == q) return j + 3;
-            } else if (c == '\n' && !triple) {
-                add(UNTERMINATED_STRING, start, j, null);
-                return j;
+                if (j + 2 < n && s[j + 1] == q && s[j + 2] == q) {
+                    crossed = spans;
+                    return j + 3;
+                }
+            } else if (c == '\n') {
+                if (!triple) {
+                    add(UNTERMINATED_STRING, start, j, null);
+                    return j;
+                }
+                spans = true;
             }
             j++;
         }
@@ -453,8 +631,11 @@ final class Scanner {
      *  statement while brackets are open. */
     private void line(int p, boolean cont) {
         int l = lineAt(p);
+        int k = cont ? CONTINUATION : LINE_START;
+        if (rejoined(p, k)) return;
         lineDepth[l] = depth;
         lineCont[l] = cont;
+        checkpoint(p, l, k);
         if (cont) return;
         int f = p;
         while (f < n && (s[f] == ' ' || s[f] == '\t' || s[f] == '\f')) f++;
@@ -463,14 +644,140 @@ final class Scanner {
         if (depth == 0) {
             stmtIndent = col;
         } else if (col <= stmtIndent && startsStatement(f)) {
-            if (suspects == suspectLine.length) {
-                suspectLine = Arrays.copyOf(suspectLine, suspects * 2);
-                suspectOpen = Arrays.copyOf(suspectOpen, suspects * 2);
-            }
-            suspectLine[suspects] = l;
-            suspectOpen[suspects] = openWindow();
-            suspects++;
+            suspect(l, openWindow());
         }
+    }
+
+    /** Right after a string that ran over lines, in code: a checkpoint, since its line started inside
+     *  the string and nothing before it looked further. */
+    private int ended(int j) {
+        if (!crossed) return j;
+        crossed = false;
+        if (frames > 0) return j;
+        int l = lineAt(j);
+        if (rejoined(j, STRING_END)) return n;
+        checkpoint(j, l, STRING_END);
+        return j;
+    }
+
+    private void suspect(int l, int[] o) {
+        if (suspects == suspectLine.length) {
+            suspectLine = Arrays.copyOf(suspectLine, suspects * 2);
+            suspectOpen = Arrays.copyOf(suspectOpen, suspects * 2);
+        }
+        suspectLine[suspects] = l;
+        suspectOpen[suspects] = o;
+        suspects++;
+    }
+
+    private void checkpoint(int p, int l, int k) {
+        int o = cps * CP;
+        if (o == cp.length) cp = Arrays.copyOf(cp, o * 2);
+        cp[o + AT] = p;
+        cp[o + LINE] = l;
+        cp[o + KIND] = k;
+        cp[o + DEPTH] = depth;
+        cp[o + INDENT] = stmtIndent;
+        cp[o + PROBLEMS] = count;
+        cp[o + SUSPECTS] = suspects;
+        cp[o + STACK] = log();
+        cps++;
+    }
+
+    /** Records the open brackets; where they went, or -1 when there are too many. */
+    private int log() {
+        if (depth > LOGGED) return -1;
+        int o = logged;
+        if (depth > 0) {
+            if (o + depth > stackLog.length) stackLog = Arrays.copyOf(stackLog, Math.max(o + depth, o * 2));
+            System.arraycopy(stPos, 0, stackLog, o, depth);
+            logged = o + depth;
+        }
+        return o;
+    }
+
+    /** Whether the scan, at a checkpoint after the edit, stands where the scan of {@code base} stood
+     *  at the same place; if so, it ends with what that scan found from there on. */
+    private boolean rejoined(int p, int k) {
+        if (base == null || p <= to + shift) return false;
+        Scanner b = base;
+        int[] q = b.cp;
+        int want = p - shift;
+        int j = next;
+        while (j < b.cps && q[j * CP + AT] < want) j++;
+        next = j;
+        if (j == b.cps) return false;
+        int o = j * CP;
+        if (q[o + AT] != want || q[o + KIND] != k || q[o + DEPTH] != depth || q[o + INDENT] != stmtIndent) {
+            return false;
+        }
+        int so = q[o + STACK];
+        if (so < 0) return false;
+        for (int d = 0; d < depth; d++) {
+            if (moved(b.stackLog[so + d]) != stPos[d]) return false;
+        }
+        stitch(j);
+        return true;
+    }
+
+    /** Ends the scan with what {@code base} found from its checkpoint {@code j} on. */
+    private void stitch(int j) {
+        Scanner b = base;
+        int[] q = b.cp;
+        int o = j * CP;
+        int kb = q[o + LINE];
+        int l = kb + lineShift;
+        int m = b.lines - kb;
+        System.arraycopy(b.lineDepth, kb, lineDepth, l, m);
+        System.arraycopy(b.lineCont, kb, lineCont, l, m);
+        for (int i = 0; i < m; i++) {
+            int c = b.lineComment[kb + i];
+            lineComment[l + i] = c < 0 ? c : c + shift;
+        }
+        int dp = count - q[o + PROBLEMS];
+        int ds = suspects - q[o + SUSPECTS];
+        int so = q[o + STACK];
+        int dl = logged - so;
+        int size = (cps + b.cps - j) * CP;
+        if (size > cp.length) cp = Arrays.copyOf(cp, size);
+        for (int i = j; i < b.cps; i++) {
+            int f = i * CP;
+            int g = cps++ * CP;
+            cp[g + AT] = q[f + AT] + shift;
+            cp[g + LINE] = q[f + LINE] + lineShift;
+            cp[g + KIND] = q[f + KIND];
+            cp[g + DEPTH] = q[f + DEPTH];
+            cp[g + INDENT] = q[f + INDENT];
+            cp[g + PROBLEMS] = q[f + PROBLEMS] + dp;
+            cp[g + SUSPECTS] = q[f + SUSPECTS] + ds;
+            int st = q[f + STACK];
+            cp[g + STACK] = st < 0 ? st : st + dl;
+        }
+        int len = b.logged - so;
+        if (logged + len > stackLog.length) stackLog = Arrays.copyOf(stackLog, logged + len);
+        for (int i = 0; i < len; i++) stackLog[logged + i] = moved(b.stackLog[so + i]);
+        logged += len;
+        for (int i = q[o + PROBLEMS]; i < b.count; i++) {
+            add(b.kind[i], moved(b.pos[i]), moved(b.at[i]), moved(b.open[i]));
+        }
+        for (int i = q[o + SUSPECTS]; i < b.suspects; i++) {
+            suspect(b.suspectLine[i] + lineShift, moved(b.suspectOpen[i]));
+        }
+        endsInCode = b.endsInCode;
+        done = true;
+    }
+
+    /** Where position {@code p} of the text of {@code base} is now: -1 when the edit replaced it;
+     *  negative values mean no position and stay. */
+    private int moved(int p) {
+        return p < from ? p : p >= to ? p + shift : -1;
+    }
+
+    private int[] moved(int[] o) {
+        if (o == null || shift == 0) return o;
+        int[] r = new int[o.length];
+        for (int j = 0; j < o.length; j++) r[j] = moved(o[j]);
+        return r;
     }
 
     private int width(int from, int to) {
@@ -488,7 +795,7 @@ final class Scanner {
         int j = f + 1;
         while (j < n && identPart(s[j])) j++;
         if (j < n && (s[j] == '\'' || s[j] == '"')) return false;
-        switch (text.substring(f, j)) {
+        switch (new String(s, f, j - f)) {
             case "def", "class", "return", "import", "from", "with", "try", "except", "finally", "elif",
                  "while", "raise", "pass", "break", "continue", "del", "global", "nonlocal", "assert",
                  "async", "await" -> {

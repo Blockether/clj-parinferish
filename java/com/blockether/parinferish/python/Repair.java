@@ -102,7 +102,8 @@ public final class Repair {
         if (problems.isEmpty()) return new Result(source, false, true, new ArrayList<>(), problems);
         Work w = new Work(source, first, errorLine);
         w.run();
-        return new Result(w.cur, !w.cur.equals(source), w.sc.count == 0, w.fixes, problems);
+        String text = w.sc == first ? source : new String(w.s);
+        return new Result(text, !text.equals(source), w.sc.count == 0, w.fixes, problems);
     }
 
     /** The delimiter problems of {@code source}, without repairing anything. */
@@ -154,7 +155,6 @@ public final class Repair {
         int[] at = new int[2];
         int[] del = new int[2];
         String[] ins = new String[2];
-        String text;
         Cand then;
         long own;
         Scanner scanner;
@@ -194,14 +194,21 @@ public final class Repair {
             return o;
         }
 
-        String apply(String cur) {
-            StringBuilder b = new StringBuilder(cur.length() + 16);
+        char[] apply(char[] cur) {
+            int len = cur.length;
+            for (int k = 0; k < edits; k++) len += ins[k].length() - del[k];
+            char[] t = new char[len];
             int prev = 0;
+            int w = 0;
             for (int k : order()) {
-                b.append(cur, prev, at[k]).append(ins[k]);
+                System.arraycopy(cur, prev, t, w, at[k] - prev);
+                w += at[k] - prev;
+                ins[k].getChars(0, ins[k].length(), t, w);
+                w += ins[k].length();
                 prev = at[k] + del[k];
             }
-            return b.append(cur, prev, cur.length()).toString();
+            System.arraycopy(cur, prev, t, w, cur.length - prev);
+            return t;
         }
 
         /** Maps a position in the applied text back to the text before the edits. */
@@ -222,7 +229,6 @@ public final class Repair {
         final String original;
         final Scanner first;
         final int errorLine;
-        String cur;
         Scanner sc;
         char[] s;
         int n;
@@ -244,14 +250,27 @@ public final class Repair {
             this.first = first;
             this.errorLine = errorLine;
             this.budget = 64L * Math.max(original.length(), 4096);
-            use(original, first);
+            use(first);
         }
 
-        void use(String text, Scanner scanner) {
-            cur = text;
+        void use(Scanner scanner) {
             sc = scanner;
             s = scanner.s;
             n = scanner.n;
+        }
+
+        /** Applies {@code c} to the text {@code x} scanned, charges the budget for the result and
+         *  scans it, reusing the scan of {@code x} away from the edits. */
+        Scanner scan(Cand c, Scanner x) {
+            char[] t = c.apply(x.s);
+            budget -= t.length;
+            int from = x.n;
+            int to = 0;
+            for (int k = 0; k < c.edits; k++) {
+                from = Math.min(from, c.at[k]);
+                to = Math.max(to, c.at[k] + c.del[k]);
+            }
+            return Scanner.rescan(x, t, from, Math.max(from, to));
         }
 
         void run() {
@@ -263,14 +282,11 @@ public final class Repair {
                 long[] bestScore = {score[0], score[1], -1};
                 for (Cand c : candidates()) {
                     if (budget <= 0) break;
-                    String t = c.apply(cur);
-                    budget -= t.length();
-                    Scanner next = new Scanner(t).scan();
-                    long[] sc2 = c.kind == TRIPLE_QUOTE ? chained(c, t, next, 0) : score(next);
+                    Scanner next = scan(c, sc);
+                    long[] sc2 = c.kind == TRIPLE_QUOTE ? chained(c, next, 0) : score(next);
                     if (less(sc2, bestScore)) {
                         best = c;
                         bestScore = sc2;
-                        c.text = t;
                         c.scanner = next;
                     }
                 }
@@ -286,12 +302,12 @@ public final class Repair {
         }
 
         /**
-         * Scores triple-quote candidate {@code c}, applied as {@code t} and scanned as {@code x}, together with
+         * Scores triple-quote candidate {@code c}, applied and scanned as {@code x}, together with
          * the best conversions of the unterminated strings that open right after its closing quote on the same
          * line: consecutive multi-line values such as {@code [{'a':'...'},{'b':'...'}]}. Links the chosen
          * follow-up through {@code c.then}; the third score element counts the characters the strings take in.
          */
-        long[] chained(Cand c, String t, Scanner x, int depth) {
+        long[] chained(Cand c, Scanner x, int depth) {
             long[] best = score(x);
             best[2] = c.own;
             int end = c.at[1] + 5;
@@ -300,18 +316,17 @@ public final class Repair {
                 || x.lineOf(x.pos[k]) != x.lineOf(end - 1)) {
                 return best;
             }
-            String saveCur = cur;
             Scanner saveSc = sc;
             int saveKind = pKind;
             int savePos = pPos;
             int saveAt = pAt;
             List<Cand> follow = new ArrayList<>();
-            use(t, x);
+            use(x);
             pKind = x.kind[k];
             pPos = x.pos[k];
             pAt = x.at[k];
             unterminated(follow);
-            use(saveCur, saveSc);
+            use(saveSc);
             pKind = saveKind;
             pPos = savePos;
             pAt = saveAt;
@@ -319,15 +334,12 @@ public final class Repair {
             for (Cand f : follow) {
                 if (f.kind != TRIPLE_QUOTE) continue;
                 if (tried++ == 3 || budget <= 0) break;
-                String t2 = f.apply(t);
-                budget -= t2.length();
-                Scanner x2 = new Scanner(t2).scan();
-                long[] s2 = chained(f, t2, x2, depth + 1);
+                Scanner x2 = scan(f, x);
+                long[] s2 = chained(f, x2, depth + 1);
                 s2[2] += c.own;
                 if (less(s2, best)) {
                     best = s2;
                     c.then = f;
-                    f.text = t2;
                     f.scanner = x2;
                 }
             }
@@ -810,10 +822,8 @@ public final class Repair {
             if (ip < 0 || ip <= open[open.length - 1]) return null;
             String cl = closers(open, 0);
             Cand c = new Cand(CLOSE_BRACKETS, open[0], -1).edit(ip, 0, cl);
-            String t = c.apply(cur);
             for (int k = 0; k < open.length && budget > 0; k++) {
-                Scanner x = new Scanner(t).scan();
-                budget -= t.length();
+                Scanner x = scan(c, sc);
                 int u = -1;
                 int from = ip + cl.length();
                 for (int j = 0; j < x.count; j++) {
@@ -821,7 +831,6 @@ public final class Repair {
                 }
                 if (u < 0 || x.kind[u] != Scanner.UNMATCHED) break;
                 c.edit(c.back(x.pos[u]), 1, "");
-                t = c.apply(cur);
             }
             return c;
         }
@@ -851,7 +860,7 @@ public final class Repair {
             if (!Scanner.identStart(c)) return false;
             int j = k + 1;
             while (j < n && Scanner.identPart(s[j])) j++;
-            return switch (cur.substring(k, j)) {
+            return switch (new String(s, k, j - k)) {
                 case "if", "else", "for", "in", "is", "and", "or", "not" -> true;
                 default -> false;
             };
@@ -923,7 +932,7 @@ public final class Repair {
                 logIns[logSize] = c.ins[e].length();
                 logSize++;
             }
-            use(c.text, c.scanner);
+            use(c.scanner);
         }
 
         int toOriginal(int p) {
@@ -959,7 +968,7 @@ public final class Repair {
                     + " that ended the string early";
                 case EXTEND_TRIPLE -> where + "completed the closing " + repeat(s[c.ref2], 3) + " at column "
                     + col + " of the triple-quoted string from line " + line(c.ref);
-                case SWAP_TRIPLE -> where + "changed the closing " + cur.substring(c.ref2, c.ref2 + 3)
+                case SWAP_TRIPLE -> where + "changed the closing " + new String(s, c.ref2, 3)
                     + " at column " + col + " to " + c.ins[0] + " to match the string from line " + line(c.ref);
                 case CLOSE_TRIPLE -> where + "added the missing closing " + c.ins[0] + " at column " + col
                     + " for the triple-quoted string from line " + line(c.ref);

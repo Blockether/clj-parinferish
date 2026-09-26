@@ -124,6 +124,93 @@
         (doseq [[{:keys [name cpython result repair]} check] (map vector rows checks)]
           (is (= result (corpus/outcome (= "ok" cpython) repair (:ok? check))) name))))))
 
+;; Rescan: the repair scans every candidate by rescanning the text it edited, so a
+;; rescan must find exactly what a scan of the whole edited text finds, including
+;; where each line left the scan, because the next rescan starts from those.
+
+(def ^:private scanner-class (Class/forName "com.blockether.parinferish.python.Scanner"))
+
+(defn- accessible [^java.lang.reflect.AccessibleObject o]
+  (doto o (.setAccessible true)))
+
+(def ^:private scanner-ctor
+  (accessible (.getDeclaredConstructor ^Class scanner-class (into-array Class [String]))))
+
+(def ^:private scan-method
+  (accessible (.getDeclaredMethod ^Class scanner-class "scan" (into-array Class []))))
+
+(def ^:private rescan-method
+  (accessible (.getDeclaredMethod ^Class scanner-class "rescan"
+                                  (into-array Class [scanner-class (Class/forName "[C")
+                                                     Integer/TYPE Integer/TYPE]))))
+
+(defn- scan [^String text]
+  (.invoke ^java.lang.reflect.Method scan-method
+           (.newInstance ^java.lang.reflect.Constructor scanner-ctor (object-array [text]))
+           (object-array 0)))
+
+(defn- rescan [base ^String text from to]
+  (.invoke ^java.lang.reflect.Method rescan-method nil
+           (object-array [base (.toCharArray text) (int from) (int to)])))
+
+(def ^:private scanner-fields
+  (into {}
+        (map (fn [n]
+               (let [^java.lang.reflect.Field f (accessible (.getDeclaredField ^Class scanner-class n))]
+                 [(keyword n) #(let [v (.get f %)] (if (and v (.isArray (class v))) (vec v) v))])))
+        ["n" "lines" "lineStart" "lineDepth" "lineCont" "lineComment" "count" "kind" "pos" "at" "open"
+         "suspects" "suspectLine" "suspectOpen" "endsInCode" "lead" "cp" "cps" "stackLog"]))
+
+(defn- scan-state
+  "What scanner `x` found, and its checkpoints, as data."
+  [x]
+  (let [g #((scanner-fields %) x)
+        log (g :stackLog)
+        firsts (fn [k m] (subvec (g k) 0 (g m)))]
+    {:n (g :n)
+     :lines (g :lineStart)
+     :depth (g :lineDepth)
+     :cont (g :lineCont)
+     :comment (g :lineComment)
+     :problems (mapv vector (firsts :kind :count) (firsts :pos :count) (firsts :at :count)
+                     (mapv #(some-> % vec) (firsts :open :count)))
+     :suspects (mapv vector (firsts :suspectLine :suspects) (mapv vec (firsts :suspectOpen :suspects)))
+     :ends-in-code (g :endsInCode)
+     :lead (g :lead)
+     :checkpoints (mapv (fn [c]
+                          (let [[at line kind depth indent problems suspects stack]
+                                (subvec (g :cp) (* 8 c) (* 8 (inc c)))]
+                            [at line kind depth indent problems suspects
+                             (when-not (neg? stack) (subvec log stack (+ stack depth)))]))
+                        (range (g :cps)))}))
+
+(def ^:private edit-snippets
+  ["\"" "'" "\"\"\"" "'''" "(" ")" "[" "]" "{" "}" "\n" "\\" "\\\n" "#" ":" ";" "f\"" "f'{" "}'"
+   "x" " " "    " "def f():\n" "if x:\n" "\n    " "print(" "\"\"\"\n" "rb'" "» " "“" ""])
+
+(defn- random-edit
+  "A seeded edit of `text` as [from to inserted]: up to a few characters, now and then a few lines."
+  [^java.util.Random rng ^String text]
+  (let [n (count text)
+        from (long (case (.nextInt rng 16) 0 0 1 n (.nextInt rng (inc n))))
+        del (min (- n from) (if (zero? (.nextInt rng 8)) (.nextInt rng 200) (.nextInt rng 4)))
+        ins (apply str (repeatedly (inc (.nextInt rng 2))
+                                   #(edit-snippets (.nextInt rng (count edit-snippets)))))]
+    [from (+ from del) ins]))
+
+(deftest rescan-test
+  (testing "rescanning a chain of edits finds what scanning each edited text finds"
+    (let [rng (java.util.Random. 20260527)]
+      (doseq [name (corpus/case-names)
+              :let [source (corpus/source name)]]
+        (loop [base (scan source) text source k 0]
+          (when (< k 12)
+            (let [[from to ins] (random-edit rng text)
+                  edited (str (subs text 0 from) ins (subs text to))
+                  x (rescan base edited from to)]
+              (is (= (scan-state (scan edited)) (scan-state x)) (pr-str [name k from to ins]))
+              (recur x edited (inc k)))))))))
+
 ;; Time
 
 (defn- best-nanos
