@@ -1,7 +1,7 @@
 cpython: line 87, column 63: unterminated string literal (detected at line 87)
 result: repaired
 fix: line 87: escaped the " at column 60 that ended the string early
-problem: line 87, column 63: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 87, column 63: the string is not closed on its line
 problem: line 97, column 1: ']' does not match '{' from line 85, column 3
 --- text after repair
 p = project_root_path / "src/com/blockether/vis/internal/docs/core.clj"

@@ -2,10 +2,10 @@ cpython: line 1, column 138: unterminated string literal (detected at line 1)
 result: repaired
 fix: line 1: made the string at column 138 triple-quoted (''') because its text continues onto the next lines; it now ends on line 2
 fix: line 2: made the string at column 108 triple-quoted (''') because its text continues onto the next lines; it now ends on line 3
-problem: line 1, column 138: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
-problem: line 2, column 90: the string from column 87 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 2, column 99: the string from column 96 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 3, column 28: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 138: the string is not closed on its line
+problem: line 2, column 90: the string from column 87 ends right before this text
+problem: line 2, column 99: the string from column 96 ends right before this text
+problem: line 3, column 28: the string is not closed on its line
 problem: line 6, column 136: ';' ends the statement while '{' from line 1, column 97 is still open
 --- text after repair
 print(patch(project_root_path / 'src/com/blockether/vis/internal/extension/native_preload.clj',[{'from':'20:15f','to':'21:6c4','replace':'''   compiled namespace tree. Formatter and analyzer dependencies are required here:

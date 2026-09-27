@@ -1,7 +1,7 @@
 cpython: line 16, column 85: unterminated string literal (detected at line 16)
 result: repaired
 fix: line 16: escaped the ' at column 82 that ended the string early
-problem: line 16, column 85: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 16, column 85: the string is not closed on its line
 problem: line 21, column 1: ']' does not match '{' from line 9, column 2
 --- text after repair
 native_edit=await patch(spel_root/'src/com/blockether/spel/native.clj',[

@@ -2,8 +2,8 @@ cpython: line 29, column 69: unterminated string literal (detected at line 29)
 result: repaired
 fix: line 29: added the missing closing " at column 39
 problem: line 29, column 25: '(' is never closed
-problem: line 29, column 64: the string from column 26 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 29, column 69: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 29, column 64: the string from column 26 ends right before this text
+problem: line 29, column 69: the string is not closed on its line
 --- text after repair
 import urllib.request, json
 

@@ -5,7 +5,7 @@ problem: line 1, column 273: '(' is never closed
 problem: line 1, column 278: '(' is never closed
 problem: line 1, column 279: '{' is never closed
 problem: line 1, column 359: '[' is never closed
-problem: line 1, column 531: the string from column 473 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 538: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 531: the string from column 473 ends right before this text
+problem: line 1, column 538: the string is not closed on its line
 --- text after repair
 print(await list_sessions(search='plan workflow annotator')); print(await council.members()); print(doc('agents.spawn')); print(ls([project_root_path / 'apps/vis-companion', project_root_path / 'apps/vis-tui', project_root_path / 'packages/vis-contract'], depth=1)); print(grep({'query':['PlanAction','planAction','plan-action','available-actions'], 'paths':[project_root_path / 'apps/vis-companion/src/lib',project_root_path / 'packages/vis-contract',project_root_path / 'apps/vis-tui/src/com/blockether/vis/tui/annotator.clj'], 'context':2}))

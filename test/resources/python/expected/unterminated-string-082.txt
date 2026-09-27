@@ -5,7 +5,7 @@ problem: line 1, column 6: '(' is never closed
 problem: line 1, column 18: '(' is never closed
 problem: line 1, column 35: '[' is never closed
 problem: line 1, column 36: '{' is never closed
-problem: line 1, column 64: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 1, column 64: the string is not closed on its line
 --- text after repair
 print(await patch(str(main_test), [{"from":"90:4e4", "replace":"            (expect (= [:clojure] @calls) (pr-str args))))"}]))
 res = await run_tests({"language":"clojure","paths":["test/com/blockether/vis/internal/main_test.clj::dispatch-extension-initialization-test"]})

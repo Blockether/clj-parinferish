@@ -4,8 +4,8 @@ fix: line 15: made the string at column 52 triple-quoted (""") because its text 
 fix: line 41: added ')]' at column 11 to close the brackets from line 1
 problem: line 1, column 14: '[' is never closed
 problem: line 2, column 2: '{' is never closed
-problem: line 15, column 52: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
-problem: line 19, column 73: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 15, column 52: the string is not closed on its line
+problem: line 19, column 73: the string is not closed on its line
 --- text after repair
 screen_edits=[
  {'from':'5003:418','to':'5013:ba8','replace':'''(defn- create-terminal!

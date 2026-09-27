@@ -214,7 +214,7 @@ final class Scanner {
         x.lineShift = keep + added - tail;
         x.next = base.checkpointAfter(to);
         int c = base.checkpointAfter(from) - 1;
-        while (c > 0 && base.cp[c * CP + STACK] < 0) c--;
+        while (c > 0 && (base.cp[c * CP + STACK] < 0 || base.readTo(c) >= from)) c--;
         return c > 0 && from > base.lead ? x.resume(c) : x.scan();
     }
 
@@ -228,6 +228,17 @@ final class Scanner {
             else hi = mid;
         }
         return lo;
+    }
+
+    /** The last position the scan read before it took checkpoint {@code c}: the one before a line
+     *  start, and after a string whatever {@link #touches} read past its closing quote. */
+    private int readTo(int c) {
+        int p = cp[c * CP + AT];
+        if (cp[c * CP + KIND] != STRING_END) return p - 1;
+        if (p >= n || !identStart(s[p])) return p;
+        int k = p + 1;
+        while (k < n && identPart(s[k])) k++;
+        return k;
     }
 
     /** Continues from checkpoint {@code c} of {@code base}, which lies before the edit. */

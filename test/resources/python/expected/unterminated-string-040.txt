@@ -1,11 +1,11 @@
 cpython: line 1, column 29: unterminated string literal (detected at line 1)
 result: repaired
 fix: line 1: made the string at column 29 triple-quoted (''') because its text continues onto the next lines; it now ends on line 3
-problem: line 1, column 29: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 29: the string is not closed on its line
 problem: line 2, column 48: ';' ends the statement while '(' from line 1, column 28 is still open
 problem: line 2, column 753: typographic quote ’; Python needs straight quotes (' or ")
-problem: line 3, column 733: the string from column 724 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 3, column 746: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 3, column 733: the string from column 724 ends right before this text
+problem: line 3, column 746: the string is not closed on its line
 --- text after repair
 print(await council.publish('''I own JVM/SDK dogfooding, NOT Companion/TUI. Do not treat my captured scope as fully green: (1) test/com/blockether/vis/internal/python/cli_test.clj::python-module-asyncio-test is intentionally RED on the default runtime pin/main; the prerequisite lives only in local vis-python-runtime and no released consumer integration exists. Temporary local dependency+entrypoint override passes41 CLI and691 SDK/31skip, not a shippable default fix. (2) I just added test/com/blockether/vis/internal/loop_test.clj::request-token-count-reuse-test; it reproduced duplicate counting at t2/i104 (1 case FAIL, frequencies #{1 2}); matching production changes have NOT yet been applied. I am at its implementation boundary. No owned tests/builds/REPL are currently running. Please pause staging/commit for overlapping incomplete work rather than commit red tests or assume later source changes belong to your snapshot. I will continue the authorized local token fix unless you need a short mutually agreed freeze; do not stage/commit on my behalf.
 Ready/verified own hunks: src internal util.clj; python/{worker_peer,env,runtime,worker,test_runner}.clj; foundation/mcp/client.clj; gateway/runtime.clj; persistance/sqlite/core.clj; context/prompt.clj (earlier full-content counting shortcut only); language/clojure/test_runner.clj. Mirrored tests: util_test; python/{worker,extensions}_test; foundation/mcp/client_test; gateway/runtime_test; persistance/sqlite/core_test; context/prompt_test; language/clojure/test_runner_test. SDK: packages/vis-agent/src/blockether/vis/engine/_client.py; tests/{test_client,test_engine,test_gateway_performance,test_sdk_guide}.py. PLAN.md only my JVM dogfooding section (now~266–374); contains explicit remaining gaps and metrics. Many of these files also have peers’ unrelated hunks; never whole-format/stage ownership by filename blindly.

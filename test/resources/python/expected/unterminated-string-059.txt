@@ -1,7 +1,7 @@
 cpython: line 10, column 72: unterminated string literal (detected at line 10)
 result: repaired
 fix: line 10: added the missing closing " at column 73
-problem: line 10, column 72: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 10, column 72: the string is not closed on its line
 problem: line 14, column 2: ']' does not match '{' from line 10, column 3
 --- text after repair
 root=Path(session["workspace"]["root"])

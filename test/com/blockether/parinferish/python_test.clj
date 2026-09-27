@@ -108,6 +108,24 @@
             :problems [:unclosed-bracket :text-after-string :unterminated-string]}
            (summary "run(f\"\"\"git commit -m \"{msg}\"\"\"\", id=\"c1\")\n"))))
 
+  (testing "closes a string whose closing quote is missing before the code that follows it"
+    (is (= {:text "print(patch(root/'src/app.tsx',[{'from':'12:abc','replace':'x = 1'}]))\n"
+            :changed? true :clean? true :fixes [:close-quote]
+            :problems [:unclosed-bracket :unclosed-bracket :text-after-string :text-after-string
+                       :text-after-string :unterminated-string]}
+           (summary "print(patch(root/'src/app.tsx,[{'from':'12:abc','replace':'x = 1'}]))\n"))))
+
+  (testing "completes a triple-quoted value that ends with fewer than three quotes before the next value"
+    (doseq [[source text] [["patch(p,[{'from':'1:abc','replace':'''a = f(\"x\")''},{'from':'9:def','replace':'''b = 2\nc = 3'''}])\n"
+                            "patch(p,[{'from':'1:abc','replace':'''a = f(\"x\")'''},{'from':'9:def','replace':'''b = 2\nc = 3'''}])\n"]
+                           ["patch(p,[{'from':'1:abc','replace':'''def f():\n    \"\"\"Doc.\"\"\"\n    return 1'},{'from':'9:def','replace':'''x = 2'''}])\n"
+                            "patch(p,[{'from':'1:abc','replace':'''def f():\n    \"\"\"Doc.\"\"\"\n    return 1'''},{'from':'9:def','replace':'''x = 2'''}])\n"]]]
+      (is (= {:text text :changed? true :clean? true :fixes [:extend-triple-quote]
+              :problems [:unclosed-bracket :unclosed-bracket :unclosed-bracket :text-after-string
+                         :unterminated-triple-string]}
+             (summary source))
+          source)))
+
   (testing "escapes the quotes a string holds as text"
     (let [r (py/repair "print(\"He said \"hi\" to me\")\n")]
       (is (= "print(\"He said \\\"hi\\\" to me\")\n" (:text r)))
@@ -115,7 +133,7 @@
                :message "line 1: escaped the \" at columns 16 and 19 so the string keeps them as text"}]
              (:fixes r)))
       (is (= [{:kind :text-after-string :line 1 :column 17
-               :message "line 1, column 17: the string from column 7 ends right before this text; if its closing quote belongs to the text, escape it"}]
+               :message "line 1, column 17: the string from column 7 ends right before this text"}]
              (:problems r))))
     (is (= ["line 1: escaped the \" at columns 8, 10, 16 and 18 so the string keeps them as text"]
            (mapv :message (:fixes (py/repair "x = \"a \"p\" and \"q\" z\"\n")))))
@@ -136,7 +154,7 @@
       (is (= "x = \"a\"1\n" (:text r)))
       (is (false? (:clean? r)))
       (is (= [{:kind :text-after-string :line 1 :column 8
-               :message "line 1, column 8: the string from column 5 ends right before this text; if its closing quote belongs to the text, escape it"}]
+               :message "line 1, column 8: the string from column 5 ends right before this text"}]
              (:problems r)))))
 
   (testing "does not escape quotes on a line whose string is never closed"
@@ -314,6 +332,14 @@
     [from (+ from del) ins]))
 
 (deftest rescan-test
+  (testing "rescans the text an edit puts right after a string that ran over lines"
+    (doseq [[text from to ins] [["s = \"\"\"a\nb\"\"\"" 13 13 "x"]
+                                ["s = \"\"\"a\nb\"\"\"fo\n" 13 15 "f\"c\""]
+                                ["s = \"\"\"a\nb\"\"\"foo\n" 14 16 "\"c\""]]
+            :let [edited (str (subs text 0 from) ins (subs text to))]]
+      (is (= (scan-state (scan edited)) (scan-state (rescan (scan text) edited from to)))
+          (pr-str [text from to ins]))))
+
   (testing "rescanning a chain of edits finds what scanning each edited text finds"
     (let [rng (java.util.Random. 20260527)]
       (doseq [name (corpus/case-names)

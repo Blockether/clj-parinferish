@@ -5,10 +5,10 @@ problem: line 1, column 202: '(' is never closed
 problem: line 1, column 208: '(' is never closed
 problem: line 1, column 291: '[' is never closed
 problem: line 1, column 407: '{' is never closed
-problem: line 1, column 450: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
-problem: line 4, column 94: the string from column 64 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 4, column 107: the string from column 101 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 4, column 175: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 450: the string is not closed on its line
+problem: line 4, column 94: the string from column 64 ends right before this text
+problem: line 4, column 107: the string from column 101 ends right before this text
+problem: line 4, column 175: the string is not closed on its line
 --- text after repair
 print(cat(project_root_path / 'apps/vis-tui/src/com/blockether/vis/tui/live_view.clj',964,978)); print(cat(project_root_path / 'apps/vis-tui/src/com/blockether/vis/tui/live_view.clj',1755,1817)); print(patch(project_root_path / 'apps/vis-tui/test/com/blockether/vis/tui/live_view_test.clj',[{'from':'683:d32','replace':';; Regression #220: description follows the title, then one blank row before nodes.'},{'from':'713:bd1','to':'715:78b','replace':'''    (is (str/includes? (nth lines (inc title-row)) "Three jobs"))
     (is (str/blank? (str/replace (nth lines (+ title-row 2)) "│" ""))

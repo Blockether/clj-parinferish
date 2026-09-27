@@ -3,14 +3,14 @@ result: not repaired
 fix: line 6: added the missing closing ' at column 33
 fix: line 14: made the string at column 3 triple-quoted (""") because its text continues onto the next lines; it now ends on line 65
 fix: line 65: made the string at column 93 triple-quoted (""") because its text continues onto the next lines; it now ends on line 67
-problem: line 6, column 29: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 6, column 29: the string is not closed on its line
 problem: line 13, column 1: '(' is never closed
-problem: line 14, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
-problem: line 16, column 39: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 14, column 3: the string is not closed on its line
+problem: line 16, column 39: the string is not closed on its line
 problem: line 18, column 3: '(' is never closed
 problem: line 40, column 1: '(' is never closed
-problem: line 41, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
-problem: line 46, column 68: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 41, column 3: the string is not closed on its line
+problem: line 46, column 68: the string is not closed on its line
 --- text after repair
 BS = chr(92)
 ns_edit = '''            [com.blockether.vis.internal.config.core :as config]))'''

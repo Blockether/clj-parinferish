@@ -2,9 +2,9 @@ cpython: line 1, column 104: f-string: expecting a valid expression after '{'
 result: repaired
 fix: line 1: doubled the '{' at column 103 in the f-string, which held text rather than an expression
 problem: line 1, column 18: '(' is never closed
-problem: line 1, column 19: the f-string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 1, column 19: the f-string is not closed on its line
 problem: line 1, column 103: '{' opens an f-string field that holds no Python expression; write '{{' and '}}' for literal braces
-problem: line 1, column 108: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 108: the string is not closed on its line
 --- text after repair
 sh2 = await shell(f"cd {companion} && npm run test:storybook 2>&1 | grep 'color-contrast' | sed 's/ · {{.*//' | sort | uniq -c | sort -rn | head -20")
 print(sh2.wait(900).logs(-30)["out"][-2500:])

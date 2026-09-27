@@ -3,7 +3,7 @@ result: repaired
 fix: line 8: removed the backslashes before quotes outside strings, from column 74
 problem: line 4, column 25: '(' is never closed
 problem: line 4, column 26: '[' is never closed
-problem: line 8, column 5: the f-string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 8, column 5: the f-string is not closed on its line
 problem: line 8, column 74: backslash outside a string; there it may only end a line
 problem: line 11, column 1: ']' does not match '(' from line 8, column 73
 --- text after repair

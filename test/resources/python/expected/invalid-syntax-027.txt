@@ -1,7 +1,7 @@
 cpython: line 15, column 17: invalid syntax
 result: repaired
 fix: line 15: escaped the ' at columns 14 and 49 so the string keeps them as text
-problem: line 15, column 17: the string from line 1, column 22 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 15, column 17: the string from line 1, column 22 ends right before this text
 --- text after repair
 collision_sdk_test = '''@pytest.mark.parametrize("filename", ["issue176_demo.py", "issue176_bridge.py"])
 def test_entrypoint_import_collision_has_actionable_error(tmp_path, monkeypatch, filename):

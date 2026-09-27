@@ -1,10 +1,6 @@
 cpython: line 55, column 9: closing parenthesis '}' does not match opening parenthesis '[' on line 1
-result: not repaired
-fix: line 55: removed the unmatched '}' at column 9
-fix: line 59: removed the unmatched '}' at column 13
-fix: line 62: removed the unmatched '}' at column 13
-fix: line 74: removed the unmatched ']' at column 9
-fix: line 79: added the missing closing ''' at column 71 for the triple-quoted string from line 74
+result: repaired
+fix: line 22: completed the closing ''' at column 46 of the triple-quoted string from line 21
 problem: line 55, column 9: '}' does not match '[' from line 1, column 9
 problem: line 59, column 13: '}' does not match '[' from line 1, column 9
 problem: line 62, column 13: '}' does not match '[' from line 1, column 9
@@ -32,7 +28,7 @@ def power_screen(reader, registration):
             "public-power",
         }'''},
     {"from": "678:995", "to": "678:995", "replace": '''                "public-holdout": holdout_screen,
-                "public-power": power_screen,''},  # placeholder, fixed below
+                "public-power": power_screen,'''},  # placeholder, fixed below
 ]
 # do it via plain text replace to avoid anchor ambiguity
 src = (root/"src/cryptosyf/public_pilot.py").read_text()
@@ -65,14 +61,14 @@ src = src.replace(
     '''            "public-daily",
             "public-holdout",
             "public-power",
-        ''',
+        }''',
 )
 src = src.replace(
     '''                "public-holdout": holdout_screen,
-            ''',
+            }''',
     '''                "public-holdout": holdout_screen,
                 "public-power": power_screen,
-            ''',
+            }''',
 )
 (root/"src/cryptosyf/public_pilot.py").write_text(src)
 # CLI
@@ -84,9 +80,9 @@ m = m.replace(
     '''            "public-daily",
             "public-holdout",
             "public-power",
-        ,''',
+        ],''',
 )
 (root/"src/cryptosyf/__main__.py").write_text(m)
 import subprocess as _sp  # not allowed; skip
 ok = [s for s in ["power_screen", "public-power"] if s in src]
-print("public_pilot wired:", ok, "| main wired:", "public-power" in m)'''
+print("public_pilot wired:", ok, "| main wired:", "public-power" in m)

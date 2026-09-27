@@ -1,0 +1,13 @@
+cpython: line 1, column 104: invalid decimal literal
+result: repaired
+fix: line 1: added the missing closing ' at column 89
+problem: line 1, column 6: '(' is never closed
+problem: line 1, column 12: '(' is never closed
+problem: line 1, column 100: the string from column 97 ends right before this text
+problem: line 1, column 110: the string from column 107 ends right before this text
+problem: line 1, column 115: the string from column 112 ends right before this text
+problem: line 1, column 125: the string from column 122 ends right before this text
+problem: line 1, column 141: the string from column 132 ends right before this text
+problem: line 1, column 236: the string from column 199 ends right before this text
+--- text after repair
+print(patch(project_root_path/'apps/vis-companion/src/components/JustifiedProse.test.tsx',[{'from':'130:5ae','to':'142:a6f','replace':"  it('justifies reasoning on each side of an authored line break', async () => {\n    const first = 'I am looking at how the Python and Clojure extensions report activity so a reader can see the right message as it runs';\n    const second = 'and the next thought continues here with enough words to fill the narrow column without losing this line break.';\n    const view = render(<ThinkingBand>{`${first}\\n${second}`}</ThinkingBand>);\n    await settle();\n    const lines = [...view.container.querySelectorAll('section p')];\n    expect(lines).toHaveLength(2);\n    expect(lines.map((line) => line.hasAttribute('data-justice'))).toEqual([true, true]);\n    expect(lines.map((line) => line.textContent)).toEqual([first, second]);\n  });"}])); sh=await shell('npm test -- src/components/JustifiedProse.test.tsx',cwd=project_root_path/'apps/vis-companion'); r=await sh.wait(120); print(r['exit'],r['out'][-2600:])

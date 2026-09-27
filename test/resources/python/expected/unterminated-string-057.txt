@@ -5,8 +5,8 @@ problem: line 1, column 6: '(' is never closed
 problem: line 1, column 11: '(' is never closed
 problem: line 1, column 12: '{' is never closed
 problem: line 1, column 90: '[' is never closed
-problem: line 1, column 178: the string from column 109 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 185: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 178: the string from column 109 ends right before this text
+problem: line 1, column 185: the string is not closed on its line
 --- text after repair
 print(grep({'query':['file-seq','test-paths','source-paths','target','ignored'], 'paths':[project_root_path/'src/com/blockether/vis/internal/language/clojure/test_runner.clj'], 'context':2}))
 print(cat(project_root_path/'test/com/blockether/vis/internal/foundation/shell_test.clj',1,23))

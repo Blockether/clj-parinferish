@@ -2,14 +2,14 @@ cpython: line 1, column 121: unterminated string literal (detected at line 1)
 result: repaired
 fix: line 1: made the string at column 121 triple-quoted (''') because its text continues onto the next lines; it now ends on line 4
 fix: line 4: made the string at column 82 triple-quoted (''') because its text continues onto the next lines; it now ends on line 20
-problem: line 1, column 121: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 121: the string is not closed on its line
 problem: line 4, column 35: ')' does not match '{' from line 1, column 80
-problem: line 4, column 48: the string from column 45 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 4, column 58: the string from column 55 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 4, column 63: the string from column 60 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 4, column 73: the string from column 70 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 20, column 37: the string from column 34 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 20, column 47: the string from column 44 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 4, column 48: the string from column 45 ends right before this text
+problem: line 4, column 58: the string from column 55 ends right before this text
+problem: line 4, column 63: the string from column 60 ends right before this text
+problem: line 4, column 73: the string from column 70 ends right before this text
+problem: line 20, column 37: the string from column 34 ends right before this text
+problem: line 20, column 47: the string from column 44 ends right before this text
 --- text after repair
 patch(project_root_path/'src/com/blockether/vis/internal/decisions/cache.clj',[{'from':'75:0b3','to':'81:942','replace':'''      (let [idle (sort-by (comp :used second)
                           (for [[k v] @entries

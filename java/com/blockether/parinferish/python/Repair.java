@@ -344,7 +344,8 @@ public final class Repair {
                 for (Cand c : candidates()) {
                     if (budget <= 0) break;
                     Scanner next = scan(c, sc);
-                    long[] sc2 = c.kind == TRIPLE_QUOTE ? chained(c, next, 0) : score(next);
+                    long[] sc2 = c.kind == TRIPLE_QUOTE ? chained(c, next, 0)
+                        : c.kind == EXTEND_TRIPLE ? extended(c, next, 0) : score(next);
                     if (less(sc2, bestScore)) {
                         best = c;
                         bestScore = sc2;
@@ -377,22 +378,8 @@ public final class Repair {
                 || x.lineOf(x.pos[k]) != x.lineOf(end - 1)) {
                 return best;
             }
-            Scanner saveSc = sc;
-            int saveKind = pKind;
-            int savePos = pPos;
-            int saveAt = pAt;
-            List<Cand> follow = new ArrayList<>();
-            use(x);
-            pKind = x.kind[k];
-            pPos = x.pos[k];
-            pAt = x.at[k];
-            unterminated(follow);
-            use(saveSc);
-            pKind = saveKind;
-            pPos = savePos;
-            pAt = saveAt;
             int tried = 0;
-            for (Cand f : follow) {
+            for (Cand f : follow(x, k)) {
                 if (f.kind != TRIPLE_QUOTE) continue;
                 if (tried++ == 3 || budget <= 0) break;
                 Scanner x2 = scan(f, x);
@@ -405,6 +392,50 @@ public final class Repair {
                 }
             }
             return best;
+        }
+
+        /**
+         * Scores the completed closer {@code c}, applied and scanned as {@code x}, together with the best
+         * completion of the triple-quoted string it leaves open: consecutive values whose closers all lost a
+         * quote, as in {@code [{'a':'''...''},{'b':'''...''}]}. Links the chosen follow-up through {@code c.then}.
+         */
+        long[] extended(Cand c, Scanner x, int depth) {
+            long[] best = score(x);
+            int k = firstReported(x);
+            if (depth >= 4 || budget <= 0 || k < 0 || x.kind[k] != Scanner.UNTERMINATED_TRIPLE) return best;
+            int tried = 0;
+            for (Cand f : follow(x, k)) {
+                if (f.kind != EXTEND_TRIPLE) continue;
+                if (tried++ == 4 || budget <= 0) break;
+                Scanner x2 = scan(f, x);
+                long[] s2 = extended(f, x2, depth + 1);
+                if (less(s2, best)) {
+                    best = s2;
+                    c.then = f;
+                    f.scanner = x2;
+                }
+            }
+            return best;
+        }
+
+        /** The candidates for problem {@code k} of {@code x}, the text a candidate made, as if it were current. */
+        List<Cand> follow(Scanner x, int k) {
+            Scanner saveSc = sc;
+            int saveKind = pKind;
+            int savePos = pPos;
+            int saveAt = pAt;
+            List<Cand> out = new ArrayList<>();
+            use(x);
+            pKind = x.kind[k];
+            pPos = x.pos[k];
+            pAt = x.at[k];
+            if (pKind == Scanner.UNTERMINATED_TRIPLE) unterminatedTriple(out);
+            else unterminated(out);
+            use(saveSc);
+            pKind = saveKind;
+            pPos = savePos;
+            pAt = saveAt;
+            return out;
         }
 
         /** The problem the tokenizer would report first: an unclosed opener only at the end of the text. */
@@ -475,6 +506,8 @@ public final class Repair {
 
         List<Cand> candidates() {
             List<Cand> out = new ArrayList<>();
+            // First: a clean scan it ties with, such as an empty ''' ''' at the end, is the weaker repair.
+            if (pKind != SUSPECT) shortTriple(out);
             switch (pKind) {
                 case Scanner.UNTERMINATED_STRING -> unterminated(out);
                 case Scanner.UNTERMINATED_TRIPLE -> unterminatedTriple(out);
@@ -613,7 +646,9 @@ public final class Repair {
 
         /**
          * A string earlier on the line that lost its closing quote swallows the code up to the next quote,
-         * as in {@code ['a/b.clj], 'k':1}}; closes it before a bracket inside its text.
+         * as in {@code ['a/b.clj], 'k':1}}; closes it before a bracket inside its text. When the code it
+         * swallowed opens the next string, as in {@code ['a/b.tsx,[{'k':1}]}, its text ends in that code:
+         * the first two such strings on the line are closed before it too.
          */
         void earlierQuote(List<Cand> out, int qp) {
             int l = sc.lineOf(qp);
@@ -622,12 +657,14 @@ public final class Repair {
             int e1 = -1;
             int a2 = -1;
             int e2 = -1;
+            List<Cand> ends = new ArrayList<>();
             for (int p = sc.lineStart[l]; p < qp; p++) {
                 char d = s[p];
                 if (d == '#') return;
                 if (d == '"' || d == '\'') {
                     int e = skipString(p);
                     if (e > qp || e - p < 2 || s[e - 1] != d) return;
+                    if (ends.size() < 2) endsInCode(ends, p, e);
                     a2 = a1;
                     e2 = e1;
                     a1 = p;
@@ -637,6 +674,7 @@ public final class Repair {
             }
             int made = swallowed(out, a1, e1, 0);
             swallowed(out, a2, e2, made);
+            out.addAll(ends);
         }
 
         int swallowed(List<Cand> out, int a, int e, int made) {
@@ -649,6 +687,67 @@ public final class Repair {
                 }
             }
             return made;
+        }
+
+        /** Closes the string from {@code a} to {@code e} before the code its text ends with: a comma or an
+         *  opening bracket among brackets, colons and blanks, as the {@code ,[{} of {@code 'a.tsx,[{'} or the
+         *  {@code ], } of {@code 'a/b], '}. */
+        void endsInCode(List<Cand> out, int a, int e) {
+            if (a + 2 < n && s[a + 1] == s[a] && s[a + 2] == s[a]) return;
+            int k = e - 1;
+            boolean code = false;
+            while (k > a + 1 && ",([{)]}: \t".indexOf(s[k - 1]) >= 0) {
+                code |= ",([{".indexOf(s[k - 1]) >= 0;
+                k--;
+            }
+            if (code && k > a + 1 && s[k - 1] != '\\') {
+                out.add(new Cand(CLOSE_QUOTE, a, -1).edit(k, 0, String.valueOf(s[a])));
+            }
+        }
+
+        /**
+         * A triple-quoted value closed with one or two quotes, as in {@code 'replace':'''...)''},}, runs on to
+         * the quotes that open the next value, so its text ends in code such as {@code 'replace':}. For each
+         * such string before the problem, completes the runs of one or two of its quotes that a closing
+         * bracket follows: at most eight, in the order of the text.
+         */
+        void shortTriple(List<Cand> out) {
+            budget -= pPos;
+            int made = 0;
+            for (int p = 0; p < pPos && made < 8; p++) {
+                char c = s[p];
+                if (c == '\\') {
+                    p++;
+                } else if (c == '#') {
+                    while (p + 1 < n && s[p + 1] != '\n') p++;
+                } else if (c == '\'' || c == '"') {
+                    int e = skipString(p);
+                    if (e - p >= 6 && e <= pPos && s[p + 1] == c && s[p + 2] == c && s[e - 1] == c && s[e - 2] == c
+                        && s[e - 3] == c && opensValue(p + 3, e - 3)) {
+                        for (int k = p + 3; k < e - 3 && made < 8; k++) {
+                            if (s[k] == '\\') {
+                                k++;
+                            } else if (s[k] == c) {
+                                int r = 1;
+                                while (k + r < e - 3 && s[k + r] == c) r++;
+                                if (r < 3 && ")]}".indexOf(s[k + r]) >= 0) {
+                                    out.add(new Cand(EXTEND_TRIPLE, p, k).edit(k + r, 0, repeat(c, 3 - r)));
+                                    made++;
+                                }
+                                k += r - 1;
+                            }
+                        }
+                    }
+                    p = e - 1;
+                }
+            }
+        }
+
+        /** Whether the text in {@code [from, to)} ends, blanks aside, in code that a value follows: {@code :},
+         *  {@code =}, a comma or an opening bracket. */
+        boolean opensValue(int from, int to) {
+            while (to > from && (s[to - 1] == ' ' || s[to - 1] == '\t')) to--;
+            return to > from && ":=,([{".indexOf(s[to - 1]) >= 0;
         }
         void unterminated(List<Cand> out) {
             int qp = quoteAt(pPos);
@@ -1237,8 +1336,7 @@ public final class Repair {
                     f |= c == 'f' || c == 't';
                     q++;
                 }
-                yield where + "the " + (f ? "f-string" : "string") + " is not closed on its line; close it with "
-                    + s[q] + ", or use triple quotes (" + repeat(s[q], 3) + ") for text that spans lines";
+                yield where + "the " + (f ? "f-string" : "string") + " is not closed on its line";
             }
             case Scanner.UNTERMINATED_TRIPLE -> where + "the triple-quoted string is never closed";
             case Scanner.UNCLOSED -> where + "'" + s[p] + "' is never closed";
@@ -1267,8 +1365,7 @@ public final class Repair {
                 int o = sc.at[k];
                 int ol = sc.lineOf(o);
                 yield where + "the string from " + (ol == l ? "" : "line " + (ol + 1) + ", ") + "column "
-                    + (o - sc.lineStart[ol] + 1) + " ends right before this text; if its closing quote belongs to"
-                    + " the text, escape it";
+                    + (o - sc.lineStart[ol] + 1) + " ends right before this text";
             }
             case Scanner.MARKER -> where + "'" + s[p] + "' is a quote marker, not Python; remove it";
             case Scanner.COMPOUND_AFTER_SEMICOLON -> where

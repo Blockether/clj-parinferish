@@ -1,13 +1,13 @@
 cpython: line 1, column 30: unterminated string literal (detected at line 1)
 result: repaired
 fix: line 1: made the string at column 30 triple-quoted (""") because its text continues onto the next lines; it now ends on line 5
-problem: line 1, column 30: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 1, column 30: the string is not closed on its line
 problem: line 2, column 552: ';' ends the statement while '(' from line 1, column 19 is still open
-problem: line 2, column 625: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 2, column 625: the string is not closed on its line
 problem: line 4, column 301: backslash outside a string; there it may only end a line
-problem: line 4, column 302: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 4, column 302: the string is not closed on its line
 problem: line 5, column 278: ';' ends the statement while '(' from line 4, column 285 is still open
-problem: line 5, column 1431: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 5, column 1431: the string is not closed on its line
 --- text after repair
 print(fold_session("-t2/i3", """Task1 completed/pushed main b25adbb8a: installed source .vis/extensions/<normalized-name>/<PEP440-version>/, relative name/current active link, receipt.json in version, local version link to checkout; no .versions/install-*/project legacy loading or migration. Generated .gitignore ignores dirs/hidden state but keeps loose authored .py visible. Update/rollback reuse retained dirs preserving edits. Six committed files: packages/vis-agent/src/blockether/vis/extension_package.py + tests/test_extension_package.py; src/com/blockether/vis/internal/python/extensions.clj; test/com/blockether/vis/internal/python/{extensions_test,extension_center_test}.clj; resources/vis-docs/extension-packages.md. Installer126+authoring10+boundary4 pass, loader146/147 has unrelated existing Council #202 self-wake failure, reproduced with pre-change scan in memory. Format/lint/reflection pass; temporary REPL stopped. No user installations deleted or release made. Main has extensive OTHER dirty work (preserve); standing repo authorization allows simple fixes commit+push main, human identity Alex Walker/dev@example.com, trailer Vis-Session:00000000-0000-4000-8000-000000000013. Coordinate shared index before staging. Child8b8c93e9-e8a3-4ca7-90db-e973b5d7f9e5 completed; no pending replies. read_session() already called. Variables and handles persist, including turn2_status and initial_status; no managed process running.
 Current user followup (turn2): remove ugly extension save lock too. Located EXACT nuisance: <project>/.vis/extension-save.lock, created permanently by src/com/blockether/vis/internal/config/core.clj private with-project-extension-save-lock at1940-1951, called from save-extension-declaration! at2018-2019 under locking machine-store-monitor. User-facing commentary: will remove lock from project while preserving concurrency. Current files core.clj and test/com/blockether/vis/internal/config/extension_save_test.clj were CLEAN at turn2 initial status; config/toggles.clj and its tests and schema/docs are foreign dirty, don't touch. No turn2 edits yet. Existing extension_save_test run_tests baseline PASS8 clean JVM.

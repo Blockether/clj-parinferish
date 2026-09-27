@@ -2,8 +2,8 @@ cpython: line 1, column 20: unterminated string literal (detected at line 1)
 result: repaired
 fix: line 1: made the string at column 20 triple-quoted (""") because its text continues onto the next lines; it now ends on line 4
 problem: line 1, column 19: '(' is never closed
-problem: line 1, column 20: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
-problem: line 4, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 1, column 20: the string is not closed on its line
+problem: line 4, column 3: the string is not closed on its line
 --- text after repair
 r=await uplink.run("""python3.12 - <<'PY'
 import importlib.util

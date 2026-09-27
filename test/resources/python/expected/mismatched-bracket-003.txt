@@ -15,11 +15,11 @@ fix: line 25: added '})' at column 102 to close the brackets from line 22
 fix: line 36: removed the unmatched '}' at column 3
 fix: line 36: removed the unmatched ')' at column 4
 fix: line 38: added the missing closing ''' at column 83 for the triple-quoted string from line 38
-problem: line 1, column 113: the string from column 110 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 123: the string from column 120 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 191: the string from column 130 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 222: the string from column 219 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 232: the string from column 229 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 113: the string from column 110 ends right before this text
+problem: line 1, column 123: the string from column 120 ends right before this text
+problem: line 1, column 191: the string from column 130 ends right before this text
+problem: line 1, column 222: the string from column 219 ends right before this text
+problem: line 1, column 232: the string from column 229 ends right before this text
 problem: line 1, column 246: '}' does not match '(' from line 1, column 12
 problem: line 1, column 248: ';' ends the statement while '(' from line 1, column 6 is still open
 problem: line 4, column 31: ';' ends the statement while '{' from line 3, column 77 is still open

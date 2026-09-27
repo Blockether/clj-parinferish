@@ -4,7 +4,7 @@ fix: line 15: removed the backslashes before quotes outside strings, from column
 fix: line 18: removed the backslashes before quotes outside strings, from column 74
 fix: line 23: removed the backslashes before quotes outside strings, from column 74
 problem: line 8, column 12: '[' is never closed
-problem: line 15, column 5: the f-string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 15, column 5: the f-string is not closed on its line
 problem: line 15, column 74: backslash outside a string; there it may only end a line
 problem: line 18, column 74: backslash outside a string; there it may only end a line
 problem: line 23, column 74: backslash outside a string; there it may only end a line

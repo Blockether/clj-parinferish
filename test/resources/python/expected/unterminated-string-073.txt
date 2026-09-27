@@ -1,8 +1,8 @@
 cpython: line 9, column 47: unterminated string literal (detected at line 9)
 result: repaired
 fix: line 9: made the string at column 47 triple-quoted (""") because its text continues onto the next lines; it now ends on line 10
-problem: line 9, column 47: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
-problem: line 10, column 18: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 9, column 47: the string is not closed on its line
+problem: line 10, column 18: the string is not closed on its line
 problem: line 11, column 1: ']' does not match '{' from line 9, column 2
 --- text after repair
 root=Path(session["workspace"]["root"])

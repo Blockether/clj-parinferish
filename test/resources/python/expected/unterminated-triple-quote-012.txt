@@ -1,14 +1,13 @@
 cpython: line 7, column 8: unterminated triple-quoted string literal (detected at line 7)
-result: not repaired
-fix: line 7: added '}])' at column 7 to close the brackets from line 1
-fix: line 7: added the missing closing ''' at column 24 for the triple-quoted string from line 7
+result: repaired
+fix: line 4: completed the closing ''' at column 40 of the triple-quoted string from line 1
 problem: line 7, column 7: ';' ends the statement while '{' from line 1, column 349 is still open
 problem: line 7, column 8: the triple-quoted string is never closed
 --- text after repair
 root=Path(session['workspace']['root']); p=root/'apps/vis-companion/src/lib/attachments.test.ts'; r=await patch(p,[{'from':'11:53b','replace':"import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';"},{'from':'21:dda','replace':"  Capacitor: { isNativePlatform: () => true, convertFileSrc: (path: string) => `native:${path}` },"},{'from':'44:a6f','replace':'''  filePicker.pickImages.mockReset();
 });
 
-afterEach(() => vi.unstubAllGlobals());''},{'from':'58:64b','to':'61:a6f','replace':'''    expect(filePicker.pickFiles).toHaveBeenCalledWith({
+afterEach(() => vi.unstubAllGlobals());'''},{'from':'58:64b','to':'61:a6f','replace':'''    expect(filePicker.pickFiles).toHaveBeenCalledWith({
       types: ['image/png', 'audio/mp4'],
       readData: false,
-    })}]);'''}]); print(r)'''
+    });'''}]); print(r)

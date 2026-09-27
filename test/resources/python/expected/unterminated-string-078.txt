@@ -2,9 +2,10 @@ cpython: line 26, column 3: unterminated string literal (detected at line 26)
 result: not repaired
 fix: line 26: made the string at column 3 triple-quoted (""") because its text continues onto the next lines; it now ends on line 27
 fix: line 41: added ')' at column 87 to close '(' from line 40
-fix: line 53: added ')' at column 84 to close '(' from line 51
-problem: line 26, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
-problem: line 27, column 26: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+fix: line 49: completed the closing ''' at column 90 of the triple-quoted string from line 46
+fix: line 53: completed the closing ''' at column 82 of the triple-quoted string from line 51
+problem: line 26, column 3: the string is not closed on its line
+problem: line 27, column 26: the string is not closed on its line
 problem: line 41, column 87: '}' does not match '(' from line 40, column 56
 problem: line 53, column 84: '}' does not match '(' from line 51, column 56
 --- text after repair
@@ -56,11 +57,11 @@ engine_edits = [
  {"from":"2278:d89", "to":"2284:a1d", "replace":'''      ;; The lifecycle envelope carries `:session-id` from the removed entry;
       ;; listeners never have to recover routing data from the registry.
       (publish! (:channel-ids entry)
-                (lifecycle-event :view/close entry {:result {:reason (:reason result)}}))''},
+                (lifecycle-event :view/close entry {:result {:reason (:reason result)}}))'''},
  {"from":"2394:02c", "replace":"          :kind :input"},
  {"from":"2414:9f3", "to":"2417:09b", "replace":'''    (if (zero? (long (publish! (:channel-ids entry)
                                (lifecycle-event :view/open entry
-                                                {:view (request->view entry)}))))'')},
+                                                {:view (request->view entry)}))))'''},
 ]
 engine_patch = await patch(root / "src/com/blockether/vis/internal/view.clj", engine_edits)
 print(engine_patch)

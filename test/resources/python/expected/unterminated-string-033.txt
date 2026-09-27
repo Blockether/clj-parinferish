@@ -1,7 +1,7 @@
 cpython: line 1, column 30: unterminated string literal (detected at line 1)
 result: repaired
 fix: line 1: made the string at column 30 triple-quoted (''') because its text continues onto the next lines; it now ends on line 8
-problem: line 1, column 30: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 30: the string is not closed on its line
 problem: line 2, column 243: ';' ends the statement while '(' from line 1, column 19 is still open
 problem: line 8, column 176: '(' is never closed
 --- text after repair

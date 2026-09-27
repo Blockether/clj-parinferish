@@ -1,7 +1,7 @@
 cpython: line 28, column 31: unterminated string literal (detected at line 28)
 result: repaired
 fix: line 28: escaped the " at column 28 that ended the string early
-problem: line 28, column 31: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 28, column 31: the string is not closed on its line
 --- text after repair
 test_patch = await patch(
     spel_root / "test-cli.sh",

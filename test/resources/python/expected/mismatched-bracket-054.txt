@@ -1,0 +1,114 @@
+cpython: line 92, column 17: closing parenthesis ')' does not match opening parenthesis '{' on line 60
+result: repaired
+fix: line 73: completed the closing ''' at column 12 of the triple-quoted string from line 60
+problem: line 92, column 17: ')' does not match '{' from line 60, column 1
+problem: line 107, column 71: the triple-quoted string is never closed
+--- text after repair
+print(patch(spel_path/'extensions/vis-spel/src/vis_spel/__init__.py',[
+{'from':'31:000','replace':'''@dataclass(frozen=True)
+class BrowserProfile:
+    """Private Chromium user-data directory; browser state persists after release."""
+
+    name: str
+    path: Annotated[str, "Absolute directory containing sensitive browser state."]
+
+
+'''},
+{'from':'233:545','to':'241:0c2','replace':'''        connection.row_factory = sqlite3.Row
+        try:
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS installation (singleton INTEGER PRIMARY KEY CHECK(singleton=1), version TEXT NOT NULL, executable TEXT NOT NULL, browsers INTEGER NOT NULL)"
+            )
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS reservations (id TEXT PRIMARY KEY, name TEXT UNIQUE NOT NULL, label TEXT UNIQUE NOT NULL, executable TEXT NOT NULL, browser TEXT NOT NULL, headed INTEGER NOT NULL, cdp TEXT, started INTEGER NOT NULL DEFAULT 0, profile TEXT)"
+            )
+            if not any(
+                row["name"] == "profile"
+                for row in connection.execute("PRAGMA table_info(reservations)")
+            ):
+                connection.execute("ALTER TABLE reservations ADD COLUMN profile TEXT")
+            connection.execute(
+                "CREATE UNIQUE INDEX IF NOT EXISTS reservations_profile ON reservations(profile) WHERE profile IS NOT NULL"
+            )
+            with connection:
+                yield connection'''},
+{'from':'305:000','replace':'''    def _profile_path(self, name: str) -> Path:
+        if not isinstance(name, str) or not re.fullmatch(
+            r"[A-Za-z0-9][A-Za-z0-9_-]{0,79}", name
+        ):
+            raise ValueError("profile name must be 1–80 letters, digits, underscores or hyphens")
+        root = self._home.expanduser().resolve() / "profiles"
+        path = root / name
+        for directory in (root, path):
+            if directory.is_symlink() or (directory.exists() and not directory.is_dir()):
+                raise SpelError("Managed profiles must be ordinary directories, not links")
+            if directory.exists() and directory.stat().st_mode & 0o077:
+                raise SpelError("Managed profile directories must be private (mode 0700)")
+        return path
+
+    def prepare_profile(self, name: str) -> BrowserProfile:
+        """Create or reuse a private, named Chromium profile without starting a browser.
+
+        Creates ~/.vis/spel/profiles/<name> with owner-only access. Existing state is
+        never reset or exported. Use a dedicated profile, not a live personal Chrome
+        directory; its cookies and sign-in data are sensitive. Reserve it with
+        profile=name and headed=True for private manual sign-in. Releasing the
+        reservation closes the browser, leaving the profile on disk for later use.
+        """
+        path = self._profile_path(name)
+        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        path.mkdir(mode=0o700, exist_ok=True)
+        self._profile_path(name)
+        return BrowserProfile(name, str(path))
+
+'''},
+{'from':'310:297','to':'319:3e2','replace':'''        browser: Literal["chromium", "firefox", "webkit"] = "chromium",
+        headed: bool = False,
+        profile: str | None = None,
+    ) -> Reservation:
+        """Reserve an exclusive named session without launching a browser.
+
+        Installation must already exist. None generates a label; supplied labels
+        are unique across workers and reloads until release. Duplicate labels fail,
+        never adopt an existing session. Chromium and headless are the defaults.
+        For reusable sign-in, first call prepare_profile(name), then reserve with
+        profile=name; only one reservation can use that profile at a time. It is
+        incompatible with CDP, which instead uses an external browser's context.
+        Retain the returned id; possession permits intentional handover of control.
+        """'''},
+{'from':'329:029','replace':'''        profile_path = None
+        if profile is not None:
+            if browser != "chromium":
+                raise ValueError("Persistent profiles require Chromium")
+            profile_path = self._profile_path(profile)
+            if not profile_path.is_dir():
+                raise ValueError("Call spel.prepare_profile(name) before reserving it")
+'''},
+{'from':'340:da9','to':'349:029','replace':'''                    "INSERT INTO reservations (id,name,label,executable,browser,headed,profile) VALUES (?,?,?,?,?,?,?)",
+                    (
+                        identifier,
+                        name,
+                        label or name,
+                        installation.executable,
+                        browser,
+                        int(headed),
+                        str(profile_path) if profile_path is not None else None,
+                    ),
+                )'''},
+{'from':'352:192','replace':'''                "That label or profile is already reserved. Use a different one or release its reservation."'''},
+{'from':'395:8b1','replace':'''        if row["cdp"]:
+            flags += ["--cdp", row["cdp"]]
+        if row["profile"]:
+            flags += ["--profile", row["profile"]]'''},
+{'from':'446:024','replace':'''            raise ValueError("CDP requires a Chromium reservation")
+        if row["profile"]:
+            raise ValueError("CDP cannot use a managed profile; reserve without profile")'''},
+{'from':'688:029','replace':'''            )
+        if isinstance(result, BrowserProfile):
+            return vis.ActivityPresentation(
+                label, f"Profile {result.name} ready", (vis.ActivityText(result.path),)
+            )'''},
+{'from':'735:b48','replace':'''    ("installed", "Check Spel installation", False, "observation"),
+    ("prepare_profile", "Prepare browser profile", False, "mutation"),'''}
+]))

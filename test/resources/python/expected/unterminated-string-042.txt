@@ -1,7 +1,7 @@
 cpython: line 74, column 18: unterminated string literal (detected at line 74); perhaps you escaped the end quote?
 result: repaired
 fix: line 74: added the missing closing ' at column 21
-problem: line 74, column 18: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 74, column 18: the string is not closed on its line
 problem: line 75, column 215: ']' does not match '(' from line 74, column 12
 --- text after repair
 print(patch(project_root_path / 'src/com/blockether/vis/internal/foundation/shell.clj', [

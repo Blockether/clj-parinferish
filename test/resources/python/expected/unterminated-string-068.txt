@@ -3,8 +3,8 @@ result: repaired
 fix: line 1: added the missing closing " at column 36
 problem: line 1, column 9: '(' is never closed
 problem: line 1, column 30: '[' is never closed
-problem: line 1, column 40: the string from column 31 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 62: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 1, column 40: the string from column 31 ends right before this text
+problem: line 1, column 62: the string is not closed on its line
 --- text after repair
 app=Path(session["workspace"]["root"])/"apps/vis-companion/src"
 print(grep({"query":[".queuedTurns(","queuedTurns("],"paths":[str(app)],"context":3})[:20000])

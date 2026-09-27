@@ -3,7 +3,7 @@ result: repaired
 fix: line 34: turned the literal \n outside strings into line breaks
 fix: line 34: added the missing closing " at column 39
 problem: line 34, column 36: backslash outside a string; there it may only end a line
-problem: line 34, column 38: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 34, column 38: the string is not closed on its line
 --- text after repair
 edits = [
  # 1 · navigator-session-row docstring + arglist

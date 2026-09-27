@@ -1,10 +1,10 @@
 cpython: line 1, column 38: unterminated string literal (detected at line 1)
 result: repaired
 fix: line 1: made the string at column 38 triple-quoted (""") because its text continues onto the next lines; it now ends on line 12
-problem: line 1, column 38: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 1, column 38: the string is not closed on its line
 problem: line 5, column 112: ';' ends the statement while '(' from line 1, column 25 is still open
 problem: line 7, column 241: typographic quote ’; Python needs straight quotes (' or ")
-problem: line 12, column 1376: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 12, column 1376: the string is not closed on its line
 --- text after repair
 print(await fold_session("-t28/i56", """User said the built-in speech refactor now looks ready to deploy, so proceed to make it shippable, commit, and push main. Workspace `/home/user/vis`, branch main at `f492ef4de` / origin/main before this turn. Worktree contains the complete prior T23–T27 migration: delete `extensions/common/vis-foundation-voice`, move engine/models/native metadata into core `src/com/blockether/vis/internal/speech.clj`, `src/com/blockether/vis/internal/speech/`, `resources/vis-models/`, `resources/META-INF/native-image/com.blockether/vis-speech/`; gateway singleton, TUI gateway client, CLI `vis-agent speech`, docs/tests; plus deliberate runtime pin `com.blockether/vis-python-runtime` from `39c34...` to `7ef70951...` (earlier gather/is_regex fix) and generated audit change. Prior verification: 350 Clojure tests, 34 companion tests, later 117 speech + 105 gateway tests, scoped lint/format clean. No commits yet for this work.
 

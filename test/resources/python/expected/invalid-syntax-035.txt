@@ -2,8 +2,8 @@ cpython: line 21, column 184: invalid syntax. Is this intended to be part of the
 result: repaired
 fix: line 21: escaped the " at columns 183 and 188 so the string keeps them as text
 fix: line 24: escaped the " at columns 175 and 180 so the string keeps them as text
-problem: line 21, column 184: the string from column 105 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 24, column 176: the string from column 99 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 21, column 184: the string from column 105 ends right before this text
+problem: line 24, column 176: the string from column 99 ends right before this text
 --- text after repair
 root=Path(session["workspace"]["root"]); app=root/"apps/vis-companion/src"
 settings=str(app/"screens/SettingsScreen.tsx"); provider=str(app/"components/ProviderAuth.tsx"); machine=str(app/"screens/settings/MachineSettings.tsx"); layout=str(app/"screens/settings/SettingsLayout.tsx"); test=str(app/"components/ui.test.tsx")

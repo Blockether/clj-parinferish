@@ -5,7 +5,7 @@ fix: line 21: added the missing closing """ at column 18 for the triple-quoted s
 fix: line 21: added ']' at column 18 to close '[' from line 1
 problem: line 1, column 4: '(' is never closed
 problem: line 1, column 17: '[' is never closed
-problem: line 11, column 4: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 11, column 4: the string is not closed on its line
 problem: line 20, column 45: the triple-quoted string is never closed
 --- text after repair
 sub(P,1197,1207,[("""  "Tool-call arguments reach svar either already parsed (anthropic

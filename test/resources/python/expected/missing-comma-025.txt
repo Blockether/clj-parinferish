@@ -1,3 +1,3 @@
 cpython: line 3, column 28: invalid syntax. Perhaps you forgot a comma?
 result: not repaired
-problem: line 3, column 43: the string from column 28 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 3, column 43: the string from column 28 ends right before this text

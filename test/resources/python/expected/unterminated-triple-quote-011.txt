@@ -1,8 +1,6 @@
 cpython: line 23, column 48: unterminated triple-quoted string literal (detected at line 25)
-result: not repaired
-fix: line 16: added '}])' at column 33 to close the brackets from line 1
-fix: line 25: added the missing closing ''' at column 18 for the triple-quoted string from line 23
-fix: line 25: added '}' at column 18 to close '{' from line 22
+result: repaired
+fix: line 15: completed the closing ''' at column 76 of the triple-quoted string from line 2
 problem: line 16, column 33: ';' ends the statement while '{' from line 2, column 2 is still open
 problem: line 22, column 36: '{' is never closed
 problem: line 23, column 48: the triple-quoted string is never closed
@@ -21,8 +19,8 @@ spec_patch = await patch(root / "src/com/blockether/vis/internal/view/spec.clj",
    not optional metadata a normalizer may silently discard.
 
    The functions here only EXPLAIN invalid values; the View engine owns the error
-   envelopes and checks the five boundary seams once, never per keystroke."''},
- {"from":"31:94b", "replace":'''}]);; The closed vocabulary
+   envelopes and checks the five boundary seams once, never per keystroke."'''},
+ {"from":"31:94b", "replace":''';; The closed vocabulary
 
 (def view-kinds
   "Wire name -> lifecycle kind. Capability policy dispatches on this CLOSED set."
@@ -31,4 +29,4 @@ spec_patch = await patch(root / "src/com/blockether/vis/internal/view/spec.clj",
  {"from":"358:b7c", "replace":'''  {:view-kinds (vec (sort (keys view-kinds)))
    :field-types (vec (sort (keys field-types)))'''}
 ])
-print(spec_patch)'''}
+print(spec_patch)

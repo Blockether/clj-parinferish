@@ -1,7 +1,7 @@
 cpython: line 1, column 32: unterminated string literal (detected at line 1); perhaps you escaped the end quote?
 result: repaired
 fix: line 1: made the string at column 32 triple-quoted (""") because its text continues onto the next lines; it now ends on line 2
-problem: line 1, column 32: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 1, column 32: the string is not closed on its line
 problem: line 2, column 50: backslash outside a string; there it may only end a line
 --- text after repair
 commit_border_sh = await shell("""set -e\ntest \"$(git branch --show-current)\" = main\ntest \"$(git diff --cached --name-only)\" = \"apps/vis-companion/src/components/SessionList.search.stories.tsx

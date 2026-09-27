@@ -1,7 +1,7 @@
 cpython: line 10, column 31: unterminated string literal (detected at line 10)
 result: not repaired
 fix: line 10: made the string at column 31 triple-quoted (''') because its text continues onto the next lines; it now ends on line 13
-problem: line 10, column 31: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 10, column 31: the string is not closed on its line
 problem: line 11, column 2: ']' does not match '{' from line 10, column 3
 --- text after repair
 res=await gather(

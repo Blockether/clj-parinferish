@@ -6,7 +6,7 @@ problem: line 50, column 6: '(' is never closed
 problem: line 50, column 12: '(' is never closed
 problem: line 50, column 61: '[' is never closed
 problem: line 55, column 2: '{' is never closed
-problem: line 55, column 31: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 55, column 31: the string is not closed on its line
 --- text after repair
 print({'previous_block_executed': 'extra_tests33' in globals()})
 extra_tests33 = '''

@@ -7,11 +7,11 @@ fix: line 1: removed the stray backslash at column 756
 fix: line 1: removed the unmatched '}' at column 1575
 fix: line 1: removed the unmatched ']' at column 1576
 fix: line 1: removed the unmatched ')' at column 1578
-problem: line 1, column 97: the string from column 94 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 106: the string from column 103 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 111: the string from column 108 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 120: the string from column 117 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 155: the string from column 127 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 97: the string from column 94 ends right before this text
+problem: line 1, column 106: the string from column 103 ends right before this text
+problem: line 1, column 111: the string from column 108 ends right before this text
+problem: line 1, column 120: the string from column 117 ends right before this text
+problem: line 1, column 155: the string from column 127 ends right before this text
 problem: line 1, column 230: backslash outside a string; there it may only end a line
 problem: line 1, column 326: backslash outside a string; there it may only end a line
 problem: line 1, column 416: backslash outside a string; there it may only end a line

@@ -2,9 +2,9 @@ cpython: line 1, column 138: unterminated string literal (detected at line 1)
 result: repaired
 fix: line 1: made the string at column 138 triple-quoted (''') because its text continues onto the next lines; it now ends on line 12
 problem: line 1, column 6: '(' is never closed
-problem: line 1, column 138: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 138: the string is not closed on its line
 problem: line 12, column 50: ')' does not match '{' from line 1, column 95
-problem: line 12, column 51: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 12, column 51: the string is not closed on its line
 --- text after repair
 print(patch(project_root_path/'test/com/blockether/vis/internal/activity/presenter_test.clj',[{'from':'299:339','to':'303:62e','replace':'''  (it "shows a running shell command and output without repeating its status"
       (let [value {:command "npm run storybook" :exit nil :status "running"}

@@ -2,7 +2,7 @@ cpython: line 2, column 91: unexpected character after line continuation charact
 result: repaired
 fix: line 2: removed the backslashes before quotes outside strings, from column 90
 problem: line 2, column 18: '(' is never closed
-problem: line 2, column 33: the f-string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 2, column 33: the f-string is not closed on its line
 problem: line 2, column 90: backslash outside a string; there it may only end a line
 problem: line 2, column 122: ')' does not match '[' from line 2, column 89
 --- text after repair

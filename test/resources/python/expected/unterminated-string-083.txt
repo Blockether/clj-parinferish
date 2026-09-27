@@ -1,8 +1,8 @@
 cpython: line 6, column 86: unterminated string literal (detected at line 6)
 result: repaired
 fix: line 6: escaped the " at column 68 that ended the string early
-problem: line 6, column 78: the string from column 71 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 6, column 86: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 6, column 78: the string from column 71 ends right before this text
+problem: line 6, column 86: the string is not closed on its line
 problem: line 7, column 22: ';' ends the statement while '(' from line 3, column 17 is still open
 --- text after repair
 root = "/home/user/vis"

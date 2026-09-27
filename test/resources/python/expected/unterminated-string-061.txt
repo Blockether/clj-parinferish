@@ -2,7 +2,7 @@ cpython: line 5, column 78: unterminated string literal (detected at line 5)
 result: repaired
 fix: line 5: escaped the ' at column 75 that ended the string early
 problem: line 1, column 17: '(' is never closed
-problem: line 5, column 78: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 5, column 78: the string is not closed on its line
 --- text after repair
 sh = await shell('''cd /home/user/vis && S=diag-review-4 && \
 spel --session $S set viewport 1280 800 && \

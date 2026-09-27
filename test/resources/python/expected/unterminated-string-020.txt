@@ -1,9 +1,9 @@
 cpython: line 1, column 129: unterminated string literal (detected at line 1)
 result: repaired
 fix: line 1: made the string at column 129 triple-quoted (''') because its text continues onto the next lines; it now ends on line 12
-problem: line 1, column 129: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 129: the string is not closed on its line
 problem: line 10, column 7: ';' ends the statement while '(' from line 2, column 5 is still open
-problem: line 12, column 33: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 12, column 33: the string is not closed on its line
 --- text after repair
 print(patch(project_root_path/'test/com/blockether/vis/internal/docs/core_test.clj',[{'from':'638:cfa','to':'644:ad3','replace':'''    "keeps mobile and published-release desktop buttons readable without the documentation stylesheet"
     (let [published

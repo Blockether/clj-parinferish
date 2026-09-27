@@ -1,7 +1,7 @@
 cpython: line 54, column 77: unterminated string literal (detected at line 54)
 result: repaired
 fix: line 54: added the missing closing ' at column 78
-problem: line 54, column 77: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 54, column 77: the string is not closed on its line
 problem: line 70, column 1: ']' does not match '{' from line 53, column 2
 --- text after repair
 fix_tts = [{"from":"261:b78","to":"261:b78","replace":"""   cannot act on." """.rstrip()}]

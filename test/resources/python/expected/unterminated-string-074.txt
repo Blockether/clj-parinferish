@@ -6,7 +6,7 @@ problem: line 3, column 6: '(' is never closed
 problem: line 3, column 18: '(' is never closed
 problem: line 3, column 21: '[' is never closed
 problem: line 3, column 22: '{' is never closed
-problem: line 3, column 65: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 3, column 65: the string is not closed on its line
 --- text after repair
 root=Path(session['workspace']['root'])
 p=root/'extensions/channels/vis-channel-tui/test/com/blockether/vis/ext/channel_tui/chat_test.clj'

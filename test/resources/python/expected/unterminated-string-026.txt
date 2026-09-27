@@ -4,11 +4,11 @@ fix: line 105: made the string at column 43 triple-quoted (""") because its text
 fix: line 122: removed the unmatched '}' at column 117
 fix: line 124: removed the unmatched ']' at column 1
 fix: line 124: removed the unmatched ')' at column 2
-problem: line 105, column 43: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 105, column 43: the string is not closed on its line
 problem: line 108, column 22: backslash outside a string; there it may only end a line
-problem: line 108, column 23: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 108, column 23: the string is not closed on its line
 problem: line 111, column 22: backslash outside a string; there it may only end a line
-problem: line 111, column 23: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 111, column 23: the string is not closed on its line
 problem: line 114, column 39: backslash outside a string; there it may only end a line
 problem: line 114, column 41: ')' does not match '[' from line 114, column 40
 problem: line 119, column 44: ')' has no opening bracket

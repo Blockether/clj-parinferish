@@ -1,17 +1,17 @@
 cpython: line 2, column 200: unterminated string literal (detected at line 2)
-result: not repaired
-fix: line 2: added the missing closing " at column 202
+result: repaired
+fix: line 2: added the missing closing " at column 116
 problem: line 2, column 14: '(' is never closed
 problem: line 2, column 15: '{' is never closed
 problem: line 2, column 25: '[' is never closed
-problem: line 2, column 120: the string from column 108 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 2, column 141: the string from column 125 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 2, column 177: the string from column 161 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 2, column 196: the string from column 180 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 2, column 200: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 2, column 120: the string from column 108 ends right before this text
+problem: line 2, column 141: the string from column 125 ends right before this text
+problem: line 2, column 177: the string from column 161 ends right before this text
+problem: line 2, column 196: the string from column 180 ends right before this text
+problem: line 2, column 200: the string is not closed on its line
 --- text after repair
 root = Path(session["workspace"]["root"])
-search = grep({"query": ["cannot index", "class __VisShell__", ".logs()[-", ".logs()[", "logs()[\"out\"]", "logs(\"], "paths": [str(root / "resources/vis-python"), str(root / "src"), str(root / "test")"]})
+search = grep({"query": ["cannot index", "class __VisShell__", ".logs()[-", ".logs()[", "logs()[\"out\"]", "logs(\""], "paths": [str(root / "resources/vis-python"), str(root / "src"), str(root / "test")]})
 history2 = await read_session()
 print(search)
 print("SESSION", history2.get("session_id") if isinstance(history2, dict) else type(history2).__name__)

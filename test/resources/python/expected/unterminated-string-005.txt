@@ -1,9 +1,9 @@
 cpython: line 5, column 31: unterminated string literal (detected at line 5)
 result: repaired
 fix: line 5: made the string at column 31 triple-quoted (''') because its text continues onto the next lines; it now ends on line 16
-problem: line 5, column 31: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 5, column 31: the string is not closed on its line
 problem: line 15, column 38: ')' does not match '{' from line 5, column 2
-problem: line 16, column 1: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 16, column 1: the string is not closed on its line
 --- text after repair
 r=patch(project_root_path / 'apps/vis-tui/test/com/blockether/vis/tui/dialogs_test.clj',[
  {'from':'2539:dd5','replace':'  (it "paints a single-cell favorite mark on the starred row alone"'},

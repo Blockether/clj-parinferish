@@ -3,7 +3,7 @@ result: not repaired
 fix: line 1: added ']' at column 40 to close '[' from line 1
 fix: line 2: added the missing closing " at column 36
 problem: line 1, column 40: ')' does not match '[' from line 1, column 33
-problem: line 2, column 7: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 2, column 7: the string is not closed on its line
 --- text after repair
 root = Path(session["workspace"]["root"])
       ".rstrip() if False else root"

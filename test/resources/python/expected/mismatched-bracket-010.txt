@@ -4,11 +4,11 @@ fix: line 1: added ']}' at column 55 to close the brackets from line 1
 fix: line 1: added the missing closing ' at column 527
 problem: line 1, column 6: '(' is never closed
 problem: line 1, column 55: ')' does not match '[' from line 1, column 21
-problem: line 1, column 73: the string from column 70 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 93: the string from column 90 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 104: the string from column 101 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 117: the string from column 114 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 132: the string from column 129 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 152: the string from column 148 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 73: the string from column 70 ends right before this text
+problem: line 1, column 93: the string from column 90 ends right before this text
+problem: line 1, column 104: the string from column 101 ends right before this text
+problem: line 1, column 117: the string from column 114 ends right before this text
+problem: line 1, column 132: the string from column 129 ends right before this text
+problem: line 1, column 152: the string from column 148 ends right before this text
 --- text after repair
 print(grep({'query':['1 group','2 sessions','Sessions']}).parentElement','bg-project-header','bg-panel','MachineTab','aria-pressed','bg-level-machine'],'paths':[project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.test.tsx',project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.stories.tsx',project_root_path/'apps/vis-companion/src/components/SessionNavigator.test.tsx',project_root_path/'apps/vis-companion/src/components/ui.stories.tsx'],'context':1,'is_files_only':True})')

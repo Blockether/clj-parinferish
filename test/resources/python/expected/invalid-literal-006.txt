@@ -12,13 +12,13 @@ fix: line 75: removed the backslashes before quotes outside strings, from column
 fix: line 76: removed the unmatched '}' at column 1
 fix: line 76: removed the unmatched ']' at column 2
 problem: line 53, column 21: ';' ends the statement while '{' from line 42, column 4 is still open
-problem: line 54, column 27: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 54, column 27: the string is not closed on its line
 problem: line 55, column 3: '(' is never closed
 problem: line 55, column 7: backslash outside a string; there it may only end a line
-problem: line 55, column 8: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 55, column 8: the string is not closed on its line
 problem: line 56, column 7: '(' is never closed
 problem: line 57, column 26: backslash outside a string; there it may only end a line
-problem: line 57, column 27: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 57, column 27: the string is not closed on its line
 --- text after repair
 hashline_test_edit = patch(str(ht), [{
     "from": "67:ca8",

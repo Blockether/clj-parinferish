@@ -7,11 +7,11 @@ fix: line 9: removed the unmatched '}' at column 9
 fix: line 10: removed the unmatched '}' at column 5
 fix: line 11: removed the unmatched '}' at column 1
 fix: line 14: added the missing closing ''' at column 34 for the triple-quoted string from line 12
-problem: line 6, column 35: the string from line 2, column 19 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 6, column 35: the string from line 2, column 19 ends right before this text
 problem: line 6, column 38: backslash outside a string; there it may only end a line
-problem: line 6, column 44: the string from column 40 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 6, column 44: the string from column 40 ends right before this text
 problem: line 6, column 60: backslash outside a string; there it may only end a line
-problem: line 6, column 66: the string from column 62 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 6, column 66: the string from column 62 ends right before this text
 problem: line 6, column 71: backslash outside a string; there it may only end a line
 problem: line 6, column 86: backslash outside a string; there it may only end a line
 problem: line 8, column 109: ';' ends the statement while '{' from line 7, column 32 is still open

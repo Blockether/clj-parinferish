@@ -1,7 +1,7 @@
 cpython: line 9, column 222: invalid syntax
 result: repaired
 fix: line 9: escaped the ' at columns 219 and 258 so the string keeps them as text
-problem: line 9, column 222: the string from line 5, column 23 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 9, column 222: the string from line 5, column 23 ends right before this text
 --- text after repair
 sdk_python = root / 'target/sdk-namespace/venv/bin/python'
 provider_test_path = root / 'test/com/blockether/vis/internal/python/extensions_test.clj'

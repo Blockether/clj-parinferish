@@ -1,10 +1,6 @@
 cpython: line 49, column 4: closing parenthesis ')' does not match opening parenthesis '[' on line 1
-result: not repaired
-fix: line 34: added '}}])' at column 23 to close the brackets from line 1
-fix: line 40: removed the unmatched '}' at column 5
-fix: line 40: removed the unmatched '}' at column 77
-fix: line 49: removed the unmatched ')' at column 4
-fix: line 49: added the missing closing ''' at column 24 for the triple-quoted string from line 49
+result: repaired
+fix: line 33: completed the closing ''' at column 8 of the triple-quoted string from line 1
 problem: line 34, column 23: ';' ends the statement while '{' from line 33, column 105 is still open
 problem: line 40, column 5: '}' has no opening bracket
 problem: line 40, column 77: '}' has no opening bracket
@@ -43,14 +39,14 @@ root=Path(session['workspace']['root']); p=root/'apps/vis-companion/src/screens/
         pinToEnd();
       }
       void reconcile();
-    });''},{'from':'2759:48b│     return () => {','to':'2764:f5e│     };','replace':'''    return () => {
-      cancelled = true}}]);
+    });'''},{'from':'2759:48b│     return () => {','to':'2764:f5e│     };','replace':'''    return () => {
+      cancelled = true;
       window.clearInterval(timer);
       if (wakeGeometryFrame !== null)
         window.cancelAnimationFrame(wakeGeometryFrame);
       stopWake();
       stopReady();
-    ;'''},{'from':'2765:bca│   }, [','to':'2773:24f│   ]);','replace':'''  , [
+    };'''},{'from':'2765:bca│   }, [','to':'2773:24f│   ]);','replace':'''  }, [
     client,
     sid,
     loadTranscript,
@@ -59,4 +55,4 @@ root=Path(session['workspace']['root']); p=root/'apps/vis-companion/src/screens/
     syncJump,
     acceptQueueBacklog,
     adoptRunningTurn,
-  ];'''}]); print(out)'''
+  ]);'''}]); print(out)

@@ -1,10 +1,8 @@
 cpython: line 4, column 63: invalid syntax. Perhaps you forgot a comma?
-result: not repaired
-fix: line 11: removed the backslashes before quotes outside strings, from column 45
-fix: line 12: added '}]))' at column 78 to close the brackets from line 3
-fix: line 20: added the missing closing """ at column 27 for the triple-quoted string from line 18
+result: repaired
+fix: line 6: completed the closing """ at column 83 of the triple-quoted string from line 4
 problem: line 11, column 45: backslash outside a string; there it may only end a line
-problem: line 11, column 46: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 11, column 46: the string is not closed on its line
 problem: line 12, column 78: ';' ends the statement while '{' from line 11, column 38 is still open
 problem: line 18, column 1: the triple-quoted string is never closed
 --- text after repair
@@ -13,13 +11,13 @@ changelog_path = svar_root / "CHANGELOG.md"
 results = await gather(
  patch(core_path, [{"from":"136:799","to":"137:f47","replace":"""  \"Wraps text in a cacheable content block. Anthropic emits `cache_control`.
    GPT-5.6+ Responses emits explicit prompt-cache breakpoints, including a
-   rolling prior-turn boundary; older OpenAI-compatible styles strip the marker.\"""}]),
+   rolling prior-turn boundary; older OpenAI-compatible styles strip the marker.\""""}]),
  patch(test_path, [{"from":"4:e09","to":"10:f89","replace":"""   These tests cover the wire-shape contract that downstream agent loops rely
    on for prompt caching:
 
    - `cached` markers survive `system`/`user`/`assistant` canonical content.
-   - Anthropic emits `cache_control: {type: "ephemeral"}` per marked block.
-   - GPT-5.6+ Responses emits exact rolling `prompt_cache_breakpoint` markers}]));
+   - Anthropic emits `cache_control: {type: \"ephemeral\"}` per marked block.
+   - GPT-5.6+ Responses emits exact rolling `prompt_cache_breakpoint` markers;
      older OpenAI wires strip unsupported `:svar/*` markers."""}]),
  patch(changelog_path, [{"from":"8:4ac","to":"9:000","replace":"""## [Unreleased]
 
@@ -27,4 +25,4 @@ results = await gather(
 - Reuse complete prior-turn prefixes on GPT-5.6 Responses with rolling explicit cache breakpoints.
 """}])
 )
-for x in results: print(x)"""
+for x in results: print(x)

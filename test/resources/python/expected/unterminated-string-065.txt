@@ -1,12 +1,10 @@
 cpython: line 24, column 3: unterminated string literal (detected at line 24)
-result: not repaired
-fix: line 17: escaped the ' at line 17, column 62 and line 19, column 71 so the string keeps them as text
-fix: line 24: made the string at column 3 triple-quoted (""") because its text continues onto the next lines; it now ends on line 31
-fix: line 31: added ')' at column 90 to close '(' from line 23
-problem: line 17, column 65: the string from line 7, column 80 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 24, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+result: repaired
+fix: line 17: completed the closing ''' at column 15 of the triple-quoted string from line 7
+problem: line 17, column 65: the string from line 7, column 80 ends right before this text
+problem: line 24, column 3: the string is not closed on its line
 problem: line 29, column 71: ';' ends the statement while '(' from line 23, column 110 is still open
-problem: line 30, column 54: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 30, column 54: the string is not closed on its line
 problem: line 46, column 1: '}' has no opening bracket
 --- text after repair
 root='/home/user/.vis/worktrees/python-runtime-migration'
@@ -25,21 +23,21 @@ No system package, helper executable, `PATH` entry, or operator install is requi
 loads the platform library adjacent to `libvispython`; the library applies Seatbelt or
 bubblewrap before the child command starts. On Linux, a filtered proxy policy currently
 uses a private network namespace with no route, so it fails closed rather than exposing
-direct egress.''},{"from":"248:e92","to":"250:d1f","replace":\'''4. If startup reports a missing enforcer, verify that the selected Python runtime
+direct egress.'''},{"from":"248:e92","to":"250:d1f","replace":'''4. If startup reports a missing enforcer, verify that the selected Python runtime
    contains the matching `libvisjail` platform library.
-5. An enabled jail that cannot be enforced refuses to start the child.\'''}],
+5. An enabled jail that cannot be enforced refuses to start the child.'''}],
 root+'/src/com/blockether/vis/internal/paths.clj':[{"from":"120:2b8","to":"124:824","replace":'''(def ^:private log-roles
   "Every vis writer whose diagnostics land in `~/.vis/logs`."
   process-roles)'''}],
 root+'/src/com/blockether/vis/internal/foundation/pty_bridge.clj':[{"from":"1:fee","to":"9:835","replace":'''(ns com.blockether.vis.internal.foundation.pty-bridge
-  """Passthrough bridge on top of the libvisjail pseudo-terminal adapter.
+  "Passthrough bridge on top of the libvisjail pseudo-terminal adapter.
 
    The problem it solves: a background `shell` child owns a native PTY whose master
    descriptor is managed by Vis. That is convenient for the agent (shell send/logs),
    but a human cannot jump into the live terminal to finish a browser authorization or
    answer an interactive prompt. tmux gets that from a separate server; libvisjail does
    not expose such a user-facing attachment endpoint."'''}],
-root+'/test/com/blockether/vis/internal/foundation/pty_bridge_test.clj':[{"from""":"16:b5c"),"to":"18:2da","replace":'''(defn- cat-binary
+root+'/test/com/blockether/vis/internal/foundation/pty_bridge_test.clj':[{"from":"16:b5c","to":"18:2da","replace":'''(defn- cat-binary
   "The native spawn ABI takes an absolute executable path."'''}],
 root+'/test/com/blockether/vis/internal/foundation/pty_test.clj':[{"from":"1:637","to":"10:171","replace":'''(ns com.blockether.vis.internal.foundation.pty-test
   "What a libvisjail PTY child is allowed to inherit.

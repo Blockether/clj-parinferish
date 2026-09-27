@@ -6,14 +6,14 @@ fix: line 118: removed the unmatched '}' at column 8
 fix: line 129: removed the unmatched ']' at column 118
 fix: line 129: removed the unmatched ')' at column 119
 fix: line 130: removed the unmatched ')' at column 1
-problem: line 105, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 105, column 3: the string is not closed on its line
 problem: line 106, column 40: ';' ends the statement while '(' from line 104, column 53 is still open
-problem: line 106, column 81: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 106, column 81: the string is not closed on its line
 problem: line 107, column 5: ')' has no opening bracket
-problem: line 110, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
-problem: line 111, column 28: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
-problem: line 113, column 113: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
-problem: line 114, column 84: the string from column 81 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 110, column 3: the string is not closed on its line
+problem: line 111, column 28: the string is not closed on its line
+problem: line 113, column 113: the string is not closed on its line
+problem: line 114, column 84: the string from column 81 ends right before this text
 --- text after repair
 root=Path(session['workspace']['root'])
 state=root/'src/com/blockether/vis/internal/gateway/state.clj'

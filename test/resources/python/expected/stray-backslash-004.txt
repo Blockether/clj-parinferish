@@ -1,7 +1,7 @@
 cpython: line 2, column 84: unexpected character after line continuation character
 result: repaired
 fix: line 2: escaped the " at columns 74 and 85 so the string keeps them as text
-problem: line 2, column 75: the string from column 16 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 2, column 75: the string from column 16 ends right before this text
 problem: line 2, column 83: backslash outside a string; there it may only end a line
 problem: line 2, column 84: backslash outside a string; there it may only end a line
 --- text after repair

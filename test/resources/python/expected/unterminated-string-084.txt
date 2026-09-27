@@ -1,9 +1,9 @@
 cpython: line 3, column 5: unterminated string literal (detected at line 3)
 result: repaired
 fix: line 3: made the string at column 5 triple-quoted (""") because its text continues onto the next lines; it now ends on line 4
-problem: line 3, column 5: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 3, column 5: the string is not closed on its line
 problem: line 4, column 167: ';' ends the statement while '(' from line 1, column 28 is still open
-problem: line 4, column 1375: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 4, column 1375: the string is not closed on its line
 problem: line 5, column 1: ')' has no opening bracket
 --- text after repair
 folded = await fold_session(

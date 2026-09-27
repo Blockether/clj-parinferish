@@ -3,12 +3,12 @@ result: not repaired
 fix: line 1: turned the literal \n outside strings into line breaks
 fix: line 1: added '))' at column 310 to close the brackets from line 1
 fix: line 1: added the missing closing ' at column 552
-problem: line 1, column 115: the string from column 112 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 125: the string from column 122 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 147: the string from column 144 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 157: the string from column 154 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 162: the string from column 159 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 172: the string from column 169 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 115: the string from column 112 ends right before this text
+problem: line 1, column 125: the string from column 122 ends right before this text
+problem: line 1, column 147: the string from column 144 ends right before this text
+problem: line 1, column 157: the string from column 154 ends right before this text
+problem: line 1, column 162: the string from column 159 ends right before this text
+problem: line 1, column 172: the string from column 169 ends right before this text
 problem: line 1, column 199: backslash outside a string; there it may only end a line
 problem: line 1, column 294: backslash outside a string; there it may only end a line
 --- text after repair

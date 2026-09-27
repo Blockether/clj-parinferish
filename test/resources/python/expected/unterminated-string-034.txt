@@ -1,8 +1,8 @@
 cpython: line 10, column 36: unterminated string literal (detected at line 10)
 result: repaired
 fix: line 10: made the string at column 36 triple-quoted (''') because its text continues onto the next lines; it now ends on line 12
-problem: line 10, column 36: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
-problem: line 12, column 41: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 10, column 36: the string is not closed on its line
+problem: line 12, column 41: the string is not closed on its line
 problem: line 13, column 1: ']' does not match '{' from line 10, column 5
 --- text after repair
 inspection_prompt_candidate = inspection_prompt_candidate.replace('Arguments | `import inspect; print(inspect.signature(fn))`; never use `doc()` just for call shape.', 'Arguments | `import inspect; print(inspect.signature(fn))`; not `doc()`.')

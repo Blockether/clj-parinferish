@@ -11,10 +11,10 @@ fix: line 14: removed the unmatched '}' at column 18
 fix: line 14: removed the unmatched ']' at column 19
 fix: line 14: removed the unmatched ')' at column 20
 fix: line 14: removed the unmatched ')' at column 21
-problem: line 1, column 107: the string from column 104 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 118: the string from column 115 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 123: the string from column 120 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 134: the string from column 131 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 107: the string from column 104 ends right before this text
+problem: line 1, column 118: the string from column 115 ends right before this text
+problem: line 1, column 123: the string from column 120 ends right before this text
+problem: line 1, column 134: the string from column 131 ends right before this text
 problem: line 1, column 150: '}' does not match '(' from line 1, column 12
 problem: line 2, column 67: ';' ends the statement while '{' from line 1, column 158 is still open
 problem: line 4, column 5: '}' has no opening bracket

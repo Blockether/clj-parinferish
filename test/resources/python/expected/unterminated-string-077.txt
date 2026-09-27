@@ -1,14 +1,12 @@
 cpython: line 18, column 3: unterminated string literal (detected at line 18)
-result: not repaired
-fix: line 18: made the string at column 3 triple-quoted (""") because its text continues onto the next lines; it now ends on line 41
-fix: line 41: added ')' at column 89 to close '(' from line 17
-fix: line 41: added the missing closing ''' at column 94 for the triple-quoted string from line 41
-problem: line 18, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+result: repaired
+fix: line 17: completed the closing ''' at column 6 of the triple-quoted string from line 3
+problem: line 18, column 3: the string is not closed on its line
 problem: line 19, column 27: ';' ends the statement while '(' from line 17, column 53 is still open
-problem: line 19, column 66: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 19, column 66: the string is not closed on its line
 problem: line 20, column 5: ')' has no opening bracket
-problem: line 23, column 3: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
-problem: line 24, column 28: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 23, column 3: the string is not closed on its line
+problem: line 24, column 28: the string is not closed on its line
 problem: line 38, column 181: '}' has no opening bracket
 problem: line 38, column 182: ']' has no opening bracket
 --- text after repair
@@ -28,8 +26,8 @@ print(await patch(p,[{'from':'38:578','to':'49:dea','replace':'''   11 — itera
    lookup. Coarse ticker frames are `turn.progress`; form frames route by the
    truthful numeric `form_index`. The split-id reconciliation contract and the
    overloaded `activity` event name are gone."
-  11)'},{'from':'51:31c','to':'59:dea','replace':'''(def min-client-protocol
-  """Oldest client protocol this gateway serves. Protocol 11 removes the obsolete
+  11)'''},{'from':'51:31c','to':'59:dea','replace':'''(def min-client-protocol
+  "Oldest client protocol this gateway serves. Protocol 11 removes the obsolete
    iteration-form `result`; clients consume `stdout` and `error`."
   11)
 
@@ -52,4 +50,4 @@ print(await patch(p,[{'from':'29:c76','to':'31:5da','replace':'''    (is (= 11 p
     (is (= 11 protocol/min-gateway-protocol))'''},{'from':'69:6f9','to':'72:d83','replace':'''         "protocol" {"protocol" 12 "min_client" 12 "min_gateway" 2 "version" "12.0.0"}}]
 
     (try (is (= body ((client-var 'note-handshake!) body)))
-         (is (= {:protocol 12 :min-client 12 :min-gateway 2 :version "12.0.0""" :build nil)}'''}''']))
+         (is (= {:protocol 12 :min-client 12 :min-gateway 2 :version "12.0.0" :build nil}'''}]))

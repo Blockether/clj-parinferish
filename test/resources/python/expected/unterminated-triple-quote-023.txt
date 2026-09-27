@@ -1,0 +1,30 @@
+cpython: line 21, column 10: unterminated triple-quoted string literal (detected at line 21)
+result: repaired
+fix: line 11: completed the closing ''' at column 41 of the triple-quoted string from line 1
+problem: line 1, column 6: '(' is never closed
+problem: line 1, column 12: '(' is never closed
+problem: line 1, column 64: '[' is never closed
+problem: line 1, column 179: '{' is never closed
+problem: line 21, column 10: the triple-quoted string is never closed
+--- text after repair
+print(patch(spel_path/'extensions/vis-spel/tests/test_spel.py',[{'from':'19:c73','replace':'            "INSERT INTO installation VALUES (1, ?, ?, 1)", ("0.9.40", str(binary))'},{'from':'91:5f9','to':'95:679','replace':'''    with pytest.raises(ValueError, match="prepare_profile"):
+        spel.reserve(profile="unprepared")
+    with pytest.raises(ValueError, match="Chromium"):
+        spel.reserve(profile="work", browser="webkit")
+    with spel._db() as db:
+        db.execute("UPDATE installation SET version='0.9.39'")
+    with pytest.raises(SpelError, match="Spel 0.9.40 or newer"):
+        spel.reserve(profile="work")
+    with spel._db() as db:
+        db.execute("UPDATE installation SET version='0.9.40'")
+    lease = spel.reserve(profile="work")'''},{'from':'148:c22','replace':'    assert spel.installed().version == "0.9.40"'},{'from':'459:9d8','replace':'    assert installed.version == DEFAULT_VERSION == "0.9.40"'}])); print(patch(spel_path/'extensions/vis-spel/tests/test_native.py',[{'from':'3:c2c','to':'5:883','replace':'import json\nimport os\nimport sqlite3'},{'from':'97:b1b','to':'104:029','replace':'''    installed = Spel().installed()
+    assert installed is not None
+    binary = os.environ.get("SPEL_INTEGRATION_BINARY", installed.executable)
+    code, version, _ = _execute(binary, ["version"])
+    assert code == 0 and version.strip().startswith("spel ")
+    client = Spel(tmp_path / "managed")
+    with client._db() as db:
+        db.execute(
+            "INSERT INTO installation VALUES (1, ?, ?, 1)",
+            (version.strip().removeprefix("spel "), binary),
+        )'''}]))

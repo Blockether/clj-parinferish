@@ -1,30 +1,26 @@
 cpython: line 5, column 12: invalid decimal literal
-result: not repaired
-fix: line 10: added '})}])' at column 27 to close the brackets from line 2
-fix: line 13: added '}' at column 41 to close '{' from line 12
-fix: line 14: removed the unmatched '}' at column 5
-fix: line 30: added the missing closing ' at column 89
-fix: line 39: added the missing closing ''' at column 9 for the triple-quoted string from line 38
+result: repaired
+fix: line 3: completed the closing ''' at column 34 of the triple-quoted string from line 2
 problem: line 10, column 27: ';' ends the statement while '{' from line 9, column 19 is still open
 problem: line 13, column 41: ';' ends the statement while '{' from line 12, column 37 is still open
 problem: line 14, column 5: '}' has no opening bracket
-problem: line 30, column 45: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 30, column 45: the string is not closed on its line
 problem: line 38, column 5: the triple-quoted string is never closed
 --- text after repair
 root=Path(session['workspace']['root']); s=root/'apps/vis-companion/src/screens/SessionsScreen.tsx'
 r=await patch(s,[{'from':'960:ac5','to':'961:e11','replace':'''  // (a cached fleet already is), and the five-second poll below stays the business of the
-  // screen that is on the glass.''},{'from':'970:99d','to':'990:b7b','replace':'''  // Behind an open transcript this screen is mounted but invisible, and a list
+  // screen that is on the glass.'''},{'from':'970:99d','to':'990:b7b','replace':'''  // Behind an open transcript this screen is mounted but invisible, and a list
   // nobody can see must not do fleet-wide work: this poll refetched every machine
   // every 5s and re-ran the filter and the sort of the whole fleet — under the
   // composer the reader was typing in. Becoming visible re-runs the effect, whose
   // first act is a full load, so the rows are fresh the moment they are back on
   // the glass.
   useEffect(() => {
-    if (!isVisible) return})}]);
+    if (!isVisible) return;
     const controller = new AbortController();
     const refreshLiveStates = () => {
-      void load(controller.signal, true)};
-    ;
+      void load(controller.signal, true);
+    };
 
     void load(controller.signal);
     // The session-list head is already the reachability check and carries live/idle
@@ -40,7 +36,7 @@ r=await patch(s,[{'from':'960:ac5','to':'961:e11','replace':'''  // (a cached fl
     [machines],
   );
   // Pairing order still owns sections, hues and every persisted identity. The switch is
-  // only a destination list: keep each band's original order, but put every destination'
+  // only a destination list: keep each band's original order, but put every destination
   // that no longer answers after all the destinations the reader can still enter.
   const switcherMachines = useMemo(
     () => [
@@ -49,4 +45,4 @@ r=await patch(s,[{'from':'960:ac5','to':'961:e11','replace':'''  // (a cached fl
     ],
     [machines],
   );'''.replace("each band's", "each group's")},{'from':'2106:145','to':'2106:145','replace':'              {switcherMachines.map((machine) => {'}])
-print(r)'''
+print(r)

@@ -161,7 +161,7 @@ well under a second.
 from real Vis sessions: 422 that CPython refused and 39 valid ones the repair must
 leave alone. Each case has a report of what CPython said, the fixes, the problems and
 the repaired text, and the tests compare every case with its report. The repair makes
-304 of the 422 broken cases parse (72 %). To improve it, change the engine, run
+331 of the 426 broken cases parse (78 %). To improve it, change the engine, run
 `clojure -M:python-corpus` and review the diff of the reports; the corpus
 [README](test/resources/python/README.md) describes the workflow.
 

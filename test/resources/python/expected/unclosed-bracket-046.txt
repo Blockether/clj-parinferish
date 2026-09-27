@@ -1,20 +1,13 @@
 cpython: line 56, column 9: '{' was never closed
-result: not repaired
-fix: line 63: removed the backslashes before quotes outside strings, from column 13
-fix: line 64: removed the backslashes before quotes outside strings, from column 1
-fix: line 65: removed the backslashes before quotes outside strings, from column 7
-fix: line 66: removed the backslashes before quotes outside strings, from column 11
-fix: line 67: removed the backslashes before quotes outside strings, from column 16
-fix: line 68: removed the stray backslash at column 7
-fix: line 68: made the string at column 8 triple-quoted (''') because its text continues onto the next lines; it now ends on line 77
-fix: line 77: added ']]}]' at column 49 to close the brackets from line 55
-problem: line 59, column 44: the string from line 56, column 59 ends right before this text; if its closing quote belongs to the text, escape it
+result: repaired
+fix: line 58: completed the closing """ at column 31 of the triple-quoted string from line 56
+problem: line 59, column 44: the string from line 56, column 59 ends right before this text
 problem: line 63, column 13: backslash outside a string; there it may only end a line
-problem: line 63, column 14: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 63, column 14: the string is not closed on its line
 problem: line 64, column 1: backslash outside a string; there it may only end a line
-problem: line 64, column 2: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 64, column 2: the string is not closed on its line
 problem: line 65, column 7: backslash outside a string; there it may only end a line
-problem: line 65, column 8: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 65, column 8: the string is not closed on its line
 problem: line 66, column 11: backslash outside a string; there it may only end a line
 --- text after repair
 unit_test_patch = await patch(
@@ -74,17 +67,17 @@ cli_test_patch = await patch(
     [
         {"from": "2472:948", "to": "2474:430", "replace": """# DAEMON HEALTH, CANCEL, KILL (22)
 # =============================================================================
-section \"Daemon health (22)\"""},
+section \"Daemon health (22)\""""},
         {"from": "2501:cc3", "replace": """fi
 
 # Regression, issue #117: a daemon launched from a short-lived caller inherited
 # its terminal hangup and exited after the first otherwise-successful command.
-HUP_SESSION="terminal-hangup-$$"
-"$SPEL" --session "$HUP_SESSION" open "data:text/html,<h1>hangup</h1>" >/dev/null 2>&1
-OUT=$("$SPEL" --session "$HUP_SESSION" --json health 2>&1)
-assert_jq "terminal hangup test starts a daemon" "$OUT" '.status == "ok" and (.pid | tonumber) > 0'
-HUP_PID=$(echo "$OUT" | jq -r '.pid // empty')
-if [[ '''$HUP_PID\" =~ ^[0-9]+$ ]]; then
+HUP_SESSION=\"terminal-hangup-$$\"
+\"$SPEL\" --session \"$HUP_SESSION\" open \"data:text/html,<h1>hangup</h1>\" >/dev/null 2>&1
+OUT=$(\"$SPEL\" --session \"$HUP_SESSION\" --json health 2>&1)
+assert_jq \"terminal hangup test starts a daemon\" \"$OUT\" '.status == \"ok\" and (.pid | tonumber) > 0'
+HUP_PID=$(echo \"$OUT\" | jq -r '.pid // empty')
+if [[ \"$HUP_PID\" =~ ^[0-9]+$ ]]; then
   kill -HUP \"$HUP_PID\" 2>/dev/null || true
   sleep 1
 fi
@@ -93,5 +86,5 @@ assert_jq_eq \"daemon survives its caller terminal closing\" \"$OUT\" '.status' 
 \"$SPEL\" --session \"$HUP_SESSION\" close >/dev/null 2>&1 || true"""},
     ],
 )
-print("UNIT TEST PATCH\n''' + str(unit_test_patch)]]}])
+print("UNIT TEST PATCH\n" + str(unit_test_patch))
 print("CLI TEST PATCH\n" + str(cli_test_patch))

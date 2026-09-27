@@ -1,13 +1,13 @@
 cpython: line 1, column 217: invalid decimal literal
-result: not repaired
-fix: line 1: added the missing closing ' at column 303
+result: repaired
+fix: line 1: added the missing closing ' at column 104
 problem: line 1, column 6: '(' is never closed
 problem: line 1, column 12: '(' is never closed
-problem: line 1, column 115: the string from column 112 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 125: the string from column 122 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 130: the string from column 127 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 140: the string from column 137 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 216: the string from column 147 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 293: the string from column 220 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 115: the string from column 112 ends right before this text
+problem: line 1, column 125: the string from column 122 ends right before this text
+problem: line 1, column 130: the string from column 127 ends right before this text
+problem: line 1, column 140: the string from column 137 ends right before this text
+problem: line 1, column 216: the string from column 147 ends right before this text
+problem: line 1, column 293: the string from column 220 ends right before this text
 --- text after repair
-print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.stories.tsx,[{'from':'757:f0c','to':'758:d55','replace':"    await expect(style(groups.firstElementChild!).fontSize).toBe('11px');\n    await expect(style(sessions.firstElementChild!).fontSize).toBe('11px');"}]'))
+print(patch(project_root_path/'apps/vis-companion/src/screens/sessions/SessionProjectGroups.stories.tsx',[{'from':'757:f0c','to':'758:d55','replace':"    await expect(style(groups.firstElementChild!).fontSize).toBe('11px');\n    await expect(style(sessions.firstElementChild!).fontSize).toBe('11px');"}]))

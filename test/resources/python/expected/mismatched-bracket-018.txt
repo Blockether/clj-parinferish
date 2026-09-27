@@ -10,7 +10,7 @@ problem: line 22, column 96: '[' is never closed
 problem: line 22, column 97: '{' is never closed
 problem: line 42, column 132: '(' is never closed
 problem: line 43, column 5: '(' is never closed
-problem: line 46, column 86: the string from column 37 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 46, column 86: the string from column 37 ends right before this text
 problem: line 47, column 7: '(' is never closed
 --- text after repair
 print(patch(project_root_path / "src/com/blockether/vis/internal/activity/event.clj", [

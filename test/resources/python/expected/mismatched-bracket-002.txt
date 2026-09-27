@@ -16,8 +16,8 @@ fix: line 26: added '})' at column 102 to close the brackets from line 23
 fix: line 37: removed the unmatched '}' at column 3
 fix: line 37: removed the unmatched ')' at column 4
 fix: line 39: added the missing closing ''' at column 83 for the triple-quoted string from line 39
-problem: line 1, column 112: the string from column 109 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 122: the string from column 119 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 112: the string from column 109 ends right before this text
+problem: line 1, column 122: the string from column 119 ends right before this text
 problem: line 1, column 161: ';' ends the statement while '(' from line 1, column 12 is still open
 problem: line 2, column 85: '}' has no opening bracket
 problem: line 2, column 86: ')' has no opening bracket

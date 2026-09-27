@@ -1,7 +1,7 @@
 cpython: line 7, column 7: invalid syntax
 result: repaired
 fix: line 7: escaped the ' at columns 4 and 64 so the string keeps them as text
-problem: line 7, column 7: the string from line 1, column 12 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 7, column 7: the string from line 1, column 12 ends right before this text
 --- text after repair
 test_src = '''
 ;; Regression: a MANAGED provider declared by a PYTHON extension was a flag that

@@ -1,7 +1,7 @@
 cpython: line 18, column 261: invalid character '…' (U+2026)
 result: repaired
 fix: line 18: escaped the " at columns 233 and 264 so the string keeps them as text
-problem: line 18, column 234: the string from column 45 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 18, column 234: the string from column 45 ends right before this text
 problem: line 18, column 262: backslash outside a string; there it may only end a line
 problem: line 18, column 263: backslash outside a string; there it may only end a line
 --- text after repair

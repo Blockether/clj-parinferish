@@ -6,9 +6,9 @@ problem: line 3, column 12: '(' is never closed
 problem: line 3, column 93: '[' is never closed
 problem: line 3, column 94: '{' is never closed
 problem: line 66, column 81: '(' is never closed
-problem: line 66, column 87: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 66, column 87: the string is not closed on its line
 problem: line 67, column 13: backslash outside a string; there it may only end a line
-problem: line 67, column 19: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 67, column 19: the string is not closed on its line
 --- text after repair
 print(grep({"query":["defn new-context", "workspace/root"], "paths":[project_root_path / "test/com/blockether/vis/test_python_context.clj"], "context":5}))
 print(cat(project_root_path / "test/com/blockether/vis/internal/python/extensions_test.clj", 343, 426))

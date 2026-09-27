@@ -9,13 +9,13 @@ fix: line 40: added the missing closing ' at column 32
 fix: line 41: added the missing closing ' at column 52
 fix: line 42: added the missing closing ' at column 58
 problem: line 11, column 13: '(' is never closed
-problem: line 12, column 10: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
-problem: line 13, column 10: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
-problem: line 14, column 10: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
-problem: line 15, column 10: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 12, column 10: the string is not closed on its line
+problem: line 13, column 10: the string is not closed on its line
+problem: line 14, column 10: the string is not closed on its line
+problem: line 15, column 10: the string is not closed on its line
 problem: line 38, column 45: ')' does not match '[' from line 16, column 6
 problem: line 39, column 13: '(' is never closed
-problem: line 40, column 10: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 40, column 10: the string is not closed on its line
 --- text after repair
 root = Path(session["workspace"]["root"])
 wt = root / "target" / "cache_semantics_analysis_bb413a"

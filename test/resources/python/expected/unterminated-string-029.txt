@@ -1,8 +1,8 @@
 cpython: line 18, column 35: unterminated string literal (detected at line 18)
 result: repaired
 fix: line 18: made the string at column 35 triple-quoted (""") because its text continues onto the next lines; it now ends on line 23
-problem: line 18, column 35: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
-problem: line 30, column 87: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 18, column 35: the string is not closed on its line
+problem: line 30, column 87: the string is not closed on its line
 problem: line 31, column 44: ';' ends the statement while '(' from line 18, column 32 is still open
 problem: line 106, column 1: the triple-quoted string is never closed
 --- text after repair

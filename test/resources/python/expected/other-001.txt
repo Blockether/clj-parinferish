@@ -4,12 +4,12 @@ fix: line 1: escaped the ' at columns 114, 122, 124 and 132 so the string keeps 
 fix: line 1: escaped the 8 ' from column 146 to column 179 so the string keeps them as text
 fix: line 3: added '))' at column 15 to close the brackets from line 1
 fix: line 7: added the missing closing ''' at column 14 for the triple-quoted string from line 7
-problem: line 1, column 115: the string from column 112 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 125: the string from column 122 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 147: the string from column 144 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 157: the string from column 154 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 162: the string from column 159 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 1, column 172: the string from column 169 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 1, column 115: the string from column 112 ends right before this text
+problem: line 1, column 125: the string from column 122 ends right before this text
+problem: line 1, column 147: the string from column 144 ends right before this text
+problem: line 1, column 157: the string from column 154 ends right before this text
+problem: line 1, column 162: the string from column 159 ends right before this text
+problem: line 1, column 172: the string from column 169 ends right before this text
 problem: line 3, column 15: ';' ends the statement while '(' from line 1, column 12 is still open
 problem: line 7, column 7: the triple-quoted string is never closed
 --- text after repair

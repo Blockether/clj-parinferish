@@ -1,8 +1,8 @@
 cpython: line 2, column 600: invalid syntax. Is this intended to be part of the string?
 result: repaired
 fix: line 2: escaped the " at columns 599, 610, 633 and 668 so the string keeps them as text
-problem: line 2, column 600: the string from column 56 ends right before this text; if its closing quote belongs to the text, escape it
-problem: line 2, column 634: the string from column 610 ends right before this text; if its closing quote belongs to the text, escape it
+problem: line 2, column 600: the string from column 56 ends right before this text
+problem: line 2, column 634: the string from column 610 ends right before this text
 --- text after repair
 print(cat(vis_python_runtime_path / 'native/visjail/windows_network_capability_probe.c', 373, 409))
 win52_events_shape = await shell(winvm_pwsh_command48(r"$ErrorActionPreference='Stop'; $raw=(& netsh.exe wfp show netevents file=- remoteaddr=127.0.0.1 timewindow=1800 | Out-String); $start=$raw.IndexOf('<?xml'); if ($start -lt 0) { $start=$raw.IndexOf('<'); }; if ($start -lt 0) { Write-Output 'NETEVENTS_NO_XML'; exit 2 }; [xml]$doc=$raw.Substring($start); Write-Output ('XML_ROOT=' + $doc.DocumentElement.Name); $doc.DocumentElement.ChildNodes | Group-Object Name | ForEach-Object { Write-Output ('XML_CHILD=' + $_.Name + ' COUNT=' + $_.Count) }; $nodes=@($doc.SelectNodes('//*[contains(text(), \"capability\") or contains(text(), \"cp0ad4d3e39a0d4a4aa34a403e95142ce9\")]')); Write-Output ('OWN_MATCHES=' + $nodes.Count); $nodes | Select-Object -First 10 | ForEach-Object { Write-Output ('OWN_NODE=' + $_.Name + ' PARENT=' + $_.ParentNode.Name + ' GRANDPARENT=' + $_.ParentNode.ParentNode.Name); Write-Output ('OWN_VALUE=' + $_.InnerText) }"))

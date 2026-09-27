@@ -6,7 +6,7 @@ problem: line 51, column 6: '(' is never closed
 problem: line 51, column 12: '(' is never closed
 problem: line 51, column 61: '[' is never closed
 problem: line 56, column 2: '{' is never closed
-problem: line 56, column 31: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 56, column 31: the string is not closed on its line
 --- text after repair
 extra_tests33='''
 

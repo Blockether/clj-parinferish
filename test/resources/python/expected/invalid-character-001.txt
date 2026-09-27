@@ -1,7 +1,7 @@
 cpython: line 17, column 77: invalid character '—' (U+2014)
 result: not repaired
 fix: line 17: added the missing closing " at column 115
-problem: line 17, column 114: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 17, column 114: the string is not closed on its line
 problem: line 29, column 1: ']' does not match '(' from line 17, column 5
 --- text after repair
 sp = Path("/home/user/CryptoSyf/research/sources.json")

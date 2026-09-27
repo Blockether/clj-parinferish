@@ -1,8 +1,7 @@
 cpython: line 2, column 5: '{' was never closed
-result: not repaired
-fix: line 12: removed the backslashes before quotes outside strings, from column 18
-fix: line 14: added the missing closing """ at column 18 for the triple-quoted string from line 12
-fix: line 14: added '}]' at column 18 to close the brackets from line 1
+result: repaired
+fix: line 3: completed the closing """ at column 94 of the triple-quoted string from line 2
+fix: line 12: completed the closing """ at column 20 of the triple-quoted string from line 6
 problem: line 1, column 26: '(' is never closed
 problem: line 1, column 78: '[' is never closed
 problem: line 2, column 5: '{' is never closed
@@ -11,7 +10,7 @@ problem: line 12, column 19: the triple-quoted string is never closed
 --- text after repair
 source_edit = await patch(root / "src/com/blockether/vis/internal/loop.clj", [
     {"from": "4627:0ea", "to": "4628:fb9", "replace": """(defn- ask-code-with-session!
-  \"Keep one opaque Svar session per effective Codex router; other providers stay one-shot.\"""},
+  \"Keep one opaque Svar session per effective Codex router; other providers stay one-shot.\""""},
     {"from": "4647:d79", "to": "4648:d70", "replace": """              current
               (when (and (= provider (:provider entry)) (= router (:router entry))) entry)"""},
     {"from": "6351:af5", "to": "6357:1b8", "replace": """   Router health, budget and retry state are preserved by sharing the original
@@ -20,6 +19,6 @@ source_edit = await patch(root / "src/com/blockether/vis/internal/loop.clj", [
    Svar handle. A changed credential or route produces a different snapshot and
    replaces that handle. A provider token lookup failure is deliberately failure-safe:
    that provider retains its previous snapshot so normal request/error handling remains
-   authoritative."""}
+   authoritative.\""""}
 ])
-print(source_edit"""}])
+print(source_edit)

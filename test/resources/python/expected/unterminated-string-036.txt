@@ -1,10 +1,10 @@
 cpython: line 1, column 24: unterminated string literal (detected at line 1)
 result: repaired
 fix: line 1: made the string at column 24 triple-quoted (''') because its text continues onto the next lines; it now ends on line 7
-problem: line 1, column 24: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 1, column 24: the string is not closed on its line
 problem: line 2, column 97: ';' ends the statement while '(' from line 1, column 13 is still open
 problem: line 2, column 704: a compound statement cannot follow ';'; start it on its own line
-problem: line 7, column 1910: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 7, column 1910: the string is not closed on its line
 --- text after repair
 fold_session('-t3/i5', '''Task: user wants remaining plus/icon-only Companion controls circular, explicitly artifacts. Two prior turns interrupted before parent source edits. Current user also explicitly asked to consult other agents / sessions about JVM wedge, reports switched host to native. Respond Polish, finish UI autonomously; no service restarts/releases. Standing repo authorization permits scoped commit/push after checks; preserve unrelated dirty work. Checkout ~/vis main, last observed HEAD/origin main 1246f8aa2 (broad concurrent commit captured former dirty work, not ours). Other dirty files: VIS_VERSION, apps/vis-companion/package{,-lock}.json, apps/vis-docs/pdoc/{custom.css,module.html.jinja2,navigation.js}, packages/vis-agent/pyproject.toml. Do not stage those.
 Rules read: design skill + visual-system.md + companion.md. Shared controls ui.tsx own all paint; call-site className placement only. Icons Lucide via icons.tsx. Touch >=44x44 / mouse >=28x28, 8px separation; smaller round face may have invisible hit reach. Containers remain square, text buttons not circles. Visual verification required with Spel (not another browser tool), production Storybook / source; phone393x852 tablet834x1194 desktop1280x800 relevant themes. Need affected tests, npm run lint, npm run test:storybook, npm run build; format per project config. Visual claims require actual measurements/screenshots. Self-contained HTML attachment required when delivering visual proposal/review; if creating one imports exact production component/story, production CSS/fonts/theme, bundles via Vite/inlines assets, no copied JSX, must inspect using Spel. No source scratch files.

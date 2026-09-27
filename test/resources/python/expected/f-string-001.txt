@@ -2,7 +2,7 @@ cpython: line 14, column 97: f-string: unmatched ')'
 result: not repaired
 fix: line 14: removed the unmatched ')' at column 97
 problem: line 14, column 10: '(' is never closed
-problem: line 14, column 11: the f-string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 14, column 11: the f-string is not closed on its line
 problem: line 14, column 97: ')' has no opening bracket
 --- text after repair
 import glob, re

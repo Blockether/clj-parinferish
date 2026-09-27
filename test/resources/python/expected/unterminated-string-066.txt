@@ -6,7 +6,7 @@ problem: line 2, column 6: '(' is never closed
 problem: line 2, column 18: '(' is never closed
 problem: line 2, column 51: '[' is never closed
 problem: line 2, column 52: '{' is never closed
-problem: line 2, column 94: the string is not closed on its line; close it with ', or use triple quotes (''') for text that spans lines
+problem: line 2, column 94: the string is not closed on its line
 --- text after repair
 vis=Path('/home/user/.vis/worktrees/python-runtime-migration')
 print(await patch(str(vis/'scripts/gen-audit.bb'),[{'from':'99:404','to':'100:0df','replace':'   ;; These git dependencies have no Maven POM to carry their repository license.\n   "com.blockether/vis-python-runtime" "MIT"\n   "io.github.clj-holmes/clj-watson" "EPL-2.0"})]'}]))

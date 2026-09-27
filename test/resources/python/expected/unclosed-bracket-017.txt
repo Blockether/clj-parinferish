@@ -7,7 +7,7 @@ fix: line 5: added the missing closing " at column 156
 problem: line 5, column 56: backslash outside a string; there it may only end a line
 problem: line 5, column 64: '}' does not match '[' from line 2, column 82
 problem: line 5, column 153: '}' does not match '[' from line 2, column 82
-problem: line 5, column 154: the string is not closed on its line; close it with ", or use triple quotes (""") for text that spans lines
+problem: line 5, column 154: the string is not closed on its line
 --- text after repair
 root = Path(session["workspace"]["root"])
 nav = await patch(root/"apps/vis-companion/src/components/SessionNavigator.tsx", [
